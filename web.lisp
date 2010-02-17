@@ -1,5 +1,5 @@
 ;; web.lisp - Web generator version of draw-something.
-;; Copyright (C) 2009 Rob Myers rob@robmyers.org
+;; Copyright (C) 2009,2010 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -133,7 +133,7 @@
 	    (pathname-name svg-filename))
     (write-svg-tag html-file svg-filename)
     ;; YOU MUST CHANGE THE SOURCE LINK IF YOU MODIFY THIS CODE
-    (format html-file "<p align=\"center\"><a href=\"http://creativecommons.org/licenses/by-sa/3.0/\">Image licence - CC-BY-SA</a>&nbsp;&nbsp;<a href=\"http://robmyers.org/git/?p=rob-art.git;a=tree;f=draw-something\">Code licence - GPL 3 or higher.</a></p>~%")
+    (format html-file "<p align=\"center\"><a href=\"http://creativecommons.org/licenses/by-sa/3.0/\">Image licence - CC-BY-SA</a>&nbsp;&nbsp;<a href=\"http://robmyers.org/git/?p=draw-something.git;a=tree;f=draw-something\">Code licence - GPL 3 or higher.</a></p>~%")
     (write-links html-file previous-html-file next-html-file)
     (format html-file "</body></html>~%")))
 
