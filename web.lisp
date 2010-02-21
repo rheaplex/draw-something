@@ -113,11 +113,11 @@
 (defun write-links (html-file previous-html-file next-html-file)
   "Write the next and previous links (or placeholders for first/last files)"
   (format html-file "<p align=\"center\">")
-  (write-link html-file "next" next-html-file)
+  (write-link html-file "previous" previous-html-file)
   (format html-file "&nbsp;&nbsp;")
   (write-link html-file "index" "index.html")
   (format html-file "&nbsp;&nbsp;")
-  (write-link html-file "previous" previous-html-file)
+  (write-link html-file "next" next-html-file)
   (format html-file "</p>~%"))
 
 (defun write-web-page (svg-filename previous-html-file next-html-file)
