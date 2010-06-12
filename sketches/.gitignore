@@ -1,0 +1,6 @@
+# Emacs backups
+~*
+# Emacs locks
+.#*
+# Python compiled files
+*.pyc
