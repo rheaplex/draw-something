@@ -1,5 +1,5 @@
 #    Groundhog - A program that finds rectangular spaces within bounds
-#    Copyright (C) 2010  Rob myers <rob@robmyers.org>
+#    Copyright (C) 2010  Rob Myers <rob@robmyers.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 import random
 
+
 class Point:
       def __init__(self, x, y):
             self.x = x
@@ -27,6 +28,8 @@ class Point:
 
 
 class Bounds:
+      """Horizontal and vertical bounds of an area."""
+
       def __init__(self, width, height):
             self.width = width
             self.height = height
@@ -36,6 +39,8 @@ class Bounds:
 
 
 class BoundsRange:
+      """Minimum and maximum horizontal and vertical bounds of an area."""
+
       def __init__(self, min_bounds, max_bounds):
             self.min = min_bounds
             self.max = max_bounds
@@ -146,12 +151,11 @@ class SpaceFinder:
          Trying to find space may fail if there is no suitable space,
          or if the object's brute-force search fails."""
                   
-      def __init__(self, cell_matrix, min_width, min_height, max_width,
-                   max_height):
+      def __init__(self, cell_matrix, bounds_range):
             #FIXME: We grow height/width equally at present,
             #  so height/width are same
-            cheat_min = min(min_width, min_height)
-            cheat_max = min(max_width, max_height)
+            cheat_min = min(bounds_range.min.width, bounds_range.min.height)
+            cheat_max = min(bounds_range.max.width, bounds_range.max.height)
             self.cell_matrix = cell_matrix
             self.min_width = cheat_min #min_width
             self.min_height = cheat_min #min_height
@@ -226,7 +230,8 @@ class SpaceFinder:
             if not self.cell_matrix.bounds.contains_rectangle(self.bounds.x,
                                                               self.bounds.y,
                                                               new_width,
-                                                              new_height):                  can_continue = False
+                                                              new_height):
+                  can_continue = False
             # Fail if the new bounds edges contain cells from another figure
             elif self.new_border_contains_marked_cells(new_width, new_height):
                   can_continue = False
@@ -279,6 +284,8 @@ class SpaceFinder:
 
 
 class RGBColour:
+      """A colour expressed in terms of abstract red, green and blue quantities"""
+
       def __init__(self, r, g, b):
             self.r = r
             self.g = g
@@ -286,6 +293,8 @@ class RGBColour:
 
 
 class Figure():
+      """A figure in the drawing"""
+
       def __init__(self):
             self.colour = RGBColour(random.random(),
                                     random.random(),
@@ -293,6 +302,8 @@ class Figure():
 
 
 class RectangleFigure(Figure):
+      """A rectangular figure in the drawing"""
+
       def __init__(self, rect):
             Figure.__init__(self)
             self.geometry = rect
@@ -356,6 +367,39 @@ class Drawing:
             self.bounds = Rectangle(0, 0, width, height)
             self.cells = CellMatrix(width, height)
             self.figures = []
+            self.sizes = ComparativeSizes(self.bounds.width,
+                                          self.bounds.height)
+            self.small_finder = SpaceFinder(self.cells,
+                                            self.sizes.small_bounds_range())
+            self.medium_finder = SpaceFinder(self.cells,
+                                            self.sizes.medium_bounds_range())
+            self.large_finder = SpaceFinder(self.cells,
+                                            self.sizes.large_bounds_range())
+            self.is_finished = False
+
+      def add_new_figure(self):
+            assert self.is_finished is not True
+            # Dumb random choice of figure size rather than expanding tokens
+            size = random.randrange(3)
+            if size is 2:
+                  print "Finding space for large figure"
+                  result = self.large_finder.try_to_find_space()
+            elif size is 1:
+                  print "Finding space for medium figure"
+                  result = self.medium_finder.try_to_find_space()
+            else:
+                  print "Finding space for small figure"
+                  result = self.small_finder.try_to_find_space()
+            print result
+            if result:
+                  print "Found space for figure"
+                  new_figure = RectangleFigure(result)
+                  self.add_figure(new_figure)
+            else:
+                  print "Couldn't find space for figure."
+                  print "Finishing drawing."
+                  self.is_finished = True
+            return self.is_finished
 
       def add_figure(self, figure):
             """Add the figure to the drawing"""
@@ -365,24 +409,16 @@ class Drawing:
 
 def make_drawing(width, height):
       """Make a drawing"""
+      print "Creating drawing data structure."
       drawing = Drawing(width, height)
+      print "Created drawing data structure."
       drawing.cells.roughen(10)
-      sizes = ComparativeSizes(drawing.bounds.width, drawing.bounds.height)
-      size_range = sizes.medium_bounds_range()
-      finder = SpaceFinder(drawing.cells,
-                           size_range.min.width,
-                           size_range.min.height,
-                           size_range.max.width,
-                           size_range.max.height)
+      print "Adding figures to drawing."
       for i in range(0, 20):
-            result = finder.try_to_find_space()
-            if result:
-                  print result
-                  new_figure = RectangleFigure(result)
-                  drawing.add_figure(new_figure)
-            else:
-                  print "Failed"
+            drawing_finished = drawing.add_new_figure()
+            if drawing_finished:
                   break
+      print "Added figures to drawing."
       return drawing
 
 
@@ -418,11 +454,12 @@ class GroundhogApp(gtk.Window):
       def expose(self, widget, event):
             self.draw(widget)
 
+
 GroundhogApp()
 gtk.main()
 
 
-
-#TODO:
+# TODO:
+# Concepts of "some" and "enough"
 # Object to generate tokens
 # Object to expand tokens
