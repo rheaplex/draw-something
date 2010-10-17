@@ -70,6 +70,26 @@
      do (loop for form across (draw-something::forms fig)
 	   collect (draw-something::skeleton form))))
 
+(defun layers-forms (drawing)
+  (loop for plane across (draw-something::planes drawing)
+     do (loop for figure across (draw-something::figures plane)
+	   do (loop for form across (draw-something::forms figure)
+		 collect form))))
+
+(defun max-pen-distance ()
+  (apply #'max (map 'list #'draw-something::pen-distance 
+		    draw-something::plane-pen-parameters)))
+
+(defun max-pen-tolerance ()
+  (apply #'max (map 'list #'draw-something::pen-distance 
+		    draw-something::plane-pen-parameters)))
+
+(defun drawing-overflow-bounds (drawing)
+  "Outlines go over the edge of the drawing but shouldn't go outside of this"
+  (draw-something::inset-rectangle (draw-something::bounds drawing)
+				   (- (+ (max-pen-distance) 
+					( max-pen-tolerance)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -82,7 +102,7 @@
     ;; Point equality
     (assert-true (draw-something::point= +from+ +from+))
   ;; Point inequality
-    (assert-false (draw-something::point= +from+ +to+)))
+  (assert-false (draw-something::point= +from+ +to+))) 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line
@@ -123,32 +143,36 @@
     (assert-points-in-rect +rect+	
 			   (draw-something::random-points-at-rectangle-corners
 			    +rect+ 4))
-  )
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polyline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +polylines+
-  (map-into (make-array 100) 
-	    (lambda ()
-	      (draw-something::make-random-polyline-in-rectangle +rect+ 10))))
-
 (define-test polyline
-    ;; Every created polyline's points fall within its source bounds
-    (assert-true
-     (every (lambda (poly) 
-	      (every (lambda (p)
-		       (draw-something::contains +rect+ p))
-		     (draw-something::points poly)))
-	    +polylines+))
-  ;; Every polyline's bounds fits into the source bounds
-  #|(assert-true (every 
-		(lambda (poly)
-		  (draw-something::contains +rect+
-					    (draw-something::bounds poly)))
-		+polylines+))|#
-  )
+    (let ((polylines
+	   (map-into (make-array 100) 
+		     (lambda ()
+		       (draw-something::make-random-polyline-in-rectangle 
+			+rect+ 10)))))
+      ;; Every created polyline's points fall within its source bounds
+      (assert-true
+       (every (lambda (poly) 
+		(every (lambda (p)
+			 (draw-something::contains +rect+ p))
+		       (draw-something::points poly)))
+	      polylines))
+      ;; Every polyline's bounds fits into the source bounds
+      #|(assert-true (every 
+      (lambda (poly)
+      (draw-something::contains +rect+
+      (draw-something::bounds poly)))
+      polylines))|#
+))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Colour
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter +red+
   (make-instance 'draw-something::colour 
@@ -165,78 +189,64 @@
 ;; Drawing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +drawing+ (draw-something::make-drawing))
-(defparameter +drawing-bounds+ (draw-something::bounds +drawing+))
-
 (define-test drawing
-    ;; Drawing origin is 0,0
-    (assert-true (= 0
-		    (draw-something::x +drawing-bounds+)
-		    (draw-something::y +drawing-bounds+)))
-    ;; Drawing width is withing specified limits
-    (assert-true (<= draw-something::+min-drawing-size+
-		     (draw-something::width +drawing-bounds+)
-		     draw-something::+max-drawing-size+))
-    ;; Drawing height is withing specified limits
-    (assert-true (<= draw-something::+min-drawing-size+
-		     (draw-something::height +drawing-bounds+)
-		     draw-something::+max-drawing-size+))
-) 
+    (let* ((drawing (draw-something::make-drawing))
+	   (drawing-bounds (draw-something::bounds drawing)))
+      ;; Drawing origin is 0,0
+      (assert-true (= 0
+		      (draw-something::x drawing-bounds)
+		      (draw-something::y drawing-bounds)))
+      ;; Drawing width is withing specified limits
+      (assert-true (<= draw-something::+min-drawing-size+
+		       (draw-something::width drawing-bounds)
+		       draw-something::+max-drawing-size+))
+      ;; Drawing height is withing specified limits
+      (assert-true (<= draw-something::+min-drawing-size+
+		       (draw-something::height drawing-bounds)
+		       draw-something::+max-drawing-size+))
+))
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Composition
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +composition-points+ 
-  (draw-something::make-composition-points +drawing+ 10000))
-
-(defparameter +bad-skeletons+ 
-  (vector (vector (make-instance 'draw-something::point :x 1000000 :y 0))))
-
-(defparameter +polygon-figures+
-  (draw-something::make-polygon-figures +composition-points+ 10 5 20))
-
 (define-test composition
-    ;; All composition points are within the drawing bounds
-    (assert-points-in-rect (draw-something::bounds +drawing+)
-			   +composition-points+)
-    ;; All polyline figure points are within the drawing bounds
-    (assert-pointses-in-rect-true (draw-something::bounds +drawing+)
-				  (figure-skeletons +polygon-figures+))
-    ;; These tests will catch skeletons with points outside the drawing bounds
-    (assert-pointses-in-rect-false (draw-something::bounds +drawing+)
-				   +bad-skeletons+)
-)
-
+    (let* ((drawing (draw-something::make-drawing))
+	   (composition-points
+	    (draw-something::make-composition-points drawing 10000))
+	   (bad-skeletons
+	    (vector (vector (make-instance 'draw-something::point 
+					   :x 1000000 :y 0))))
+	   (polygon-figures
+	    (draw-something::make-polygon-figures composition-points 10 5 20)))
+      ;; All composition points are within the drawing bounds
+      (assert-points-in-rect (draw-something::bounds drawing)
+			     composition-points)
+      ;; All polyline figure points are within the drawing bounds
+      (assert-pointses-in-rect-true (draw-something::bounds drawing)
+				    (figure-skeletons polygon-figures))
+      ;; These tests will catch skeletons with points outside the drawing bounds
+      (assert-pointses-in-rect-false (draw-something::bounds drawing)
+				     bad-skeletons)
+))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Planes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +planes+ 
-  (draw-something::make-planes +drawing+
-			       (draw-something::number-of-planes)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Skeletons
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(draw-something::make-planes-skeletons +drawing+)
-
-(defparameter +layers-forms+
-  (loop for plane across (draw-something::planes +drawing+)
-     do (loop for figure across (draw-something::figures plane)
-	   do (loop for form across (draw-something::forms figure)
-		 collect form))))
-
-(defparameter +layers-forms-skeletons+
-  (map 'vector #'draw-something::skeleton +layers-forms+))
-
 (define-test skeletons
-    ;; All layer figure forms' skeleton points are within the drawing's bounds
-    (assert-pointses-in-rect-true (draw-something::bounds +drawing+)
-				  +layers-forms-skeletons+))
-
+    (let* ((drawing (draw-something::draw-something))
+	   (forms (layers-forms drawing))
+	   (layers-forms-skeletons
+	    (map 'vector #'draw-something::skeleton forms)))
+      ;; All layer figure forms' skeleton points are within the drawing's bounds
+      (assert-pointses-in-rect-true (draw-something::bounds drawing)
+				    layers-forms-skeletons)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pens
@@ -254,32 +264,27 @@
 ;; Figures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(draw-something::draw-planes-figures +drawing+)
-
-(defparameter +drawing-overflow-bounds+ 
-  (draw-something::inset-rectangle +drawing-bounds+
-				   (- (+ +max-pen-distance+ 
-					 +max-pen-tolerance+)))
-  "Outlines go over the edge of the drawing but shouldn't go outside of this")
-
-(defparameter +layers-forms-outlines+
-  (map 'vector #'draw-something::outline +layers-forms+))
-
 (define-test figures
-    ;; All layer figure forms' outlines are within pen parameter bounds
-    (assert-pointses-in-rect-true (draw-something::bounds +drawing+)
-				  +layers-forms-outlines+))
+    (let* ((drawing (draw-something::draw-something))
+	   (forms (layers-forms drawing))
+	   (layers-forms-outlines
+	    (map 'vector #'draw-something::outline forms)))
+      ;; All layer figure forms' outlines are within pen parameter bounds
+      (assert-pointses-in-rect-true (drawing-overflowbounds drawing)
+				    layers-forms-outlines)
+))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Colouring
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(draw-something::colour-objects +drawing+ draw-something::all-object-symbols)
-
 (define-test colouring
-    ;; Every form has been coloured
-    (assert-true (every (lambda (form) (draw-something::fill-colour form))
-			+layers-forms+)))
+    (let* ((drawing (draw-something::draw-something))
+	   (forms (layers-forms drawing)))
+      ;; Every form has been coloured
+      (assert-true (every (lambda (form) (draw-something::fill-colour form))
+			  forms))
+))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SVG
