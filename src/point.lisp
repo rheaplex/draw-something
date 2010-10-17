@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(in-package "DRAW-SOMETHING")
+(in-package "DRAW-SOMETHING")
 
 (defclass point ()
   ((x :accessor x
@@ -31,6 +31,11 @@
       :documentation "The y co-ordinate of the point."))
   (:documentation "A simple cartesian point on the picture plane (or page).
                    y goes up"))
+
+(defmethod point= ((left point) (right point))
+  "The eql method for points"
+  (and (= (x left) (x right))
+       (= (y left) (y right))))
 
 (defmethod distance ((left point) (right point))
   "The distance between two points."
