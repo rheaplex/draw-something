@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(in-package "DRAW-SOMETHING")
+(in-package "DRAW-SOMETHING")
 
 (defclass line ()
   ((from :accessor from
@@ -132,10 +132,12 @@
 (defmethod line-at-t ((l line) (time real))
   "Evaluate the line at t where 0<=t<=1 ."
   (make-instance 'point
-		 :x (* time (- (x (to l))
-			    (x (from l))))
-		 :y (* time (- (y (to l))
-			    (y (from l))))))
+		 :x (+ (x (from l))
+		       (* time (- (x (to l))
+				  (x (from l)))))
+		 :y (+ (y (from l)) 
+		       (* time (- (y (to l))
+				  (y (from l)))))))
 
 (defmethod random-point-on-line ((l line))
   "Generate a random point on a line"

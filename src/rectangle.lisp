@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(in-package "DRAW-SOMETHING")
+(in-package "DRAW-SOMETHING")
 
 (defclass rectangle ()
   ((x :accessor x 
@@ -113,9 +113,9 @@
 
 (defmethod contains-point-co-ordinates ((rect rectangle) x y)
   "Find whether the rectangle contains the point."
-  (if (and (> x (y rect))
+  (if (and (>= x (y rect))
 	   (< x (+ (x rect) (width rect)))
-	   (> y (y rect))
+	   (>= y (y rect))
 	   (< y (+ (y rect) (height rect))))
       t
       nil))
@@ -126,10 +126,10 @@
 
 (defmethod points-in-rectangle ((rect rectangle) (points vector))
   "Get the vector of points within the rectangle"
-  (let ((contained (vector 1)))
+  (let ((contained (make-vector 0)))
     (loop for p across points
 	  when (contains rect p)
-	  do (vector-push-extend contained p))
+	  do (vector-push-extend p contained))
     contained))
 
 (defmethod intersects ((rect1 rectangle) (rect2 rectangle))
@@ -184,34 +184,42 @@
 		       :to (make-instance 'point
 					  :x (x r)
 					  :y (+ (y r)
-						(height r))))))
+						(height r)
+						-1)))))
     (1 (random-point-on-line
 	(make-instance 'line
 		       :from (make-instance 'point
 					  :x (x r)
 					  :y (+ (y r)
-						(height r)))
+						(height r)
+						-1))
 		       :to (make-instance 'point
 					  :x (+ (x r)
-						(width r))
+						(width r)
+						-1)
 					  :y (+ (y r)
-						(height r))))))
+						(height r)
+						-1)))))
     (2 (random-point-on-line
 	(make-instance 'line
 		       :from (make-instance 'point
 					  :x (+ (x r)
-						(width r))
+						(width r)
+						-1)
 					  :y (+ (y r)
-						(height r)))
+						(height r)
+						-1))
 		       :to (make-instance 'point
 					  :x (+ (x r)
-						(width r))
+						(width r)
+						-1)
 					  :y (y r)))))
     (3 (random-point-on-line
 	(make-instance 'line
 		       :from (make-instance 'point
 					    :x (+ (x r)
-						(width r))
+						(width r)
+						-1)
 					    :y (y r))
 		       :to (make-instance 'point
 					  :x (x r)
@@ -230,10 +238,10 @@
 				      :y (y r))
 		       (make-instance 'point 
 				      :x (x r) 
-				      :y (+ (y r) (height r)))
+				      :y (+ (y r) (height r) -1))
 		       (make-instance 'point 
-				      :x (+ (x r) (width r)) 
-				      :y (+ (y r) (height r)))
+				      :x (+ (x r) (width r) -1) 
+				      :y (+ (y r) (height r) -1))
 		       (make-instance 'point 
-				      :x (+ (x r) (width r)) 
+				      :x (+ (x r) (width r) -1) 
 				      :y (y r)))))

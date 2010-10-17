@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(in-package "DRAW-SOMETHING")
+(in-package "DRAW-SOMETHING")
 
 (defclass polyline ()
   ;; Optimised to use arrays not lists to avoid terrible (distance) consing
@@ -124,7 +124,7 @@
             (numpts (length (points poly)))
             (ray-line (make-instance 'line
                                      :from p
-                                     :to (translate-point 10000.0 0.0)))
+                                     :to (translate-point p 10000.0 0.0)))
             (crossings 0))
         (dotimes (i (- numpts 1))
           (let ((j (mod (+ i 1)
