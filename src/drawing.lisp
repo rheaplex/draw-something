@@ -1,5 +1,5 @@
 ;;  drawing.lisp - A drawing.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2010  Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -18,8 +18,8 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defconstant min-drawing-size 200.0)
-(defconstant max-drawing-size 600.0)
+(defconstant +min-drawing-size+ 200.0)
+(defconstant +max-drawing-size+ 600.0)
 
 (defclass drawing ()
   ((bounds :accessor bounds
@@ -48,10 +48,10 @@
 (defmethod make-drawing-bounds ()
   "Make a bounds rectangle for a drawing."
   (make-instance 'rectangle :x 0.0 :y 0.0
-		 :width (random-range min-drawing-size 
-				      max-drawing-size)
-		 :height (random-range min-drawing-size 
-				       max-drawing-size)))
+		 :width (random-range +min-drawing-size+ 
+				      +max-drawing-size+)
+		 :height (random-range +min-drawing-size+ 
+				       +max-drawing-size+)))
 
 (defmethod make-drawing ()
   "Make a drawing, ready to be started."

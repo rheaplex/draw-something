@@ -16,7 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(in-package "DRAW-SOMETHING")
+(in-package "DRAW-SOMETHING")
 
 (defconstant radian (* pi 2.0)
   "One radian.")
