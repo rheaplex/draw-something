@@ -16,12 +16,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :draw-something)
+(in-package "DRAW-SOMETHING")
 
 (defclass pen-parameters (turtle-parameters)
   ((distance           :accessor pen-distance
                        :initarg :distance
-                       :documentation "How far fromt the skeleton to draw.")
+                       :documentation "How far from the skeleton to draw.")
    (distance-tolerance :accessor distance-tolerance
                        :initarg :distance-tolerance
                        :documentation "How far from the distance is tolerable.")
