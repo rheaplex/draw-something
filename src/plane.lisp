@@ -1,5 +1,5 @@
-;;  plane.lisp - A plane (layer, level, plane) in the drawing.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;; plane.lisp - A plane (layer, level, plane) in the drawing.
+;; Copyright (C) 2006, 2010 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -48,6 +48,7 @@
 
 (defmacro make-plane-pen (plane-index num-planes)
   "Make a pen for the plane."
+  (declare (ignore plane-index num-planes))
    #|(let ((plane-factor (* (/ 1.0 (- num-planes 1))
 			 plane-index)))
     (make-instance 'pen

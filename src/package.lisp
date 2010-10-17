@@ -1,5 +1,5 @@
 ;;  package.lisp - The main package for draw-something
-;;  Copyright (C) 2006 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2010 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -23,4 +23,5 @@
 	(:documentation
 	 "The draw-something package.")
 	(:use common-lisp)
-	(:export run generate-skeleton draw-something x y)))
+	(:export run
+		 draw-something)))

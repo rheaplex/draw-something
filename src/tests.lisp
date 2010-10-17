@@ -1,5 +1,5 @@
-;;  tests.lisp - Tests for draw-something.
-;;  Copyright (C) 2010  Rhea Myers rhea@myers.studio
+;; tests.lisp - Tests for draw-something.
+;; Copyright (C) 2010  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,15 +16,19 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; Since many of the functions called use random numbers, coverage isn't perfect
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Package
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (eval-when (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
   (load "lisp-unit")
-  (require 'draw-something)
+  (load "load")
   
   (defpackage draw-something-tests
+    (:documentation
+     "Tests for the draw-something package.")
     (:use :common-lisp
 	  :lisp-unit
 	  :draw-something)))
@@ -146,6 +150,17 @@
 		+polylines+))|#
   )
 
+(defparameter +red+
+  (make-instance 'draw-something::colour 
+		 :hue 0.0 
+		 :saturation 1.0
+		 :brightness 1.0))
+
+(define-test colour
+    ;; HSV colours convert to RGB correctly
+    (multiple-value-bind (r g b ) (draw-something::hsb-to-rgb +red+)
+      (assert-equal (list r g b) '(1.0 0.0 0.0))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Drawing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -261,9 +276,24 @@
 
 (draw-something::colour-objects +drawing+ draw-something::all-object-symbols)
 
+(define-test colouring
+    ;; Every form has been coloured
+    (assert-true (every (lambda (form) (draw-something::fill-colour form))
+			+layers-forms+)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SVG
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-test svg
+    (assert-equal (draw-something::svg-rgb +red+) "#FF0000"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Completed drawing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Ideally we'd parse the xml and make sure it accurately reflects the drawing
+;; But we don't want to have to have an xml parser as a dependency
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Main flow of control

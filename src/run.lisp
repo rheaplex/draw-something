@@ -1,5 +1,5 @@
 ;;  run.lisp - Load the asdf system and make a drawing
-;;  Copyright (C) 2004  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2004, 2010  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,9 +16,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;(load "draw-something.asd")
-;;(asdf:operate 'asdf:load-op :draw-something)
 (load "load")
-(run)  
+(draw-something:run)  
 
 (quit)
