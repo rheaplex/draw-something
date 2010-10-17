@@ -1,5 +1,5 @@
-;;  colour-scheme.lisp -  Colour scheme generation and application.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  colouring-new.lisp -  Colour scheme generation and application.
+;;  Copyright (C) 2008  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -21,6 +21,7 @@
 ;; sv = saturation, value
 
 ;;(in-package "COLOUR-CELLS")
+(in-package "DRAW-SOMETHING")
 
 (defconstant minimum-spec-probability 3)
 (defconstant maximum-spec-probability 9)
