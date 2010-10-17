@@ -1,5 +1,5 @@
-;;  draw-something.asd - The main package for draw-something
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;; draw-something.asd - The main package for draw-something
+;; Copyright (C) 2006, 2010  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -41,9 +41,9 @@
    ;;(:file "codelet")
    ;;(:file "cell-matrix")
    ;;(:file "find-space")
+   (:file "drawing")
    (:file "composition") 
    (:file "plane")
-   (:file "drawing")
    (:file "postscript")
    (:file "svg")
    (:file "draw-something")))

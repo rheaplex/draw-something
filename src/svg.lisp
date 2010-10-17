@@ -1,5 +1,5 @@
 ;;  svg.lisp - Writing SVG to streams.
-;;  Copyright (C) 2007  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2007,2010  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -35,8 +35,8 @@
 
 (defmethod svg-rgb ((col colour) )
   (multiple-value-bind (r g b) (hsb-to-rgb col)
-    (format nil "#~X2~X2~X2"  (round (* r 15)) 
-	    (round (*  b 15)) (round (* b 15)))))
+    (format nil "#~2,'0X~2,'0X~2,'0X" (round (* r 255)) 
+	    (round (* g 255)) (round (* b 255)))))
 
 (defmethod svg-path-tag-start (&key (to *svg-stream*))
   "Write the start of the path tag."

@@ -44,7 +44,7 @@
    (fill-colour :accessor fill-colour
                 :type colour
                 :initarg :colour
-                :initform (random-colour)
+                :initform nil ;;(random-colour)
                 :documentation "The flat body colour of the form."))
   (:documentation "A form drawn in the drawing."))
 
