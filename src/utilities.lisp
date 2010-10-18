@@ -56,6 +56,15 @@
   `(loop for ,var across ,vec
       do (progn ,@body)))
 
+(defmacro dotimesloop ((var from start to) &rest body)
+  "Loop from start below to, then from from below to e.g. for 0 5 10
+var = 5, 6, 7, 8, 9, 0, 1, 2, 3, 4
+Note that this is evaluated as two loops"
+  `(progn (loop for ,var from ,start below ,to
+	     do (progn ,@body))
+	  (loop for ,var from ,from below ,start
+	     do (progn ,@body))))
+
 (defmethod dequote (item)
   "Remove the quote from a symbol, returning the symbol."
   (cadr item))
