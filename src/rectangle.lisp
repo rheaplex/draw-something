@@ -111,14 +111,20 @@
   "Get the rectangle's area."
   (* (width rect) (height rect)))
 
+(defmethod as-points ((rect rectangle))
+  "Get the rectangle as an array of four points"
+  (vector (make-instance 'point :x (x rect) :y (y rect))
+	  (make-instance 'point :x (+ (x rect) (width rect)) :y (y rect))
+	  (make-instance 'point :x (+ (x rect) (width rect)) 
+			 :y (+ (y rect) (height rect)))
+	  (make-instance 'point :x (x rect) :y (+ (y rect) (height rect)))))
+
 (defmethod contains-point-co-ordinates ((rect rectangle) x y)
   "Find whether the rectangle contains the point."
-  (if (and (>= x (y rect))
-	   (< x (+ (x rect) (width rect)))
-	   (>= y (y rect))
-	   (< y (+ (y rect) (height rect))))
-      t
-      nil))
+  (and (>= x (y rect))
+       (< x (+ (x rect) (width rect)))
+       (>= y (y rect))
+       (< y (+ (y rect) (height rect)))))
 
 (defmethod contains ((rect rectangle) (p point))
   "Find whether the rectangle contains the point."

@@ -30,6 +30,7 @@
 		  :documentation "The function for generating figures.")
    (figures :accessor figures
 	    :initform (make-vector 10)
+	    :initarg :figures
 	    :documentation "The figures of the plane.")
    (figure-count :accessor figure-count
 		 :type integer
@@ -74,6 +75,14 @@
 (defmethod number-of-figures-for-plane (plane-index)
   "Randomly determine how many figures a plane should have."
   (random-range 2 10))
+
+(defmethod plane-forms-bounds ((p plane))
+  "Get the bounding rectangles for every form of every figure on the plane"
+  (let ((results (make-vector 0)))
+    (loop for figure across (figures p)
+       do (loop for form across (forms figure)
+	     do (vector-push-extend (bounds form) results)))
+    results))
 
 (defmethod make-planes ((d drawing) count)
   "Make the planes, ready to have skeletons for figures generated."
@@ -128,3 +137,52 @@
 				   figure-count))
       do (add-figure the-drawing
 		     (make-figure-for-plane (bounds the-drawing) i)))))|#
+
+(defmethod find-space-on-plane ((d drawing) (p plane) (required-size rectangle))
+  "Find empty space on the plane of given size, or nil if fail"
+  ;; Efficiency decreases with number of figures. Cells would be constant.
+  ;; FIXME: Uses bounds rather than outline of actual figure
+  ;; TODO: Try figure bounds first. No intersection? proceed
+  ;;       Next try form bounds.
+  ;;       Next try form skeletons.
+  ;;       Finally try form outlines.
+  ;;  (assert (contains (bounds d) required-size))
+  (let ((candidate (make-instance 'rectangle :x 0 :y 0
+				  :width (width required-size)
+				  :height (height required-size)))
+	(plane-rects (plane-forms-bounds p))
+	;; The resulting rect must fit in within the drawing bounds
+	(width-to-search (- (width (bounds d)) (width required-size)))
+	(height-to-search (- (height (bounds d)) (height required-size)))
+	(result nil))
+    (block outside-the-loops
+      ;; Use dotimesloop to ensure we don't find the top left space each time
+      (dotimesloop (v 0 (random-range 0 height-to-search) height-to-search)
+	(setf (y candidate) v)
+	(dotimesloop (h 0 (random-range 0 width-to-search) width-to-search)
+	  (setf (x candidate) h)
+	  (when (intersects-none candidate plane-rects)
+	    (setf result candidate)
+	    (return-from outside-the-loops)))))
+    result))
+
+(defmethod find-space-on-plane-range ((d drawing) (p plane) 
+				      (min-size rectangle) (max-size rectangle)
+				      steps)
+  "Find empty space on the plane larger than min-size up to max-size, or nil"
+  (let ((width-step-size (/ (- (width max-size) (width min-size)) steps))
+	(height-step-size (/ (- (height max-size) (height min-size)) steps))
+	(result nil))
+    (dotimes (step steps)
+       (let* ((required-size (make-instance 'rectangle :x 0 :y 0
+					   :width (- (width max-size)
+						     (* width-step-size
+							step))
+					   :height (- (height max-size)
+						      (* height-step-size
+							step))))
+	      (candidate (find-space-on-plane d p required-size)))
+	 (when candidate
+	   (setf result candidate)
+	   (return))))
+    result))

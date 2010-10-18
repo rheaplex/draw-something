@@ -33,3 +33,11 @@
 (defmethod radians-to-t (r)
 	"Convert the value in radians to a value from 0.0 to 1.0"
 	(* r radians-to-t-ratio))
+
+(defun intersects-any (item others)
+  "Returns true if item intersects any of the others"
+  (some (lambda (o) (intersects item o)) others))
+
+(defun intersects-none (item others)
+  "Returns true if item intersects none of the others"
+  (not (intersects-any item others)))
