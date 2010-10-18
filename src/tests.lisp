@@ -130,7 +130,29 @@
 (defparameter +rect+ (make-instance 'draw-something::rectangle 
 				    :x 0 :y 0 :width 500 :height 1000))
 
+(defparameter +intersecting-rects+ 
+  (list (make-instance 'draw-something::rectangle 
+		       :x -100 :y -100 :width 1000 :height 1000)
+	(make-instance 'draw-something::rectangle 
+		       :x 100 :y 100 :width 1000 :height 1000)))
+
+(defparameter +non-intersecting-rects+ 
+  (list (make-instance 'draw-something::rectangle 
+		       :x -10000 :y -10000 :width 50 :height 10)
+	(make-instance 'draw-something::rectangle 
+		       :x 10000 :y 10000 :width 50 :height 10)))
+
 (define-test rectangle
+    ;; Rectangle intersection
+    (assert-true (draw-something::intersects-any +rect+
+						 +intersecting-rects+))
+    (assert-false (draw-something::intersects-any +rect+
+						  +non-intersecting-rects+))
+    ;; Rectangle non-intersection
+    (assert-true (draw-something::intersects-none +rect+
+						  +non-intersecting-rects+))
+    (assert-false (draw-something::intersects-none +rect+
+						   +intersecting-rects+))
     ;; Random points inside a rectangle fall within that rectangle
     (assert-points-in-rect +rect+ 
 			   (draw-something::random-points-in-rectangle +rect+
@@ -143,6 +165,7 @@
     (assert-points-in-rect +rect+	
 			   (draw-something::random-points-at-rectangle-corners
 			    +rect+ 4))
+    
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -154,7 +177,27 @@
 	   (map-into (make-array 100) 
 		     (lambda ()
 		       (draw-something::make-random-polyline-in-rectangle 
-			+rect+ 10)))))
+			+rect+ 10))))
+	  (polyrecta
+	   (draw-something::as-polyline (make-instance
+					 'draw-something::rectangle
+					 :x 0 :y 0 :width 100
+					 :height 100)))
+	  (polyrectb
+	   (draw-something::as-polyline (make-instance
+					 'draw-something::rectangle
+					 :x 50 :y 50 :width 100
+					 :height 100)))
+	  (polyrectc
+	   (draw-something::as-polyline (make-instance
+					 'draw-something::rectangle
+					 :x 500 :y 500 :width 100
+					 :height 100)))
+	  (polyrectd
+	   (draw-something::as-polyline (make-instance
+					 'draw-something::rectangle
+					 :x 10 :y 10 :width 10
+					 :height 10))))
       ;; Every created polyline's points fall within its source bounds
       (assert-true
        (every (lambda (poly) 
@@ -162,12 +205,15 @@
 			 (draw-something::contains +rect+ p))
 		       (draw-something::points poly)))
 	      polylines))
-      ;; Every polyline's bounds fits into the source bounds
-      #|(assert-true (every 
-      (lambda (poly)
-      (draw-something::contains +rect+
-      (draw-something::bounds poly)))
-      polylines))|#
+      ;; Overlapping polyrects intersect
+      (assert-true (draw-something::intersects polyrecta polyrectb))
+      (assert-true (draw-something::intersects polyrectb polyrecta))
+      ;; Contained polyrects intersect
+      (assert-true (draw-something::intersects polyrecta polyrectd))
+      (assert-true (draw-something::intersects polyrectd polyrecta))
+      ;; Non-overlapping polyrects don't intersect
+      (assert-false (draw-something::intersects polyrecta polyrectc))
+      (assert-false (draw-something::intersects polyrectc polyrecta))
 ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -235,6 +281,39 @@
 ;; Planes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter +figure-bounds+  
+  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 200 :height 400))
+
+(defparameter +search-size-good+  
+  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 20 :height 40))
+
+(defparameter +search-size-bad+  
+  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 300 :height 300))
+
+(define-test planes
+    (let* ((the-form 
+	    (make-instance 'draw-something::form
+			   :bounds +figure-bounds+))
+	   (the-figure 
+	    (make-instance 'draw-something::figure
+			   :bounds +figure-bounds+
+			   :forms (vector the-form)))
+	   (the-plane 
+	    (make-instance 'draw-something::plane
+			   :figures (vector the-figure)))
+	   (drawing 
+	    (make-instance 'draw-something::drawing 
+			   :bounds (make-instance 'draw-something::rectangle 
+						  :x 0 :y 0 
+						  :width 400 :height 400)
+			   :planes (vector the-plane))))
+      ;; It is possible to find space for a new form that fits on the layer
+      (assert-true (draw-something::find-space-on-plane drawing the-plane
+							+search-size-good+))
+      ;; It is not possible to find space for a new form that doesn't fit
+      (assert-false (draw-something::find-space-on-plane drawing the-plane
+							+search-size-bad+))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Skeletons
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -251,14 +330,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pens
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter +max-pen-distance+
-  (apply #'max (map 'list #'draw-something::pen-distance 
-		    draw-something::plane-pen-parameters)))
-
-(defparameter +max-pen-tolerance+
-  (apply #'max (map 'list #'draw-something::pen-distance 
-		    draw-something::plane-pen-parameters)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figures

@@ -87,8 +87,8 @@
 ;; Returns the time where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod lines-intersect-co-ordinates (p1x p1y p2x p2y ;; First line 
-					 p3x p3y p4x p4y);; Second line 
+(defmethod lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line 
+					  p3x p3y p4x p4y);; Second line 
   "Find whether the two lines, expressed as 8 co-ordinates, intersect."
   (let ((denominator (- (* (- p4y p3y)
 			   (- p2x p1x)) 
@@ -113,21 +113,21 @@
 	      ua
 	      nil)))))
 
-(defmethod lines-intersect-points ((l1p1 point) (l1p2 point)
+(defmethod lines-intersects-points ((l1p1 point) (l1p2 point)
 				   (l2p1 point) (l2p2 point))
   "Find whether the two lines, expressed as 4 points intersect."
-  (lines-intersect-co-ordinates (x l1p1) (y l1p1) (x l1p2) (y l1p2)
-				(x l2p1) (y l2p1) (x l2p2) (y l2p2)))
+  (lines-intersects-co-ordinates (x l1p1) (y l1p1) (x l1p2) (y l1p2)
+				 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
 
 
-(defmethod line-intersect-line-points ((l1 line)
+(defmethod line-intersects-line-points ((l1 line)
 				       (l2p1 point) (l2p2 point))
   "Find whether the two lines, the second expressed as 2 points intersect."
-  (lines-intersect-points (from l1) (to l1) l2p1 l2p2))
+  (lines-intersects-points (from l1) (to l1) l2p1 l2p2))
 
-(defmethod intersect ((l1 line) (l2 line))
+(defmethod intersects ((l1 line) (l2 line))
   "Find whether the two lines intersect."
-  (lines-intersect-points (from l1) (to l1) (from l2) (to l2)))
+  (lines-intersects-points (from l1) (to l1) (from l2) (to l2)))
 
 (defmethod line-at-t ((l line) (time real))
   "Evaluate the line at t where 0<=t<=1 ."

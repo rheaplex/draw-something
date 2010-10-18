@@ -135,15 +135,39 @@
               (setf crossings(+ crossings 1)))))
         (oddp crossings))))
 
+(defmethod as-polyline ((rect rectangle))
+  "Convert a rectangle into a five-point (closed) polyline"
+  (make-instance 'polyline
+		 :bounds rect
+		 :points (vector (make-instance 'point 
+						:x (x rect) 
+						:y (y rect))
+				 (make-instance 'point 
+						:x (+ (x rect) 
+						      (width rect)) 
+						:y (y rect))
+				 (make-instance 'point 
+						:x (+ (x rect) 
+						      (width rect)) 
+						:y (+ (y rect) 
+						      (height rect)))
+				 (make-instance 'point 
+						:x (x rect) 
+						:y (+ (y rect) 
+						      (height rect)))
+				 (make-instance 'point 
+						:x (x rect) 
+						:y (y rect)))))
+
 (defmacro do-poly-lines ((sym poly) &body body)
   "Apply fun to each line in the polyline, or not if there is only 1 point."
   (with-gensyms (poly-points previous-point current-point i)
    `(let ((,poly-points (points ,poly)))
-      (when (> (point-count ,poly-points) 1)
-        (let ((,previous-point (first-point ,poly-points))
+      (when (> (point-count ,poly) 1)
+        (let ((,previous-point (first-point ,poly))
               (,current-point nil)
               (,sym nil))
-          (dotimes (,i (point-count ,poly-points))
+          (dotimes (,i (- (point-count ,poly) 1))
             (setf ,current-point (aref ,poly-points (+ ,i 1)))
             (setf ,sym (make-instance 'line
                                       :from ,previous-point
@@ -161,19 +185,46 @@
         (return)))
     result))
 
-(defmethod intersects ((poly1 polyline) (poly2 polyline))
-  "Find whether the two POLYGONS intersect or contain each other."
+(defmethod polyline-contains-points ((poly1 polyline) (poly2 polyline))
+  "Find whether poly1 contians any points of poly2"
   ;; Currently only intersects
   (dolist (p (points poly2))
-          (when (contains poly1 p)
-            (return t))))
+    (when (contains poly1 p)
+      (return t))))
 
-(defmethod intersects ((rect rectangle) (poly polyline))
-  "Find whether the polygon intersects or contains the rectangle."
-  ;; Currently only intersects
-  (dolist (p (points poly))
-          (when (contains rect p)
-            (return t))))
+(defmethod polyline-lines-intersects ((poly1 polyline) (poly2 polyline))
+  "Find whether any lines of the polylines intersect"
+  (let ((result nil))
+    (block outside-loops
+      (do-poly-lines (l1 poly1)
+	(do-poly-lines (l2 poly2)
+	  (when (intersects l1 l2)
+	    (setf result t)
+	    (return-from outside-loops)))))
+    result))
+
+(defmethod intersects ((poly1 polyline) (poly2 polyline))
+  "Find whether the two POLYGONS intersect or contain each other."
+  (and (intersects (bounds poly1) (bounds poly2))
+       (or 
+	;; If any lines intersect
+	(polyline-lines-intersects poly1 poly2)
+	;; If one polyline contains any point of the other
+	(some (lambda (p) (contains poly1 p)) (points poly1))
+	(some (lambda (p) (contains poly2 p)) (points poly2)))))
+
+(defmethod intersects ((poly polyline) (rect rectangle))
+  "Does the polyline overlap the rectangle?"
+  ;; Tests in order of computational expense
+  ;; See whether the bounds overlap, then continue
+  (and (intersects (bounds poly) rect)
+       (or 
+	;; If the rectangle contains any point of the polyline
+	(some (lambda (p) (contains rect p)) (points poly))
+	;; If any line of the rectangle intersects any line of the polyline
+	(intersects poly (as-polyline rect))
+	;; If any point of the square is inside the polyline
+	(some (lambda (p) (contains poly p)) (as-points rect)))))
 
 (defmethod convex-hull (the-points)
   "Get the convex hull of an array of points."
