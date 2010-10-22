@@ -51,9 +51,9 @@
 )
 
 (defmethod draw-background ()
-  (set-source-rgb 1 1 1)
   (rectangle 0 0 (draw-something::x (draw-something::bounds *drawing*))
 	     (draw-something::y (draw-something::bounds *drawing*)))
+  (set-source-rgb 1 1 1)
   (fill-path))
 
 (defmethod draw-composition-points ()
@@ -80,9 +80,9 @@
 	       (draw-something::y (draw-something::from line)))
       (line-to (draw-something::x (draw-something::to line))
 	       (draw-something::y (draw-something::to line))))
-    (set-source-rgb (draw-something::random-range 0 0.9)
-		    (draw-something::random-range 0 0.9)
-		    (draw-something::random-range 0 0.9))
+    (set-source-rgb (draw-something::random-range 0.5 0.9)
+		    (draw-something::random-range 0.5 0.9)
+		    (draw-something::random-range 0.5 0.9))
     (stroke)))
 
 (defmethod draw-figure-skeletons ((f draw-something::figure))
@@ -104,6 +104,36 @@
 (defmethod disable-draw-skeletons ()
   (setf *drawing-functions* (remove #'draw-skeletons *drawing-functions*)))
 
+(defmethod draw-form-outline ((f draw-something::form))
+  (set-line-width 1)
+  (draw-something::do-poly-lines (line  (draw-something::outline f))
+    (move-to (draw-something::x (draw-something::from line))
+	     (draw-something::y (draw-something::from line)))
+    (line-to (draw-something::x (draw-something::to line))
+	     (draw-something::y (draw-something::to line))))
+    (set-source-rgb (draw-something::random-range 0.1 0.4)
+		    (draw-something::random-range 0.1 0.4)
+		    (draw-something::random-range 0.1 0.4))
+  (stroke))
+
+(defmethod draw-figure-outlines ((f draw-something::figure))
+  (loop for form across (draw-something::forms f)
+       do (draw-form-outline form)))
+
+(defmethod draw-plane-outlines ((p draw-something::plane))
+  (loop for f across (draw-something::figures p)
+       do (draw-figure-outlines f)))
+
+(defmethod draw-outlines ()
+  (loop for p across (draw-something::planes *drawing*)
+       do (draw-plane-outlines p)))
+
+(defmethod enable-draw-outlines ()
+  (if (not (find #'draw-outlines *drawing-functions*))
+      (push #'draw-outlines *drawing-functions*)))
+
+(defmethod disable-draw-outlines ()
+  (setf *drawing-functions* (remove #'draw-outlines *drawing-functions*)))
 
 (setf *drawing-functions* (list #'draw-background))
 
@@ -116,3 +146,6 @@
 (draw-something::make-planes *drawing* (draw-something::number-of-planes))
 (draw-something::make-planes-skeletons *drawing*)
 (ui::enable-draw-skeletons)
+
+(draw-something::draw-planes-figures *drawing*)
+(ui::enable-draw-outlines)
