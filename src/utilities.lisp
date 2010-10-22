@@ -130,6 +130,25 @@ Note that this is evaluated as two loops"
         (setf choices (remove choice choices))))
     chosen))
 
+(defmethod shuffle ((l list))
+  "Shuffle the list in place"
+  (loop for i below (length l) do
+	(rotatef
+	 (elt l i)
+	 (elt l (random (length l)))))
+  l)
+
+(defmethod shuffle ((v vector))
+  "Shuffle the vector in place"
+  ;; Fisher-Yates shuffle
+  (loop for n from (- (length v) 1) downto 0
+       do (let* ((k (random-number (+ n 1))) ;; 0 <= k <= n
+		 (temp (aref v k)))
+	    ;; Simple variable swap
+	    (setf (aref v k) (aref v n))
+	    (setf (aref v n) temp)))
+  v)
+
 (defun choose-n-of-ordered (n choice-list)
   "Choose n of the entries, and ensure they are in order."
   ;; Not very efficient at all
