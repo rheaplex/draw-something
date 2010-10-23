@@ -186,12 +186,12 @@
 (defmethod draw-form-outline ((f draw-something::form))
   "Draw the finished outline for the form"
   (set-line-width 1)
-  ;;TODO: Make this more efficient...
-  (draw-something::do-poly-lines (line (draw-something::outline f))
-    (move-to (draw-something::x (draw-something::from line))
-	     (draw-something::y (draw-something::from line)))
-    (line-to (draw-something::x (draw-something::to line))
-	     (draw-something::y (draw-something::to line))))
+  (let ((outline (draw-something::points (draw-something::outline f))))
+    (move-to (draw-something::x (aref outline 0))
+	     (draw-something::y (aref outline 0)))
+    (loop for i from 1 below (length outline)
+	 do (line-to (draw-something::x (aref outline i))
+		     (draw-something::y (aref outline i)))))
   (set-source-rgb 0 0 0)
   (stroke))
 
