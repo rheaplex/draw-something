@@ -149,3 +149,13 @@
 
 (draw-something::draw-planes-figures *drawing*)
 (ui::enable-draw-outlines)
+
+;; Have a test function like:
+;; drawing-with-single-outline (width height skeleton))
+
+;; Animate drawing of paths, use :after methods on path generators
+;; Might need to re-arrange form.lisp to support this
+;; or add/remove wrappers dynamically
+
+;; UI to enable/disable drawing of each element
+;; Drawing system force corretc order of drawing
