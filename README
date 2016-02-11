@@ -1,6 +1,11 @@
 draw-something
--------
+==============
 
 By Rhea Myers - rhea@myers.studio
 
 An artistic image generator inspired by Harold Cohen's AARON.
+
+Running
+-------
+
+./draw-something

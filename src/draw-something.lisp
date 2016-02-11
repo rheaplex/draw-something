@@ -27,7 +27,7 @@
 (defmethod object-symbol (obj)
   (choose-one-of object-symbol-choices))
 
-(defmethod draw-something ()
+(defmethod generate-drawing ()
   "Make the drawing data structures and create the image."
   (let ((the-drawing (make-drawing)))
     (make-composition-points the-drawing (random-range 8 42))
@@ -37,13 +37,13 @@
     (colour-objects the-drawing all-object-symbols)
     the-drawing))
 
-(defmethod run ()
+(defmethod draw-something (&optional (pathspec nil))
   "The main method that generates the drawing and writes it to file."
   (advisory-message "Starting draw-something.~%")
   (setf *random-state* (make-random-state t))
   ;;(format t "Random state: ~a.~%" (write-to-string *random-state*))
-  (let ((the-drawing (draw-something)))
+  (let ((the-drawing (generate-drawing)))
     (advisory-message "Finished drawing.~%")
-    (let ((filepath (write-svg the-drawing)))
+    (let ((filepath (write-svg the-drawing pathspec)))
       (advisory-message "Finished draw-something.~%")
       filepath)))

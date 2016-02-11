@@ -190,13 +190,13 @@
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defmethod write-svg ((the-drawing drawing))
+(defmethod write-svg ((the-drawing drawing) &optional (filespec nil))
   "Write the drawing as an svg file."
   (advisory-message "Saving drawing as svg.~%")
-  (svg-write-drawing (generate-filename ".svg")
-		     the-drawing))
+  (svg-write-drawing (if filespec filespec (generate-filename ".svg"))
+                     the-drawing))
 
-(defmethod write-and-show-svg ((the-drawing drawing))
+(defmethod write-and-show-svg ((the-drawing drawing) &optional (filespec nil))
   "Write and display the drawing as an svg file."
   (advisory-message "Viewing drawing as svg.~%")
-  (svg-display-drawing (write-svg the-drawing)))
+  (svg-display-drawing (write-svg the-drawing filespec)))

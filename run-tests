@@ -1,0 +1,9 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -- $0 "$@"
+|#
+
+(defun main (&rest argv)
+  (declare (ignore argv))
+    (asdf:oos 'asdf:test-op 'draw-something/test))

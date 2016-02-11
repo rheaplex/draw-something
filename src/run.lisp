@@ -17,6 +17,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (load "load")
-(draw-something:run)  
+(draw-something:draw-something)  
 
 (quit)

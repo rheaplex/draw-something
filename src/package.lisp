@@ -16,12 +16,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package "CL-USER")
-
-(eval-when (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
-  (defpackage DRAW-SOMETHING
-	(:documentation
-	 "The draw-something package.")
-	(:use common-lisp)
-	(:export run
-		 draw-something)))
+(defpackage DRAW-SOMETHING
+  (:documentation
+   "The draw-something package.")
+  (:use common-lisp)
+  (:export generate-drawing
+           draw-something))
