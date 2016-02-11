@@ -207,7 +207,8 @@
 
 (defun run-draw-something ()
   "An sbcl-specific wrapper to make draw-something useful as a script"
-  (let ((filepath (draw-something:run)))
+  (setq save-directory "../draw-something-drawings/")
+  (let ((filepath (draw-something:draw-something)))
       #+sbcl (sb-ext:run-program "/bin/gzip" 
 				 (list "--suffix" "z" 
 				       (namestring filepath)) 

@@ -1,5 +1,5 @@
-;;  package.lisp - The main package for draw-something
-;;  Copyright (C) 2006, 2010 Rob Myers rob@robmyers.org
+;; tests.lisp - Tests for draw-something.
+;; Copyright (C) 2016  Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,9 +16,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage DRAW-SOMETHING
+(defpackage draw-something/test
   (:documentation
-   "The draw-something package.")
-  (:use common-lisp)
-  (:export generate-drawing
-           draw-something))
+   "Tests for the draw-something package.")
+  (:use :common-lisp
+        :5am
+        :draw-something))

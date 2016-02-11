@@ -18,4 +18,3 @@
 
 (load "draw-something.asd")
 (asdf:operate 'asdf:load-op :draw-something)
- 
