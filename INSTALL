@@ -1,0 +1,32 @@
+Dependencies
+============
+
+roswell
+-------
+
+https://github.com/roswell/roswell
+
+sbcl
+----
+
+ros install sbcl
+
+quicklisp
+---------
+
+https://www.quicklisp.org/beta/
+
+Development Dependencies
+========================
+
+fiveam
+------
+
+(ql:quickload "fiveam")
+
+
+Installation
+============
+
+mkdir -p ~/common-lisp
+ln -s $(pwd)/draw-something.asd ~/common-lisp/

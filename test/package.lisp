@@ -1,5 +1,5 @@
-;;  load.lisp - Load the asdf system.
-;;  Copyright (C) 2004 , 2010 Rhea Myers rhea@myers.studio
+;; tests.lisp - Tests for draw-something.
+;; Copyright (C) 2016  Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,5 +16,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(load "draw-something.asd")
-(asdf:operate 'asdf:load-op :draw-something)
+(defpackage draw-something/test
+  (:documentation
+   "Tests for the draw-something package.")
+  (:use :common-lisp
+        :5am
+        :draw-something))

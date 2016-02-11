@@ -1,7 +1,0 @@
-Installation
-------------
-
-There isn't an installation procedure. :-)
-
-The only dependency for draw-something is a Common Lisp runtime such as SBCL or
-Clozure CL.
