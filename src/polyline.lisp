@@ -129,9 +129,9 @@
         (dotimes (i (- numpts 1))
           (let ((j (mod (+ i 1)
                         numpts)))
-            (when (line-intersect-line-points ray-line
-                                              (aref pts i)
-                                              (aref pts j))
+            (when (line-intersects-line-points ray-line
+                                               (aref pts i)
+                                               (aref pts j))
               (setf crossings(+ crossings 1)))))
         (oddp crossings))))
 

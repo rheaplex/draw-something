@@ -18,7 +18,7 @@
 
 (in-package :asdf-user)
 
-(defsystem "draw-something"
+(defsystem draw-something
     :description "draw-something: a drawing generation system."
     :version "0.5.0"
     :author "Rhea Myers <rhea@myers.studio>"
@@ -49,20 +49,20 @@
      (:file "plane")
      (:file "postscript")
      (:file "svg")
-     (:file "draw-something")))
+     (:file "draw-something"))
+    :in-order-to ((test-op (test-op draw-something/test))))
 
-(defsystem "draw-something/test"
+(defsystem draw-something/test
     :description "draw-something/test: tests for draw-something."
     :version "0.5.0"
     :author "Rhea Myers <rhea@myers.studio>"
     :licence "GNU GPL v3+"
-    :depends-on ("draw-something" "fiveam")
+    :depends-on (:draw-something
+                 :prove)
+    :defsystem-depends-on (:prove-asdf)
     :pathname "test"
-    :perform (test-op (o s)
-                      (uiop:symbol-call :fiveam '#:run!
-                                        (uiop:find-symbol*
-                                         '#:draw-something-test-suite
-                                         :draw-something/test)))
     :components
     ((:file "package")
-     (:file "test")))
+     (:test-file "test"))
+    :perform (test-op :after (op c)
+                      (funcall (intern #.(string :run) :prove) c)))
