@@ -16,13 +16,16 @@ quicklisp
 
 https://www.quicklisp.org/beta/
 
+
 Development Dependencies
 ========================
 
-fiveam
+prove
 ------
 
-(ql:quickload "fiveam")
+ros run
+(ql:quickload "prove")
+(ql:quickload "prove-asdf")
 
 
 Installation

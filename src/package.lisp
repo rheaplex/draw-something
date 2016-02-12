@@ -20,5 +20,8 @@
   (:documentation
    "The draw-something package.")
   (:use common-lisp)
-  (:export generate-drawing
+  (:export
+   *print-advisories*
+   *print-debugs*
+   generate-drawing
            draw-something))

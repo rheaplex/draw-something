@@ -43,7 +43,7 @@
 ;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod make-hull-figures (the-points count low-count high-count)
+(defun make-hull-figures (the-points count low-count high-count)
   "Make count hull figures. They may overlap or touch. Todo: prevent this."
   (advisory-message (format nil "Making ~d hull figure(s) for plane.~%" count))
     (map-into (make-vector count)
@@ -72,7 +72,7 @@
 ;; Polygons
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod make-polygon-figures (points count low-count high-count)
+(defun make-polygon-figures (points count low-count high-count)
   "Make count polygon figures. They may overlap or touch. Todo: prevent this."
   (advisory-message (format nil "Making ~d polygon figure(s) for plane.~%"
 			    count))
@@ -89,7 +89,7 @@
 (defconstant min-polygon-points 3)
 (defconstant max-polygon-points 12)
 
-(defmethod make-polygon-figures-for-plane (points)
+(defun make-polygon-figures-for-plane (points)
   "The plane population policy using polygons. "
   (make-polygon-figures points
                         (random-range min-polygons-per-plane
@@ -102,7 +102,7 @@
 ;; Lines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod make-line-figure (points)
+(defun make-line-figure (points)
   "Make a line figure using two of the points."
   (let ((p1p2 (choose-n-of 2 points)))
     (make-instance 'figure
@@ -113,7 +113,7 @@
                                                  :from (first p1p2)
                                                  :to (second p1p2))))))
 
-(defmethod make-line-figures (points count)
+(defun make-line-figures (points count)
   "Make count line figures. They may overlap or touch. Todo: ensure they don't."
   (advisory-message (format nil "Making ~d line figure(s) for plane.~%" count))
   (let ((lines (make-vector count)))
@@ -134,13 +134,13 @@
 ;; Points
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod make-point-figure (point)
+(defun make-point-figure (point)
   "Make a point figure."
   (make-instance 'figure
                  :forms (make-instance 'form
                                        :contents point)))
 
-(defmethod make-point-figures (points count)
+(defun make-point-figures (points count)
   "Make count point figures."
   (advisory-message (format nil "Making ~d point figure(s) for plane.~%" count))
   (let ((source-points (choose-n-of count points))
@@ -171,5 +171,5 @@
     make-line-figures-for-plane
     make-point-figures-for-plane))
 
-(defmethod figure-generation-methods (count)
+(defun figure-generation-methods (count)
   (choose-n-of-ordered count figure-generation-method-list))

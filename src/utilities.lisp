@@ -21,7 +21,7 @@
 (defvar *print-advisories* t)
 (defvar *print-debugs* t)
 
-(defmethod debug-message (msg)
+(defun debug-message (msg)
   "Write the message to the error stream, not to standard output."
   (when *print-debugs*
     (format *debug-io*
@@ -29,14 +29,14 @@
 	    msg)
     (finish-output *debug-io*)))
 
-(defmethod advisory-message (msg)
+(defun advisory-message (msg)
   "Write the message to the error stream, not to standard output. No newline."
   (when *print-advisories*
     (format *debug-io*
 	    msg)
     (finish-output *debug-io*)))
 
-(defmethod make-vector (initial-size)
+(defun make-vector (initial-size)
   "Make a stretchy vector."
   (make-array initial-size
               :adjustable t
@@ -65,17 +65,17 @@ Note that this is evaluated as two loops"
 	  (loop for ,var from ,from below ,start
 	     do (progn ,@body))))
 
-(defmethod dequote (item)
+(defun dequote (item)
   "Remove the quote from a symbol, returning the symbol."
   (cadr item))
 
-(defmethod random-number (a)
+(defun random-number (a)
   "The built in random doesn't like 0.0 ."
   (if (= a 0)
       a
       (random a)))
 
-(defmethod random-range (a b)
+(defun random-range (a b)
   "Make a random number from a to below b."
   (let ((range (- b a)))
     (if (= range 0)
@@ -97,12 +97,12 @@ Note that this is evaluated as two loops"
   "Choose one or none of the options."
   (aref possibilities (random (length possibilities))))
 
-(defmethod maybe-choose-one-of (possibilities)
+(defun maybe-choose-one-of (possibilities)
   "Choose one or none of the options."
   (when (< (random 1.0) 0.5)
     (choose-one-of possibilities)))
 
-(defmethod maybe-choose-some-of (possibilities probability)
+(defun maybe-choose-some-of (possibilities probability)
   "Choose none or more possibilities when random 1.0 < probability for it."
   (loop for item in possibilities
      when (< (random 1.0) probability)
@@ -189,7 +189,7 @@ Note that this is evaluated as two loops"
 
 (defconstant normal-to-255-multiplier (/ 1.0 256))
 
-(defmethod normal-to-255 (normal)
+(defun normal-to-255 (normal)
   "Convert a 0..1 value to a 0..255 value."
   (* normal normal-to-255-multiplier))
 

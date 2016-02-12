@@ -19,6 +19,6 @@
 (defpackage draw-something/test
   (:documentation
    "Tests for the draw-something package.")
-  (:use :common-lisp
-        :5am
+  (:use :cl
+        :prove
         :draw-something))
