@@ -24,10 +24,11 @@
 (defparameter all-object-symbols
   (cons 'background object-symbol-choices))
 
-(defmethod object-symbol (obj)
+(defun object-symbol (obj)
+  (declare (ignore obj))
   (choose-one-of object-symbol-choices))
 
-(defmethod generate-drawing ()
+(defun generate-drawing ()
   "Make the drawing data structures and create the image."
   (let ((the-drawing (make-drawing)))
     (make-composition-points the-drawing (random-range 8 42))
@@ -37,7 +38,7 @@
     (colour-objects the-drawing all-object-symbols)
     the-drawing))
 
-(defmethod draw-something (&optional (pathspec nil))
+(defun draw-something (&optional (pathspec nil))
   "The main method that generates the drawing and writes it to file."
   (advisory-message "Starting draw-something.~%")
   (setf *random-state* (make-random-state t))

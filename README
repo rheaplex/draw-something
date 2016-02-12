@@ -5,7 +5,24 @@ By Rob Myers - rob@robmyers.org
 
 An artistic image generator inspired by Harold Cohen's AARON.
 
-Running
--------
+Installation
+============
+
+See INSTALL.
+
+Usage
+=====
+
+Creating Drawings
+-----------------
 
 ./draw-something
+
+./draw-something drawing-filename.svg
+
+./draw-something /path/to/directory/another-drawing.svg
+
+Running Tests
+-------------
+
+./run-tests
