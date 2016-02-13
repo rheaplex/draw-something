@@ -104,7 +104,7 @@
 (defun svg-form-skeleton (the-form ps)
   "Write the skeleton the drawing is made around."
   (svg-path-tag-start :to ps)
-  (svg-stroke (make-instance 'colour
+  (svg-stroke (make-instance '<colour>
                                    :hue 0.3
                                    :saturation 0.6
                                    :brightness 0.6)
@@ -127,7 +127,7 @@
 (defun svg-form-stroke (the-form ps)
   "Write the drawing outline."
  (svg-path-tag-start :to ps)
-  (svg-stroke (make-instance 'colour
+  (svg-stroke (make-instance '<colour>
                                    :hue 0.0
                                    :saturation 0.0
                                    :brightness 0.0)
@@ -160,7 +160,7 @@
 (defun svg-frame (the-drawing ps)
   "Frame the drawing. Frame is bigger than PS bounds but should be OK."
   (svg-rectstroke (inset-rectangle (bounds the-drawing) -1)
-                    (make-instance 'colour :brightness 0.0)
+                    (make-instance '<colour> :brightness 0.0)
                     :to ps))
 
 (defun svg-write-drawing (name the-drawing)

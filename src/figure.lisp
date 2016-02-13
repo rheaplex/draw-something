@@ -21,7 +21,7 @@
 (defconstant +min-forms+ 5)
 (defconstant +max-forms+ 10)
 
-(defclass figure ()
+(defclass <figure> ()
   ((forms :accessor forms
 	  :type vector
 	  :initform (make-vector 5)
@@ -36,7 +36,7 @@
 (defun make-figure-from-points (points)
   "Make a figure with a single polyline from the provided points."
   (advisory-message "Making figure.~%")
-  (let ((fig (make-instance 'figure)))
+  (let ((fig (make-instance '<figure>)))
     (vector-push-extend (make-form-from-points points)
 			(forms fig))
     fig))

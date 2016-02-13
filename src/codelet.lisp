@@ -33,7 +33,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass codelet ()
+(defclass <codelet> ()
   ((action :accessor action
 	   :type symbol
 	   :initarg :action
@@ -59,7 +59,7 @@
 	    :documentation "The creation time of the codelet."))
   (:documentation "A codelet."))
 
-(defclass coderack ()
+(defclass <coderack> ()
   ((codelets :accessor codelets
 	     :type vector
 	     :initform (make-vector +maximum-number-of-codelets+)
@@ -75,24 +75,24 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod should-finish-running ((rack coderack))
+(defmethod should-finish-running ((rack <coderack>))
   (setf (should-continue rack) nil))
 
-(defmethod advance-codelet-ticks ((rack coderack))
+(defmethod advance-codelet-ticks ((rack <coderack>))
   (incf (codelet-ticks rack)))
 
-(defmethod should-prune-codelets ((rack coderack))
+(defmethod should-prune-codelets ((rack <coderack>))
   "Check whether it's time to prune again."
   (mod (codelet-ticks rack) +number-of-ticks-per-pruning+))
 
-(defmethod add-codelet-to-coderack ((c codelet) (rack coderack))
+(defmethod add-codelet-to-coderack ((c <codelet>) (rack <coderack>))
   "Add the codelet to the list."
   (advisory-message (format nil "Adding: ~a~%" (string-downcase (string (action c)))))
   (vector-push-extend c (codelets rack)))
 
-(defmethod add-codelet ((rack coderack) action urgency category &rest arguments)
+(defmethod add-codelet ((rack <coderack>) action urgency category &rest arguments)
   "Make and add the codelet to the list."
-  (add-codelet-to-coderack (make-instance 'codelet
+  (add-codelet-to-coderack (make-instance '<codelet>
 					  :action action
 					  :arguments arguments
 					  :category category
@@ -100,29 +100,29 @@
 					  :created (codelet-ticks rack))
 			   rack))
 
-(defmethod remove-codelet ((rack coderack) i)
+(defmethod remove-codelet ((rack <coderack>) i)
   "Remove the codelet from the vector, filling the resulting hole."
   (if (< i (1- (fill-pointer (codelets rack))))
       (setf (aref (codelets rack) i) 
 	    (aref (codelets rack) (1- (fill-pointer (codelets rack))))))
   (decf (fill-pointer (codelets rack))))
 
-(defmethod remove-codelets-matching ((rack coderack) predicate)
+(defmethod remove-codelets-matching ((rack <coderack>) predicate)
   "Remove all codelets that predicate returns t for."
   (loop for i from 0 to (length rack)
        when (apply predicate (aref rack i))
        do (remove-codelet rack i)))
 
-(defmethod codelet-should-run ((rack coderack) (c codelet))
+(defmethod codelet-should-run ((rack <coderack>) (c <codelet>))
   "Probabilistically decide whether the codelet should run."
   t) ;; todo
 
-(defmethod run-codelet ((c codelet))
+(defmethod run-codelet ((c <codelet>))
   "Run the codelet."
   (advisory-message (format nil "Running: ~a~%" (string-downcase (string (action c)))))
   (apply #'funcall (action c) (arguments c)))
 
-(defmethod run-one-codelet ((rack coderack))
+(defmethod run-one-codelet ((rack <coderack>))
   "Run one codelet."
   ;; Make sure we run exactly one?
   (dotimes (i (length (codelets rack)))
@@ -136,17 +136,17 @@
   "A random urgency."
   (random-range +minimum-urgency+ +maximum-urgency+))
 
-(defmethod codelet-age ((c codelet) (rack coderack))
+(defmethod codelet-age ((c <codelet>) (rack <coderack>))
   "The age of the codelet."
   (- (codelet-ticks rack) (created c)))
 
-(defmethod should-remove-codelet ((c codelet))
+(defmethod should-remove-codelet ((c <codelet>))
   "Should the codelet be removed? Weighted random choice."
   (> (random-urgency)
      (/ (urgency c)
 	(codelet-age c))))
 
-(defmethod prune-codelets ((rack coderack))
+(defmethod prune-codelets ((rack <coderack>))
   "Randomly remove codelets that are too old and low priority."
   (let ((to-remove (make-vector 10)))
     (dotimes (i (length (codelets rack)))
@@ -157,7 +157,7 @@
     (dolist (remove to-remove)
       (remove-codelet rack remove))))
   
-(defmethod initialise-coderack ((rack coderack) the-drawing)
+(defmethod initialise-coderack ((rack <coderack>) the-drawing)
   "Populate the coderack with the initial codelets."
   ;; Randomly add n. codelets
   ;; Ones that locate various sizes of wide/tall/equalish space
@@ -169,7 +169,7 @@
   (dotimes (i (random-range min-figures max-figures))
     (add-figure-making-codelet rack the-drawing)))
   
-(defmethod draw-loop-step ((rack coderack) the-drawing)
+(defmethod draw-loop-step ((rack <coderack>) the-drawing)
   "One step of the loop"
   (declare (ignore the-drawing))
   ;;(when (should-prune-codelets)
@@ -177,7 +177,7 @@
   ;;add new codelets from figures & from ongoing list to add
   (run-one-codelet rack))
 
-(defmethod coderack-draw-loop ((rack coderack) the-drawing)
+(defmethod coderack-draw-loop ((rack <coderack>) the-drawing)
   "Run until complete."
   (loop while (should-continue rack)
      do (draw-loop-step rack the-drawing)))
@@ -186,21 +186,21 @@
 ;; Specific codelets
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod figure-making-codelet ((rack coderack) the-drawing)
+(defmethod figure-making-codelet ((rack <coderack>) the-drawing)
   "Replace with space finder, form-adder, etc."
   (add-figure-drawing-codelet rack the-drawing (make-figure the-drawing)))
 
-(defmethod add-figure-making-codelet ((rack coderack) the-drawing)
+(defmethod add-figure-making-codelet ((rack <coderack>) the-drawing)
   "Add a codelet to make the figure."
   (add-codelet rack 'figure-making-codelet 100 'drawing rack the-drawing))
 
-(defmethod figure-drawing-codelet ((rack coderack) the-drawing fig)
+(defmethod figure-drawing-codelet ((rack <coderack>) the-drawing fig)
   "Draw the figure. Replace with various."
   (draw-figure the-drawing fig)
   (when (= (length (codelets rack)) 1)
     (should-finish-running rack)))
 
-(defmethod add-figure-drawing-codelet ((rack coderack) the-drawing fig)
+(defmethod add-figure-drawing-codelet ((rack <coderack>) the-drawing fig)
   "Add a codelet to draw the figure."
   (add-codelet rack 'figure-drawing-codelet 100 'drawing rack 
 	       the-drawing fig))

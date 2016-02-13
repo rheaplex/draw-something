@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass colour ()
+(defclass <colour> ()
   ((hue :accessor hue
 	:initform 1.0
 	:initarg :hue
@@ -35,7 +35,7 @@
 
 (defun random-colour ()
   "Make a random colour."
-  (make-instance 'colour :hue (random 1.0) :saturation (random 1.0)
+  (make-instance '<colour> :hue (random 1.0) :saturation (random 1.0)
 		 :brightness (random 1.0)))
 
 (defun hsb-to-rgb (col)

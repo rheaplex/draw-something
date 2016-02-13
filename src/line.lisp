@@ -18,15 +18,15 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass line (geometry)
+(defclass <line> (<geometry>)
   ((from :accessor from
 	 :type point
-	 :initform (make-instance 'point)
+	 :initform (make-instance '<point>)
 	 :initarg :from
 	 :documentation "The start of the line.")
    (to :accessor to
        :type point
-       :initform (make-instance 'point)
+       :initform (make-instance '<point>)
        :initarg :to
        :documentation "The end of the line."))
    (:documentation "A simple line (segment) between two points."))
@@ -51,15 +51,15 @@
 		 (* (- yp yla) (- ylb yla)))))
     ;;(format t "~F%~%" dot-ta)
     (if (<= dot-ta 0.0)
-	(make-instance 'point :x xla :y yla)
+	(make-instance '<point> :x xla :y yla)
 	;; else
 	(let ((dot-tb (+ (* (- xp xlb) (- xla xlb)) 
 			 (* (- yp ylb) (- yla ylb)))))
 	  ;;(format t "~F%~%" dot-tb)
 	  (if (<= dot-tb 0.0)
-	      (make-instance 'point :x xlb :y ylb)
+	      (make-instance '<point> :x xlb :y ylb)
 	      ;; else      
-	      (make-instance 'point
+	      (make-instance '<point>
 			     :x (+ xla 
 				   (/ (* (- xlb xla) dot-ta) 
 				  (+ dot-ta dot-tb)))
@@ -73,7 +73,7 @@
 (defun nearest-point-on-line (p l) ;;la lb)
   (nearest-point-on-line-points p (from l) (to l)))
 
-(defmethod distance ((p point) (l line))
+(defmethod distance ((p <point>) (l <line>))
   "The distance between a point and a line."
   (distance p (nearest-point-on-line p l)))
 
@@ -123,13 +123,13 @@
   "Find whether the two lines, the second expressed as 2 points intersect."
   (lines-intersects-points (from l1) (to l1) l2p1 l2p2))
 
-(defmethod intersects ((l1 line) (l2 line))
+(defmethod intersects ((l1 <line>) (l2 <line>))
   "Find whether the two lines intersect."
   (lines-intersects-points (from l1) (to l1) (from l2) (to l2)))
 
 (defun line-at-t (l time)
   "Evaluate the line at t where 0<=t<=1 ."
-  (make-instance 'point
+  (make-instance '<point>
 		 :x (+ (x (from l))
 		       (* time (- (x (to l))
 				  (x (from l)))))

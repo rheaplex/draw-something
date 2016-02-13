@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass pen-parameters (turtle-parameters)
+(defclass <pen-parameters> (<turtle-parameters>)
   ((distance           :accessor pen-distance
                        :initarg :distance
                        :documentation "How far from the skeleton to draw.")
@@ -37,7 +37,7 @@
 ;; Move to random ranges for production
 
 (defparameter *plane-1-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          4.0
                  :distance           20.0
                  :distance-tolerance 5.0
@@ -46,7 +46,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-2-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          2.0
                  :distance           10.0
                  :distance-tolerance 3.3
@@ -55,7 +55,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-3-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          2.0
                  :distance           7.0
                  :distance-tolerance 2.0
@@ -64,7 +64,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-4-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          2.0
                  :distance           5.0
                  :distance-tolerance 2.0
@@ -73,7 +73,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-5-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          2.0
                  :distance           3.0
                  :distance-tolerance 1.0
@@ -82,7 +82,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-6-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          2.0
                  :distance           2.0
                  :distance-tolerance 1.0
@@ -91,7 +91,7 @@
                  :drift-range        0.1))
 
 (defparameter *plane-7-pen*
-  (make-instance 'pen-parameters
+  (make-instance '<pen-parameters>
                  :move-step          1.0
                  :distance           1.0
                  :distance-tolerance 0.2

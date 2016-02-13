@@ -20,7 +20,7 @@
 
 ;; This version is much simpler than AARON: just a grid of figure references
 
-(defclass cell ()
+(defclass <cell> ()
   ((figure :accessor figure
            :initform nil
            :documentation "The cell's figure.")
@@ -49,7 +49,7 @@
     (dotimes (i matrix-height)
       (dotimes (j matrix-width)
         (setf (aref (cell-matrix the-drawing) i j)
-              (make-instance 'cell))))))
+              (make-instance '<cell>))))))
 
 (defmethod apply-line (fun x0 y0 x1 y1)
   "Call fun along the bresenham line co-ordinates between the two points."
@@ -134,11 +134,14 @@
 					 (+ x h xslop)
 					 (+ y v yslop))))))
 
+(defgeneric cell-figure (t int int)
+  (:documentation "Get the figure the cell is marked with."))
+
 (defmethod cell-figure ((cells array) x y)
   "Get the cell's figure."
   (figure (aref cells x y)))
 
-(defmethod cell-figure ((d drawing) x y)
+(defmethod cell-figure ((d <drawing>) x y)
   "Get the cell's figure."
   (cell-figure (cell-matrix d)
                (drawing-to-cell-x x)
@@ -150,7 +153,7 @@
     (setf (figure the-cell) fig)
     (setf (role the-cell) role)))
 
-(defmethod set-cell-figure ((d drawing) x y fig role)
+(defmethod set-cell-figure ((d <drawing>) x y fig role)
   "Set the cell to the figure. x and y are in cell co-ordinates."
   (set-cell-figure (cell-matrix d) x y fig role))
 

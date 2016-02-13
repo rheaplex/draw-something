@@ -80,9 +80,9 @@
 ;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +from+ (make-instance 'draw-something::point :x 100 :y 100))
-(defparameter +mid+ (make-instance 'draw-something::point :x 550 :y 550))
-(defparameter +to+ (make-instance 'draw-something::point :x 1000 :y 1000))
+(defparameter +from+ (make-instance 'draw-something::<point> :x 100 :y 100))
+(defparameter +mid+ (make-instance 'draw-something::<point> :x 550 :y 550))
+(defparameter +to+ (make-instance 'draw-something::<point> :x 1000 :y 1000))
 
 ;; Point equality
 (ok (draw-something::point= +from+ +from+))
@@ -93,7 +93,7 @@
 ;; Line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +line+ (make-instance 'draw-something::line
+(defparameter +line+ (make-instance 'draw-something::<line>
                                     :from +from+
                                     :to +to+))
 
@@ -114,19 +114,19 @@
 ;; Rectangle
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +rect+ (make-instance 'draw-something::rectangle 
+(defparameter +rect+ (make-instance 'draw-something::<rectangle> 
                                     :x 0 :y 0 :width 500 :height 1000))
 
 (defparameter +intersecting-rects+ 
-  (list (make-instance 'draw-something::rectangle 
+  (list (make-instance 'draw-something::<rectangle> 
                        :x -100 :y -100 :width 1000 :height 1000)
-        (make-instance 'draw-something::rectangle 
+        (make-instance 'draw-something::<rectangle> 
                        :x 100 :y 100 :width 1000 :height 1000)))
 
 (defparameter +non-intersecting-rects+ 
-  (list (make-instance 'draw-something::rectangle 
+  (list (make-instance 'draw-something::<rectangle> 
                        :x -10000 :y -10000 :width 50 :height 10)
-        (make-instance 'draw-something::rectangle 
+        (make-instance 'draw-something::<rectangle> 
                        :x 10000 :y 10000 :width 50 :height 10)))
 
 ;; Rectangle intersection
@@ -164,22 +164,22 @@
                     +rect+ 10))))
       (polyrecta
        (draw-something::as-polyline (make-instance
-                                     'draw-something::rectangle
+                                     'draw-something::<rectangle>
                                      :x 0 :y 0 :width 100
                                      :height 100)))
       (polyrectb
        (draw-something::as-polyline (make-instance
-                                     'draw-something::rectangle
+                                     'draw-something::<rectangle>
                                      :x 50 :y 50 :width 100
                                      :height 100)))
       (polyrectc
        (draw-something::as-polyline (make-instance
-                                     'draw-something::rectangle
+                                     'draw-something::<rectangle>
                                      :x 500 :y 500 :width 100
                                      :height 100)))
       (polyrectd
        (draw-something::as-polyline (make-instance
-                                     'draw-something::rectangle
+                                     'draw-something::<rectangle>
                                      :x 10 :y 10 :width 10
                                      :height 10))))
   ;; Every created polyline's points fall within its source bounds
@@ -204,7 +204,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter +red+
-  (make-instance 'draw-something::colour 
+  (make-instance 'draw-something::<colour>
                  :hue 0.0 
                  :saturation 1.0
                  :brightness 1.0))
@@ -241,7 +241,7 @@
        (composition-points
         (draw-something::make-composition-points drawing 10000))
        (bad-skeletons
-        (vector (vector (make-instance 'draw-something::point 
+        (vector (vector (make-instance 'draw-something::<point> 
                                        :x 1000000 :y 0))))
        (polygon-figures
         (draw-something::make-polygon-figures composition-points
@@ -261,28 +261,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter +figure-bounds+  
-  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 200 :height 400))
+  (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 200 :height 400))
 
 (defparameter +search-size-good+  
-  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 20 :height 40))
+  (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 20 :height 40))
 
 (defparameter +search-size-bad+  
-  (make-instance 'draw-something::rectangle :x 0 :y 0 :width 300 :height 300))
+  (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 300 :height 300))
 
 (let* ((the-form 
-        (make-instance 'draw-something::form
+        (make-instance 'draw-something::<form>
                        :bounds +figure-bounds+))
        (the-figure 
-        (make-instance 'draw-something::figure
+        (make-instance 'draw-something::<figure>
                        :bounds +figure-bounds+
                        :forms (vector the-form)))
        (the-plane 
-        (make-instance 'draw-something::plane
+        (make-instance 'draw-something::<plane>
                        :figures (vector the-figure)))
        (drawing 
-        (make-instance 'draw-something::drawing 
+        (make-instance 'draw-something::<drawing>
                        :bounds (make-instance
-                                'draw-something::rectangle 
+                                'draw-something::<rectangle> 
                                 :x 0 :y 0 
                                 :width 400 :height 400)
                        :planes (vector the-plane))))

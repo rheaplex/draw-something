@@ -41,7 +41,7 @@
 ;; LMH - Low medium and high value ranges from 0.0..1.0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass lmh-values ()
+(defclass <lmh-values> ()
   ((lows :type vector 
 	 :initform (make-vector 7)
 	 :initarg :lows
@@ -77,7 +77,7 @@
   (let* ((low-count (random-range 1 (- count 2)))
 	 (medium-count (random-range 1 (- count low-count 1)))
 	 (high-count (- count medium-count low-count)))
-    (make-instance 'lmh-values
+    (make-instance '<lmh-values>
 		   :lows (make-random-low-values low-count
 						 medium-start)
 		   :mediums (make-random-medium-values medium-count
@@ -121,18 +121,18 @@
 ;; Colour Scheme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass colour-scheme ()
+(defclass <colour-scheme> ()
   ((hues :type hash-table
 	 :initarg :hues
 	 :initform (make-hash-table)
 	 :accessor colour-scheme-hues)
    (saturations :type lmh-values
 		:initarg :saturations
-		:initform (make-instance 'lmh-values)
+		:initform (make-instance '<lmh-values>)
 		:accessor colour-scheme-saturations)
    (values :type lmh-values
 	   :initarg :values
-	   :initform (make-instance 'lmh-values)
+	   :initform (make-instance '<lmh-values>)
 	   :accessor colour-scheme-values))
   (:documentation "The values describing a colour scheme."))
 
@@ -178,7 +178,7 @@
   "Choose a colour for the hue id using the sv-spec eg 'lm, 'hh, 'ml."
   (multiple-value-bind 
 	(saturationspec valuespec) (sv-spec-components sv-spec)
-    (make-instance 'colour 
+    (make-instance '<colour> 
 		   :hue (symbol-colour-scheme-hue scheme hue-id)
 		   :saturation (random-colour-scheme-saturation scheme
 								saturationspec)
@@ -199,7 +199,7 @@
 
 (defun make-colour-scheme (hue-list saturations values medium high)
   "Make a colour scheme for the saturation symbol list."
-  (make-instance 'colour-scheme
+  (make-instance '<colour-scheme>
 		 :hues (make-hue-additive-series hue-list)
 		 :saturations (make-lmh saturations medium high)
 		 :values (make-lmh values medium high)))
@@ -208,7 +208,7 @@
 ;; Applying colour schemes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass colour-scheme-applier ()
+(defclass <colour-scheme-applier> ()
   ((scheme :type colour-scheme
 	   :accessor applier-scheme
 	   :initarg :scheme)
@@ -262,7 +262,7 @@
 ;; Change to being an :after initialize-instance method
 (defun make-colour-scheme-applier (scheme spec-list)
   "Make a colour scheme applier."
-  (let ((applier (make-instance 'colour-scheme-applier
+  (let ((applier (make-instance '<colour-scheme-applier>
 				:scheme scheme)))
     (set-applier-chooser applier spec-list)
     (set-applier-probabilities applier spec-list)

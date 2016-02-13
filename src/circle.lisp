@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass circle (geometry)
+(defclass <circle> (<geometry>)
   ((x :accessor x 
       :type float
       :initform  0.0
@@ -36,11 +36,11 @@
       :documentation "The radius of the circle."))
   (:documentation "A simple circle."))
 
-(defmethod distance ((p point) (c circle))
+(defmethod distance ((p <point>) (c <circle>))
   "The distance from a point to a polyline. Negative is inside circle."
   (- (distance-point-co-ordinates p (x c) (y c))
 	  (radius c)))
 
-(defmethod highest-leftmost-point ((c circle))
+(defmethod highest-leftmost-point ((c <circle>))
   "The highest point of the circle."
   (make-instance 'point :x (x c) :y (+ (y c) (radius c))))

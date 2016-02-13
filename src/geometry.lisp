@@ -22,26 +22,26 @@
 ;; The geometry base class
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass geometry ()
+(defclass <geometry> ()
   ()
   (:documentation "The abstract base class for geometric(ish) objects."))
 
 (defgeneric bounds (geometry)
   (:documentation "The object's bounds, if any."))
 
-(defgeneric area (geometry)
+(defgeneric area (<geometry>)
   (:documentation "The object's area, if any."))
 
-(defgeneric contains (geometry geometry)
+(defgeneric contains (<geometry> <geometry>)
   (:documentation "Whether the first object contains the second."))
 
-(defgeneric distance (geometry geometry)
+(defgeneric distance (<geometry> <geometry>)
   (:documentation "The distance between the closest points of the objects."))
 
-(defgeneric highest-leftmost-point (geometry)
+(defgeneric highest-leftmost-point (<geometry>)
   (:documentation "The object's highest leftmost point (may be calculated)."))
 
-(defgeneric intersects (geometry geometry)
+(defgeneric intersects (<geometry> <geometry>)
   (:documentation "Whether and where the objects intersect."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

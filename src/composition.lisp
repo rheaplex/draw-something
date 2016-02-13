@@ -105,11 +105,11 @@
 (defun make-line-figure (points)
   "Make a line figure using two of the points."
   (let ((p1p2 (choose-n-of 2 points)))
-    (make-instance 'figure
+    (make-instance '<figure>
                    :forms
-                   (make-instance 'form
+                   (make-instance '<form>
                                   :contents
-                                  (make-instance 'line
+                                  (make-instance '<line>
                                                  :from (first p1p2)
                                                  :to (second p1p2))))))
 
@@ -136,8 +136,8 @@
 
 (defun make-point-figure (point)
   "Make a point figure."
-  (make-instance 'figure
-                 :forms (make-instance 'form
+  (make-instance '<figure>
+                 :forms (make-instance '<form>
                                        :contents point)))
 
 (defun make-point-figures (points count)

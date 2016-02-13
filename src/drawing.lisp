@@ -21,7 +21,7 @@
 (defconstant +min-drawing-size+ 200.0)
 (defconstant +max-drawing-size+ 600.0)
 
-(defclass drawing ()
+(defclass <drawing> ()
   ((bounds :accessor bounds
 	   :type rectangle
 	   :initarg :bounds
@@ -47,7 +47,7 @@
 
 (defun make-drawing-bounds ()
   "Make a bounds rectangle for a drawing."
-  (make-instance 'rectangle :x 0.0 :y 0.0
+  (make-instance '<rectangle> :x 0.0 :y 0.0
 		 :width (random-range +min-drawing-size+ 
 				      +max-drawing-size+)
 		 :height (random-range +min-drawing-size+ 
@@ -55,7 +55,7 @@
 
 (defun make-drawing ()
   "Make a drawing, ready to be started."
-  (let ((the-drawing (make-instance 'drawing 
+  (let ((the-drawing (make-instance '<drawing> 
 				    :bounds (make-drawing-bounds))))
     (advisory-message (format nil "Making drawing. Size: ~dx~d.~%" 
 			      (floor (width (bounds the-drawing)))
