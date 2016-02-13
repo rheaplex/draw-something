@@ -18,8 +18,8 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defconstant min-forms 5)
-(defconstant max-forms 10)
+(defconstant +min-forms+ 5)
+(defconstant +max-forms+ 10)
 
 (defclass figure ()
   ((forms :accessor forms

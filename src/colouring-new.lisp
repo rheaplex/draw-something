@@ -27,15 +27,15 @@
 ;; Object symbols used in colouring
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter object-symbol-choices
+(defparameter *object-symbol-choices*
   '(leaf vein blade branch flower tendril))
 
-(defparameter all-object-symbols
-  (cons 'background object-symbol-choices))
+(defparameter *all-object-symbols*
+  (cons 'background *object-symbol-choices*))
 
 (defun object-symbol (obj)
   (declare (ignore obj))
-  (choose-one-of object-symbol-choices))
+  (choose-one-of *object-symbol-choices*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LMH - Low medium and high value ranges from 0.0..1.0
@@ -331,19 +331,19 @@
 ;; How to make and apply a colour scheme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant minimum-spec-probability 3)
-(defconstant maximum-spec-probability 9)
-(defconstant minimum-spec-count 2)
-(defconstant maximum-spec-count 3)
-(defparameter sv-spec-options '('ll 'lm 'lh 'ml 'mm 'mh 'hl 'hm 'hh))
+(defconstant +minimum-spec-probability+ 3)
+(defconstant +maximum-spec-probability+ 9)
+(defconstant +minimum-spec-count+ 2)
+(defconstant +maximum-spec-count+ 3)
+(defparameter *sv-spec-options* '('ll 'lm 'lh 'ml 'mm 'mh 'hl 'hm 'hh))
 
 (defun chooser-spec ()
   "Construct a list describing a random spec pref, eg (6 'll 3 'hm 2 'lh)."
-  (loop for spec in (choose-n-of (random-range-inclusive minimum-spec-count 
-							 maximum-spec-count) 
-				 sv-spec-options)
-	collect (random-range-inclusive minimum-spec-probability 
-					maximum-spec-probability)
+  (loop for spec in (choose-n-of (random-range-inclusive +minimum-spec-count+ 
+                                                         +maximum-spec-count+) 
+				 *sv-spec-options*)
+	collect (random-range-inclusive +minimum-spec-probability+ 
+					+maximum-spec-probability+)
 	collect spec))
 
 (defun colour-objects (drawing symbols)

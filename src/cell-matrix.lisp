@@ -29,20 +29,20 @@
            :documentation "The cell's status."))
   (:documentation "A cell in the matrix."))
 
-(defconstant cell-size 1)
+(defconstant +cell-size+ 1)
 
 (defmethod drawing-to-cell-x (x)
   "Convert a drawing x co-ordinate to a cell x co-ordinate."
-  (floor (/ x cell-size)))
+  (floor (/ x +cell-size+)))
 
 (defmethod drawing-to-cell-y (y)
   "Convert a drawing y co-ordinate to a cell y co-ordinate."
-  (floor (/ y cell-size)))
+  (floor (/ y +cell-size+)))
 
 (defmethod make-cell-matrix (the-drawing)
   "Make the picture cell matrix for the drawing"
-  (let ((matrix-width (ceiling (/ (width (bounds the-drawing)) cell-size)))
-        (matrix-height (ceiling (/ (height (bounds the-drawing)) cell-size))))
+  (let ((matrix-width (ceiling (/ (width (bounds the-drawing)) +cell-size+)))
+        (matrix-height (ceiling (/ (height (bounds the-drawing)) +cell-size+))))
     (setf (cell-matrix the-drawing)
           (make-array (list matrix-height matrix-width)
                       :element-type 'cell))

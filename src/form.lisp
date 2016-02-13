@@ -19,12 +19,12 @@
 (in-package "DRAW-SOMETHING")
 
 
-(defconstant min-form-points 1)
-(defconstant max-form-points 12)
+(defconstant +min-form-points+ 1)
+(defconstant +max-form-points+ 12)
 
-(defconstant form-step-limit 5000)
+(defconstant +form-step-limit+ 5000)
 
-(defconstant pen-width 1.0)
+(defconstant +pen-width+ 1.0)
 
 (defclass form ()
   ((skeleton :accessor skeleton
@@ -105,7 +105,7 @@
 (defun path-timeout (the-form)
   "Make sure that a failure of the form algorithm hasn't resulted in a loop."
   (> (form-point-count the-form)
-     form-step-limit))
+     +form-step-limit+))
 
 (defun should-finish-form (the-form pen-params)
   "Decide whether the form should finish."
@@ -116,7 +116,7 @@
   "Find the next point forward along the drawn outline of the shape."
   (let* ((form-bounds (bounds the-form))
          (the-outline (outline the-form))
-         (the-pen (choose-one-of plane-pen-parameters))
+         (the-pen (choose-one-of *plane-pen-parameters*))
 	 (the-turtle (make-form-turtle the-form the-pen)))
     (advisory-message "Drawing form.~%")
     (append-point the-outline (location the-turtle))
