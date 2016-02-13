@@ -36,7 +36,7 @@
 ;; Start with fixed values for tuning
 ;; Move to random ranges for production
 
-(defparameter plane-1-pen
+(defparameter *plane-1-pen*
   (make-instance 'pen-parameters
                  :move-step          4.0
                  :distance           20.0
@@ -45,7 +45,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-2-pen
+(defparameter *plane-2-pen*
   (make-instance 'pen-parameters
                  :move-step          2.0
                  :distance           10.0
@@ -54,7 +54,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-3-pen
+(defparameter *plane-3-pen*
   (make-instance 'pen-parameters
                  :move-step          2.0
                  :distance           7.0
@@ -63,7 +63,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-4-pen
+(defparameter *plane-4-pen*
   (make-instance 'pen-parameters
                  :move-step          2.0
                  :distance           5.0
@@ -72,7 +72,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-5-pen
+(defparameter *plane-5-pen*
   (make-instance 'pen-parameters
                  :move-step          2.0
                  :distance           3.0
@@ -81,7 +81,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-6-pen
+(defparameter *plane-6-pen*
   (make-instance 'pen-parameters
                  :move-step          2.0
                  :distance           2.0
@@ -90,7 +90,7 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-7-pen
+(defparameter *plane-7-pen*
   (make-instance 'pen-parameters
                  :move-step          1.0
                  :distance           1.0
@@ -99,9 +99,10 @@
                  :drift-probability  0.0
                  :drift-range        0.1))
 
-(defparameter plane-pen-parameters (vector plane-1-pen plane-2-pen plane-3-pen
-                                           plane-4-pen plane-5-pen plane-6-pen
-                                           plane-7-pen))
+(defparameter *plane-pen-parameters* (vector *plane-1-pen* *plane-2-pen*
+                                             *plane-3-pen* *plane-4-pen*
+                                             *plane-5-pen* *plane-6-pen*
+                                             *plane-7-pen*))
 
 
 (defun next-pen-distance (skeleton-forms pen-params the-turtle)

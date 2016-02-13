@@ -25,11 +25,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant maximum-urgency 100)
-(defconstant minimum-urgency 1)
+(defconstant +maximum-urgency+ 100)
+(defconstant +minimum-urgency+ 1)
 
-(defconstant maximum-number-of-codelets 100)
-(defconstant number-of-ticks-per-pruning 10)
+(defconstant +maximum-number-of-codelets+ 100)
+(defconstant +number-of-ticks-per-pruning+ 10)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -50,7 +50,7 @@
 	     :documentation "The category of the codelet.")
    (urgency :accessor urgency
 	    :type integer
-	    :initform minimum-urgency
+	    :initform +minimum-urgency+
 	    :initarg :urgency
 	    :documentation "The urgency of the codelet.")
    (created :accessor created
@@ -62,7 +62,7 @@
 (defclass coderack ()
   ((codelets :accessor codelets
 	     :type vector
-	     :initform (make-vector maximum-number-of-codelets)
+	     :initform (make-vector +maximum-number-of-codelets+)
 	     :documentation "The codelets.")
    (time :accessor codelet-ticks
 	 :type integer
@@ -83,7 +83,7 @@
 
 (defmethod should-prune-codelets ((rack coderack))
   "Check whether it's time to prune again."
-  (mod (codelet-ticks rack) number-of-ticks-per-pruning))
+  (mod (codelet-ticks rack) +number-of-ticks-per-pruning+))
 
 (defmethod add-codelet-to-coderack ((c codelet) (rack coderack))
   "Add the codelet to the list."
@@ -134,7 +134,7 @@
 
 (defmethod random-urgency ()
   "A random urgency."
-  (random-range minimum-urgency maximum-urgency))
+  (random-range +minimum-urgency+ +maximum-urgency+))
 
 (defmethod codelet-age ((c codelet) (rack coderack))
   "The age of the codelet."

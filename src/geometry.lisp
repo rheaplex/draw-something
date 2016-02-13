@@ -48,21 +48,21 @@
 ;; Geometric(ish) values and functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant radian (* pi 2.0)
+(defconstant +radian+ (* pi 2.0)
   "One radian.")
 
-(defconstant %radians-to-degrees (/ radian 360.0)
+(defconstant +radians-to-degrees+ (/ +radian+ 360.0)
   "The value to multiple radians by to get degrees.")
 
 (defun radians-to-degrees (radians)
   "Convert a value in radians to a huamn-readable value in degrees. :-)"
-  (/ radians %radians-to-degrees))
+  (/ radians+radians-to-degrees+))
 
-(defconstant radians-to-t-ratio (/ 1.0 (* pi 2.0)))
+(defconstant +radians-to-t-ratio+ (/ 1.0 (* pi 2.0)))
 
 (defun radians-to-t (r)
 	"Convert the value in radians to a value from 0.0 to 1.0"
-	(* r radians-to-t-ratio))
+	(* r +radians-to-t-ratio+))
 
 (defun intersects-any (item others)
   "Returns true if item intersects any of the others"

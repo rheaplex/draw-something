@@ -197,11 +197,11 @@ Note that this is evaluated as two loops"
   "Make a lambda to choose an option. eg (prefs-list-lambda '(4 'a 3 'b))"
    (eval `(lambda () ,(prefs-cond spec))))
 
-(defconstant normal-to-255-multiplier (/ 1.0 256))
+(defconstant +normal-to-255-multiplier+ (/ 1.0 256))
 
 (defun normal-to-255 (normal)
   "Convert a 0..1 value to a 0..255 value."
-  (* normal normal-to-255-multiplier))
+  (* normal +normal-to-255-multiplier+))
 
 (defmacro make-hash (&rest key-values)
   (let ((hash (gensym))
@@ -220,7 +220,7 @@ Note that this is evaluated as two loops"
 
 ;; These are here so ps/svg can access them.
 
-(defvar save-directory "./")
+(defvar *save-directory* "./")
 
 (defun generate-filename (&optional (suffix ".eps"))
   "Make a unique filename for the drawing, based on the current date & time."
@@ -228,5 +228,5 @@ Note that this is evaluated as two loops"
       (decode-universal-time (get-universal-time))
     (format nil
             "~a~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A~a"
-            save-directory
+            *save-directory*
             "drawing" year month date hours minutes seconds suffix)))

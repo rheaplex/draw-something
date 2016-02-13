@@ -64,11 +64,11 @@
 
 (defun max-pen-distance ()
   (apply #'max (map 'list #'draw-something::pen-distance 
-                    draw-something::plane-pen-parameters)))
+                    draw-something::*plane-pen-parameters*)))
 
 (defun max-pen-tolerance ()
   (apply #'max (map 'list #'draw-something::pen-distance 
-                    draw-something::plane-pen-parameters)))
+                    draw-something::*plane-pen-parameters*)))
 
 (defun drawing-overflow-bounds (drawing)
   "Outlines go over the edge of the drawing but shouldn't go outside of this"

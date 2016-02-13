@@ -166,7 +166,7 @@
 (defun svg-write-drawing (name the-drawing)
   "Write the drawing"
   (advisory-message (format nil "Writing drawing to file ~a .~%" name))
-  (ensure-directories-exist save-directory)
+  (ensure-directories-exist *save-directory*)
   (with-open-file (ps name :direction :output
                       :if-exists :supersede)
     (svg-header (width (bounds the-drawing))
