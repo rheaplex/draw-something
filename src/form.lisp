@@ -26,7 +26,7 @@
 
 (defconstant +pen-width+ 1.0)
 
-(defclass form ()
+(defclass <form> ()
   ((skeleton :accessor skeleton
              :type vector
              :initarg :skeleton
@@ -34,11 +34,11 @@
              :documentation "The guide shape for the outline.")
    (outline :accessor outline
             :type polyline
-            :initform (make-instance 'polyline)
+            :initform (make-instance '<polyline>)
             :documentation "The outlines for the skeleton. Will be outline_s_.")
    (bounds :accessor bounds
            :type rectangle
-           :initform (make-instance 'rectangle)
+           :initform (make-instance '<rectangle>)
            :initarg :bounds
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
@@ -68,7 +68,7 @@
   (let ((start-point nil))
     (dovector (skel form-skeleton)
       (let* ((hp (highest-leftmost-point skel))
-             (candidate (make-instance 'point
+             (candidate (make-instance '<point>
                                        :x (x hp)
                                        :y (+ (y hp)
                                              (pen-distance pen-params)))))
@@ -81,7 +81,7 @@
 
 (defun make-form-turtle (the-form pen-params)
   "Make the turtle to draw around the form."
-  (make-instance 'turtle
+  (make-instance '<turtle>
                  :location (make-form-start-point (skeleton the-form)
                                                   pen-params)
                  :direction (- (/ pi 2.0))))
@@ -90,7 +90,7 @@
   "Make a form, ready to be started."
   (advisory-message (format nil "Making form.~%"))
   (let* ((skel (make-polyline-from-points points))
-         (the-form (make-instance 'form
+         (the-form (make-instance '<form>
                                     :skeleton (vector skel)
                                     :bounds (bounds skel))))
     ;;(draw-form the-form) ;; Remove for codelets

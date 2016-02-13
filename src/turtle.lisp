@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass turtle-parameters ()
+(defclass <turtle-parameters> ()
   ((turn-step :accessor turn-step
               :initform 1.0
               :initarg :turn-step
@@ -29,9 +29,9 @@
               :documentation "How far the turtle moves each step."))
   (:documentation "A set of parameters for turtle operations to use."))
 
-(defclass turtle ()
+(defclass <turtle> ()
   ((location :accessor location
-             :initform (make-instance 'point)
+             :initform (make-instance '<point>)
              :initarg :location
              :documentation "The turtle's current location.")
    (direction :accessor direction
@@ -65,7 +65,7 @@
 
 (defun next-point (the-turtle amount)
   "The next point the turtle would move forward to."
-  (make-instance 'point
+  (make-instance '<point>
                  :x (next-point-x the-turtle amount)
                  :y (next-point-y the-turtle amount)))
 
