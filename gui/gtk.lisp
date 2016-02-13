@@ -17,13 +17,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Notes
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; This file breaks draw-something's "stand-alone Common Lisp" requirement
-;; The rest of the code should still be stand-alone
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -39,17 +32,7 @@
 ;; Package setup
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require :asdf)
-(asdf:operate 'asdf:load-op :cl-gtk2-gtk)
-(asdf:operate 'asdf:load-op :cl-cairo2)
-(asdf:operate 'asdf:load-op :cl-gtk2-cairo)
-(asdf:operate 'asdf:load-op :draw-something)
-
-(defpackage #:draw-something-gtk-ui
-  (:shadowing-import-from #:cl-cairo2 #:scale)
-  (:use :cl #:gtk #:cl-cairo2 #:cl-gtk2-cairo :draw-something))
-
-(in-package #:draw-something-gtk-ui)
+(in-package :draw-something/gui)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global variables
@@ -301,11 +284,4 @@
      (gtk:widget-show window)
      (setf *window* window)
      (setf *drawing-area* drawing-area))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Main flow of control
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Make the window
-(setf *window* (make-window))
 

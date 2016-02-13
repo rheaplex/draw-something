@@ -1,5 +1,5 @@
 ;;  postscript.lisp - Writing PostScript to streams.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -20,49 +20,49 @@
 
 (defvar *ps-stream* t)
 
-(defmethod write-eps-header (width height &key (to *ps-stream*))
+(defun write-eps-header (width height &key (to *ps-stream*))
   "Write the standard raw PostScript header."
   (format to "%!PS-Adobe-3.0 EPSF-3.0~%")
   (format to "%%BoundingBox: 0 0 ~a ~a~%" width height)
   (format to "/L {lineto} bind def~%/M {moveto} bind def~%"))
 
-(defmethod write-eps-footer (&key (to *ps-stream*))
+(defun write-eps-footer (&key (to *ps-stream*))
   "Write the standard (but optional PostScript footer"
   (format to "%%EOF~%"))
 
-(defmethod write-rgb (r g b &key (to *ps-stream*))
+(defun write-rgb (r g b &key (to *ps-stream*))
   "Set the PostScript RGB colour value."
   (format to "~F ~F ~F setrgbcolor~%" r g b))
 
-(defmethod write-colour ((col colour) &key (to *ps-stream*))
+(defun write-colour (col &key (to *ps-stream*))
   (multiple-value-bind (r g b) (hsb-to-rgb col)
     (write-rgb r g b :to to)))
 
-(defmethod write-close-path (&key (to *ps-stream*))
+(defun write-close-path (&key (to *ps-stream*))
   "Close the current PostScript path by drawing a line between its endpoints."
   (format to "closepath~%"))
 
-(defmethod write-stroke (&key (to *ps-stream*))
+(defun write-stroke (&key (to *ps-stream*))
   "Stroke the current PostScript path."
   (format to "stroke~%"))
 
-(defmethod write-fill (&key (to *ps-stream*))
+(defun write-fill (&key (to *ps-stream*))
   "Fill the current PostScript path."
   (format to "fill~%"))
 
-(defmethod write-new-path (&key (to *ps-stream*))
+(defun write-new-path (&key (to *ps-stream*))
   "Start a new PostScript path."
   (format to "newpath~%"))
 
-(defmethod write-moveto (x y &key (to *ps-stream*))
+(defun write-moveto (x y &key (to *ps-stream*))
   "Move the PostScript pen to the given co-ordinates"
   (format to "~,3F ~,3F M " x y))
 
-(defmethod write-lineto (x y &key (to *ps-stream*))
+(defun write-lineto (x y &key (to *ps-stream*))
   "Draw a line with the PostScript pen to the given co-ordinates"
   (format to "~,3F ~,3F L " x y))
 
-(defmethod write-subpath (points &key (to *ps-stream*))
+(defun write-subpath (points &key (to *ps-stream*))
   "Write a subpath of a PostScript path."
   (write-moveto (x (aref points 0))
                 (y (aref points 0))
@@ -73,13 +73,13 @@
                   (y (aref points i))
                   :to to)))
 
-(defmethod write-rectfill ((rect rectangle) &key (to *ps-stream*))
+(defun write-rectfill (rect &key (to *ps-stream*))
   "Draw a rectangle with the given co-ordinates and dimensions."
   (format to "~F ~F ~F ~F rectfill~%" (x rect) (y rect) (width rect)
           (height rect)))
 
 
-(defmethod write-rectstroke ((rect rectangle) &key (to *ps-stream*))
+(defun write-rectstroke (rect &key (to *ps-stream*))
   "Draw a rectangle with the given co-ordinates and dimensions."
   (format to "~F ~F ~F ~F rectstroke~%" (x rect) (y rect) (width rect)
           (height rect)))
@@ -88,36 +88,36 @@
 ;; Drawing writing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod write-form-skeleton ((f form) ps)
+(defun write-form-skeleton (the-form ps)
   "Write the skeleton the drawing is made around."
   (write-rgb 0.4 0.4 1.0 :to ps)
   (write-new-path :to ps)
-  (write-subpath (points (skeleton f)) :to ps)
+  (write-subpath (points (skeleton the-form)) :to ps)
   (write-stroke :to ps))
 
-(defmethod write-form-fill ((f form) ps)
+(defun write-form-fill (the-form ps)
   "Write the drawing outline."
-  (write-colour (fill-colour f) :to ps)
+  (write-colour (fill-colour the-form) :to ps)
   (write-new-path :to ps)
-  (write-subpath (points (outline f)) :to ps)
+  (write-subpath (points (outline the-form)) :to ps)
   (write-fill :to ps))
 
-(defmethod write-form-stroke ((f form) ps)
+(defun write-form-stroke (the-form ps)
   "Write the drawing outline."
   (write-rgb 0.0 0.0 0.0 :to ps)
-  ;;(write-rectstroke (bounds f) :to ps)
+  ;;(write-rectstroke (bounds the-form) :to ps)
   (write-new-path :to ps)
-  (write-subpath (points (outline f)) :to ps)
+  (write-subpath (points (outline the-form)) :to ps)
   (write-stroke :to ps))
 
-(defmethod write-form ((f form) ps)
+(defun write-form (the-form ps)
   "Write the form."
-  (write-form-fill f ps)
+  (write-form-fill the-form ps)
   ;;(write-figure-skeleton fig ps)
   ;;(write-form-stroke f ps)
   )
 
-(defmethod write-figure ((fig figure) ps)
+(defun write-figure (fig ps)
   "Write the figure for early multi-figure versions of draw-something."
   ;;(write-rgb 0.0 0.0 0.0 :to ps)
   ;;(write-rectstroke (bounds fig) :to ps)
@@ -125,17 +125,17 @@
   (loop for fm across (forms fig)
        do (write-form fm ps)))
 
-(defmethod write-ground ((the-drawing drawing) ps)
+(defun write-ground (the-drawing ps)
   "Colour the drawing ground."
   (write-colour (ground the-drawing) :to ps)
   (write-rectfill (bounds the-drawing) :to ps))
 
-(defmethod write-frame ((the-drawing drawing) ps)
+(defun write-frame (the-drawing ps)
   "Frame the drawing. Frame is bigger than PS bounds but should be OK."
   (write-rectstroke (inset-rectangle (bounds the-drawing) -1)
                     :to ps))
 
-(defmethod eps-write-drawing ((name string) (the-drawing drawing))
+(defun eps-write-drawing (name the-drawing)
   "Write the drawing"
   (advisory-message (format nil "Writing drawing to file ~a .~%" name))
   (ensure-directories-exist save-directory)
@@ -152,7 +152,7 @@
     (write-eps-footer :to ps)
     (pathname ps)))
 
-(defmethod eps-display-drawing (filepath)
+(defun eps-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
   (let ((command
          #+(or macos macosx darwin) "/usr/bin/open"
@@ -161,7 +161,7 @@
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defmethod write-and-show-eps ((the-drawing drawing))
+(defun write-and-show-eps (the-drawing)
   "Write and display the drawing as an eps file."
   (advisory-message "Saving and viewing drawing as eps.~%")
   (eps-display-drawing (eps-write-drawing (generate-filename)

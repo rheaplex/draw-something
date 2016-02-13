@@ -1,5 +1,5 @@
 ;;  draw-something.lisp -  The main lifecycle code for draw-something.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -17,16 +17,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package "DRAW-SOMETHING")
-
-(defparameter object-symbol-choices
-  '(leaf vein blade branch flower tendril))
-
-(defparameter all-object-symbols
-  (cons 'background object-symbol-choices))
-
-(defun object-symbol (obj)
-  (declare (ignore obj))
-  (choose-one-of object-symbol-choices))
 
 (defun generate-drawing ()
   "Make the drawing data structures and create the image."

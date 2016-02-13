@@ -1,5 +1,5 @@
 ;;  composition.lisp - Generating an image with some kind of intent.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -22,17 +22,17 @@
 ;; Generating the point population for the composition
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod make-composition-points ((d drawing) count)
+(defun make-composition-points (the-drawing count)
   "Generate the points on the image plane that the composition will use."
   (advisory-message (format nil "Making ~d composition points.~%" count))
-  (let* ((b (bounds d))
+  (let* ((b (bounds the-drawing))
          (corner-count (random 4))
          (interior-count (random (- count
                                     corner-count)))
          (edge-count (- count
                         interior-count
                         corner-count)))
-    (setf (composition-points d)
+    (setf (composition-points the-drawing)
           (concatenate 'vector
                        (random-points-at-rectangle-corners b corner-count)
                        (random-points-on-rectangle b edge-count)
@@ -60,7 +60,7 @@
 (defconstant min-hull-points 3)
 (defconstant max-hull-points 12)
 
-(defmethod make-hull-figures-for-plane (points)
+(defun make-hull-figures-for-plane (points)
   "The plane population policy using hulls. "
   (make-hull-figures points
                         (random-range min-hulls-per-plane
@@ -123,7 +123,7 @@
 (defconstant min-lines-per-plane 1)
 (defconstant max-lines-per-plane 8)
 
-(defmethod make-line-figures-for-plane (points)
+(defun make-line-figures-for-plane (points)
   "The plane population policy using liness. "
   (make-line-figures points
                      (random-range min-lines-per-plane
@@ -153,7 +153,7 @@
 (defconstant min-points-per-plane 1)
 (defconstant max-points-per-plane 12)
 
-(defmethod make-point-figures-for-plane (points)
+(defun make-point-figures-for-plane (points)
   "The plane population policy using points. "
   (make-point-figures points
                       (random-range min-points-per-plane

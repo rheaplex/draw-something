@@ -1,5 +1,5 @@
 ;; plane.lisp - A plane (layer, level, plane) in the drawing.
-;; Copyright (C) 2006, 2010 Rhea Myers rhea@myers.studio
+;; Copyright (C) 2006, 2010, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -47,7 +47,7 @@
 (defconstant plane-pen-tolerance-minimum (/ plane-pen-distance-minimum 2.0))
 (defconstant plane-pen-tolerance-maximum (/ plane-pen-distance-maximum 2.0))
 
-(defmacro make-plane-pen (plane-index num-planes)
+(defun make-plane-pen (plane-index num-planes)
   "Make a pen for the plane."
   (declare (ignore plane-index num-planes))
    #|(let ((plane-factor (* (/ 1.0 (- num-planes 1))
@@ -67,24 +67,25 @@
 (defconstant minimum-number-of-planes 1)
 (defconstant maximum-number-of-planes (length figure-generation-method-list))
 
-(defmethod number-of-planes ()
+(defun number-of-planes ()
   "Decide how many planes to have"
   (random-range minimum-number-of-planes
 		maximum-number-of-planes))
 
-(defmethod number-of-figures-for-plane (plane-index)
+(defun number-of-figures-for-plane (plane-index)
   "Randomly determine how many figures a plane should have."
+  (declare (ignore plane-index))
   (random-range 2 10))
 
-(defmethod plane-forms-bounds ((p plane))
+(defun plane-forms-bounds (the-plane)
   "Get the bounding rectangles for every form of every figure on the plane"
   (let ((results (make-vector 0)))
-    (loop for figure across (figures p)
+    (loop for figure across (figures the-plane)
        do (loop for form across (forms figure)
 	     do (vector-push-extend (bounds form) results)))
     results))
 
-(defmethod make-planes ((d drawing) count)
+(defun make-planes (the-drawing count)
   "Make the planes, ready to have skeletons for figures generated."
   (advisory-message "Making planes.~%")
   (loop for point-method in (figure-generation-methods count)
@@ -94,32 +95,33 @@
 	 (make-instance 'plane 
 			:figure-count (number-of-figures-for-plane i)
 			:figure-policy point-method
-			:pen (make-plane-pen i count))
-	 (planes d))))
+			:pen nil ;;(make-plane-pen i count)
+            )
+	 (planes the-drawing))))
 
-(defmethod make-plane-skeletons ((l plane) (d drawing))
+(defun make-plane-skeletons (the-plane the-drawing)
   "Generate the skeletons for the figures of the plane."
   (advisory-message "Making plane skeleton(s).~%")
-  (setf (figures l)
-	(funcall (figure-policy l)
-		 (composition-points d))))
+  (setf (figures the-plane)
+	(funcall (figure-policy the-plane)
+		 (composition-points the-drawing))))
 
-(defmethod make-planes-skeletons ((d drawing))
+(defun make-planes-skeletons (the-drawing)
   "Generate the skeletons for the figures of each plane."
   (advisory-message "Making planes skeletons.~%")
-  (loop for l across (planes d)
-     do (make-plane-skeletons l d)))
+  (loop for l across (planes the-drawing)
+     do (make-plane-skeletons l the-drawing)))
 
-(defmethod draw-plane-figures ((l plane))
+(defun draw-plane-figures (the-plane)
   "Draw around the skeletons of the figures of the plane."
   (advisory-message "Drawing plane figure(s).~%")
-  (loop for fig across (figures l)
+  (loop for fig across (figures the-plane)
 	do (draw-figure fig))) ;; (pen l)
 
-(defmethod draw-planes-figures ((d drawing))
+(defun draw-planes-figures (the-drawing)
   "Draw around the skeletons of the figures of each plane."
   (advisory-message "Drawing planes figures.~%")
-  (loop for l across (planes d)
+  (loop for l across (planes the-drawing)
 	do (draw-plane-figures l)))
 
 #|(defmethod make-figure-for-plane ((figure-bounds rectangle) (plane integer))
@@ -138,7 +140,7 @@
       do (add-figure the-drawing
 		     (make-figure-for-plane (bounds the-drawing) i)))))|#
 
-(defmethod find-space-on-plane ((d drawing) (p plane) (required-size rectangle))
+(defun find-space-on-plane (the-drawing the-plane required-size-rect)
   "Find empty space on the plane of given size, or nil if fail"
   ;; Efficiency decreases with number of figures. Cells would be constant.
   ;; FIXME: Uses bounds rather than outline of actual figure
@@ -148,41 +150,46 @@
   ;;       Finally try form outlines.
   ;;  (assert (contains (bounds d) required-size))
   (let ((candidate (make-instance 'rectangle :x 0 :y 0
-				  :width (width required-size)
-				  :height (height required-size)))
-	(plane-rects (plane-forms-bounds p))
-	;; The resulting rect must fit in within the drawing bounds
-	(width-to-search (- (width (bounds d)) (width required-size)))
-	(height-to-search (- (height (bounds d)) (height required-size)))
-	(result nil))
+                                  :width (width required-size-rect)
+                                  :height (height required-size-rect)))
+        (plane-rects (plane-forms-bounds the-plane))
+        ;; The resulting rect must fit in within the drawing bounds
+        (width-to-search (- (width (bounds the-drawing))
+                            (width required-size-rect)))
+        (height-to-search (- (height (bounds the-drawing))
+                             (height required-size-rect)))
+        (result nil))
     (block outside-the-loops
       ;; Use dotimesloop to ensure we don't find the top left space each time
       (dotimesloop (v 0 (random-range 0 height-to-search) height-to-search)
-	(setf (y candidate) v)
+                   (setf (y candidate) v)
 	(dotimesloop (h 0 (random-range 0 width-to-search) width-to-search)
-	  (setf (x candidate) h)
-	  (when (intersects-none candidate plane-rects)
-	    (setf result candidate)
-	    (return-from outside-the-loops)))))
+                 (setf (x candidate) h)
+                 (when (intersects-none candidate plane-rects)
+                   (setf result candidate)
+                   (return-from outside-the-loops)))))
     result))
 
-(defmethod find-space-on-plane-range ((d drawing) (p plane) 
-				      (min-size rectangle) (max-size rectangle)
-				      steps)
+(defun find-space-on-plane-range (the-drawing the-plane min-size-rect
+                                  max-size-rect steps)
   "Find empty space on the plane larger than min-size up to max-size, or nil"
-  (let ((width-step-size (/ (- (width max-size) (width min-size)) steps))
-	(height-step-size (/ (- (height max-size) (height min-size)) steps))
-	(result nil))
+  (let ((width-step-size (/ (- (width max-size-rect) (width min-size-rect))
+                            steps))
+        (height-step-size (/ (- (height max-size-rect) (height min-size-rect))
+                             steps))
+        (result nil))
     (dotimes (step steps)
-       (let* ((required-size (make-instance 'rectangle :x 0 :y 0
-					   :width (- (width max-size)
-						     (* width-step-size
-							step))
-					   :height (- (height max-size)
-						      (* height-step-size
-							step))))
-	      (candidate (find-space-on-plane d p required-size)))
-	 (when candidate
-	   (setf result candidate)
-	   (return))))
+      (let* ((required-size (make-instance 'rectangle :x 0 :y 0
+                                           :width (- (width max-size-rect)
+                                                     (* width-step-size
+                                                        step))
+                                           :height (- (height max-size-rect)
+                                                      (* height-step-size
+                                                         step))))
+             (candidate (find-space-on-plane the-drawing
+                                             the-plane
+                                             required-size)))
+        (when candidate
+          (setf result candidate)
+          (return))))
     result))

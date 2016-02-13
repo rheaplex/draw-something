@@ -1,5 +1,5 @@
 ;;  colouring-new.lisp -  Colour scheme generation and application.
-;;  Copyright (C) 2008  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2008, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -23,16 +23,24 @@
 ;;(in-package "COLOUR-CELLS")
 (in-package "DRAW-SOMETHING")
 
-(defconstant minimum-spec-probability 3)
-(defconstant maximum-spec-probability 9)
-(defconstant minimum-spec-count 2)
-(defconstant maximum-spec-count 3)
-(defparameter sv-spec-options '('ll 'lm 'lh 'ml 'mm 'mh 'hl 'hm 'hh))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Object symbols used in colouring
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter object-symbol-choices
+  '(leaf vein blade branch flower tendril))
+
+(defparameter all-object-symbols
+  (cons 'background object-symbol-choices))
+
+(defun object-symbol (obj)
+  (declare (ignore obj))
+  (choose-one-of object-symbol-choices))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LMH - Low medium and high value ranges from 0.0..1.0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  
+
 (defclass lmh-values ()
   ((lows :type vector 
 	 :initform (make-vector 7)
@@ -64,7 +72,7 @@
   (map-into (make-vector count)
 	    (lambda () (random-range high-start 1.0))))
 
-(defmethod make-lmh (count medium-start high-start)
+(defun make-lmh (count medium-start high-start)
   "Make an lmh."
   (let* ((low-count (random-range 1 (- count 2)))
 	 (medium-count (random-range 1 (- count low-count 1)))
@@ -78,26 +86,26 @@
 		   :highs (make-random-high-values high-count
 						   high-start))))
 
-(defmethod random-low-value ((lmh lmh-values))
+(defun random-low-value (lmh)
   "Randomly choose a value from the list of low values of the lmh."
   (choose-one-of (low-values lmh)))
 
-(defmethod random-medium-value ((lmh lmh-values))
+(defun random-medium-value (lmh)
   "Randomly choose a value from the list of medium values of the lmh."
   (choose-one-of (medium-values lmh)))
 
-(defmethod random-high-value ((lmh lmh-values))
+(defun random-high-value (lmh)
   "Randomly choose a value from the list of medium values of the lmh."
   (choose-one-of (high-values lmh)))
 
-(defmethod random-lmh-value (lmh which)
+(defun random-lmh-value (lmh which)
   "Return a random low ('l), medium ('m) or high ('h) value based on which."
   (case which
-	('l (random-low-value lmh))
-	('m (random-medium-value lmh))
-	('h (random-high-value lmh))))
+	(l (random-low-value lmh))
+	(m (random-medium-value lmh))
+	(h (random-high-value lmh))))
 
-(defmethod print-lmh (lmh)
+(defun print-lmh (lmh)
   (advisory-message "low: ")
   (loop for l across (low-values lmh)
 	do (advisory-message (format nil "~a " l)))
@@ -128,7 +136,7 @@
 	   :accessor colour-scheme-values))
   (:documentation "The values describing a colour scheme."))
 
-(defmethod print-colour-scheme (scheme)
+(defun print-colour-scheme (scheme)
   (advisory-message  "Colour Scheme:~%")
   (advisory-message  "hues:~%")
   (maphash (lambda (key value)
@@ -139,34 +147,34 @@
   (advisory-message  "values:~%")
   (print-lmh (colour-scheme-values scheme)))
 
-(defmethod symbol-colour-scheme-hue (scheme hue-id)
+(defun symbol-colour-scheme-hue (scheme hue-id)
   "Get the hue value from the scheme for a given id, eg :stem, :stalk."
   (gethash hue-id (colour-scheme-hues scheme)))
 
-(defmethod random-colour-scheme-saturation (scheme spec)
+(defun random-colour-scheme-saturation (scheme spec)
   "Choose a saturation from the range specified by spec."
   (random-lmh-value (colour-scheme-saturations scheme)
 		    spec))
 
-(defmethod random-colour-scheme-value (scheme spec)
+(defun random-colour-scheme-value (scheme spec)
   "Choose a value from the range specified by spec."
   (random-lmh-value (colour-scheme-values scheme)
 		    spec))
 
-(defmethod sv-spec-components (spec)
+(defun sv-spec-components (spec)
   "Return each half of the symbol specifying how to choose saturation & value."
   (case spec
-	('ll (values 'l 'l))
-	('lm (values 'l 'm))
-	('lh (values 'l 'h))
-	('ml (values 'm 'l))
-	('mm (values 'm 'm))
-	('mh (values 'm 'h))
-	('hl (values 'h 'l))
-	('hm (values 'h 'm))
-	('hh (values 'h 'h))))
+	(ll (values 'l 'l))
+	(lm (values 'l 'm))
+	(lh (values 'l 'h))
+	(ml (values 'm 'l))
+	(mm (values 'm 'm))
+	(mh (values 'm 'h))
+	(hl (values 'h 'l))
+	(hm (values 'h 'm))
+	(hh (values 'h 'h))))
 
-(defmethod make-colour-by-sv-spec (scheme hue-id sv-spec)
+(defun make-colour-by-sv-spec (scheme hue-id sv-spec)
   "Choose a colour for the hue id using the sv-spec eg 'lm, 'hh, 'ml."
   (multiple-value-bind 
 	(saturationspec valuespec) (sv-spec-components sv-spec)
@@ -179,7 +187,7 @@
 
 ;; Generate additive colour range
 
-(defmethod make-hue-additive-series (hue-list)
+(defun make-hue-additive-series (hue-list)
   (let ((series (make-hash-table))
 	(hue-value (random 1.0)))
     (dolist (hue-symbol hue-list)
@@ -189,7 +197,7 @@
 	    hue-value))
     series))
 
-(defmethod make-colour-scheme (hue-list saturations values medium high)
+(defun make-colour-scheme (hue-list saturations values medium high)
   "Make a colour scheme for the saturation symbol list."
   (make-instance 'colour-scheme
 		 :hues (make-hue-additive-series hue-list)
@@ -230,7 +238,7 @@
   (:documentation
    "The data used in applying a colour scheme to an image."))
 
-(defmethod set-applier-probabilities (applier spec-list)
+(defun set-applier-probabilities (applier spec-list)
   "Set the probabilites from a list of num/specs, and set occurences to zero"
   (let ((total-prob (float (prefs-range spec-list))))
     (loop for prob in spec-list by #'cddr 
@@ -241,18 +249,18 @@
 	  do (setf (gethash (dequote spec)
 			    (applier-occurences applier)) 0))))
 
-(defmethod set-applier-chooser (applier spec-list)
+(defun set-applier-chooser (applier spec-list)
   "Make and set the chooser function for sv specs from the list."
   (setf (applier-sv-chooser applier)
 	(prefs-list-lambda spec-list)))
   
-(defmethod set-applier-sv-spec (applier spec-list)
+(defun set-applier-sv-spec (applier spec-list)
   "Configure the applier from the sv spec eg '(1 'hh 4 'ml 3 'lm)"
   (set-applier-chooser applier spec-list)
   (set-applier-probabilities applier spec-list))
 
 ;; Change to being an :after initialize-instance method
-(defmethod make-colour-scheme-applier (scheme spec-list)
+(defun make-colour-scheme-applier (scheme spec-list)
   "Make a colour scheme applier."
   (let ((applier (make-instance 'colour-scheme-applier
 				:scheme scheme)))
@@ -260,7 +268,7 @@
     (set-applier-probabilities applier spec-list)
     applier))
        
-(defmethod spec-probability-difference (applier spec)
+(defun spec-probability-difference (applier spec)
   "Get the difference between the intended and actual occurence of a spec."
   (let* ((generation-count (float (applier-count applier)))
 	 (spec-count (gethash spec (applier-occurences applier)))
@@ -271,7 +279,7 @@
 			      spec spec-count target current difference) )
     difference))
 
-(defmethod most-deviant-spec (applier)
+(defun most-deviant-spec (applier)
   "Find the spec that is being called the least compared to its probability."
   (let ((highest 0.0)
 	(result nil))
@@ -285,32 +293,33 @@
     (advisory-message (format nil "~a~%" result))
     result))
 
-(defmethod increase-spec-count (applier spec)
+(defun increase-spec-count (applier spec)
   "Update the number of times a spec has been used."
   (incf (gethash spec (applier-occurences applier))))
 
-(defmethod increase-applier-count (applier)
+(defun increase-applier-count (applier)
   "Increase the applier's count of objects it has been called for by 1."
   (incf (applier-count applier)))
 
-(defmethod update-applier-state (applier spec)
+(defun update-applier-state (applier spec)
   "Call when you've applied colour to an object & are ready for the next one."
   (increase-spec-count applier spec)
   (increase-applier-count applier))
 
-(defmethod applier-should-correct (applier)
+(defun applier-should-correct (applier)
   "Decide whether the applier should correct the spec probability error."
   (eq (mod (applier-count applier) 
 	   (applier-when-to-check applier))
       0))
 
-(defmethod applier-spec-choice (applier hue-id)
+(defun applier-spec-choice (applier hue-id)
   "Choose the spec to be used."
+  (declare (ignore hue-id))
   (if (applier-should-correct applier)
       (most-deviant-spec applier)
     (funcall (applier-sv-chooser applier))))
 
-(defmethod choose-colour-for (applier hue-id)
+(defun choose-colour-for (applier hue-id)
   "Choose a colour from the scheme for the hue-id."
   (let* ((spec (applier-spec-choice applier hue-id))
 	 (choice (make-colour-by-sv-spec (applier-scheme applier)
@@ -318,10 +327,15 @@
     (update-applier-state applier spec)
     choice))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; How to make and apply a colour scheme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defconstant minimum-spec-probability 3)
+(defconstant maximum-spec-probability 9)
+(defconstant minimum-spec-count 2)
+(defconstant maximum-spec-count 3)
+(defparameter sv-spec-options '('ll 'lm 'lh 'ml 'mm 'mh 'hl 'hm 'hh))
 
 (defun chooser-spec ()
   "Construct a list describing a random spec pref, eg (6 'll 3 'hm 2 'lh)."
@@ -332,7 +346,7 @@
 					maximum-spec-probability)
 	collect spec))
 
-(defmethod colour-objects (drawing symbols)
+(defun colour-objects (drawing symbols)
   (let* ((scheme (make-colour-scheme symbols 7 7 .3 .6))
 	 (sv-spec-list (chooser-spec))
 	 (applier (make-colour-scheme-applier scheme sv-spec-list)))

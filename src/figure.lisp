@@ -1,5 +1,5 @@
 ;;  figure.lisp - A drawn figure.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -33,7 +33,7 @@
 	   :documentation "The bounds of the figure."))
   (:documentation "A figure drawn in the drawing."))
 
-(defmethod make-figure-from-points ((points vector))
+(defun make-figure-from-points (points)
   "Make a figure with a single polyline from the provided points."
   (advisory-message "Making figure.~%")
   (let ((fig (make-instance 'figure)))
@@ -41,9 +41,8 @@
 			(forms fig))
     fig))
 
-(defmethod draw-figure ((fig figure))
+(defun draw-figure (fig)
   "Draw the forms of a figure."
   (loop for form across (forms fig)
      do (advisory-message "Drawing figure.~%")
      do (draw-form form)))
-

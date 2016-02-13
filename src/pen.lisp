@@ -1,5 +1,5 @@
 ;;  pen.lisp - The pen to draw around skeletal forms with.
-;;  Copyright (C) 2007 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2007, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -104,56 +104,47 @@
                                            plane-7-pen))
 
 
-(defmethod next-pen-distance ((skeleton-forms vector) (pen pen-parameters)
-			      (the-turtle turtle))
+(defun next-pen-distance (skeleton-forms pen-params the-turtle)
   "How far the pen will be from the guide shape when it next moves forwards."
   (let ((dist most-positive-single-float)
-        (p (next-point the-turtle (move-step pen) )))
+        (p (next-point the-turtle (move-step pen-params) )))
     (dovector (skel skeleton-forms)
       (let ((new-dist (distance p skel)))
         (when (< new-dist dist)
           (setf dist new-dist))))
     dist))
 
-(defmethod next-pen-too-close ((skeleton-forms vector) (pen pen-parameters)
-			       (the-turtle turtle))
+(defun next-pen-too-close (skeleton-forms pen-params the-turtle)
   "Will the pen move to be too close from the guide shape next time?"
-  (< (random (distance-tolerance pen))
-     (- (next-pen-distance skeleton-forms pen the-turtle)
-       (pen-distance pen))))
+  (< (random (distance-tolerance pen-params))
+     (- (next-pen-distance skeleton-forms pen-params the-turtle)
+       (pen-distance pen-params))))
 
-(defmethod next-pen-too-far ((skeleton-forms vector) (pen pen-parameters)
-			     (the-turtle turtle))
+(defun next-pen-too-far (skeleton-forms pen-params the-turtle)
   "Will the pen move to be too far from the guide shape next time?"
-  (< (random (distance-tolerance pen))
-     (- (pen-distance pen)
-        (next-pen-distance skeleton-forms pen the-turtle))))
+  (< (random (distance-tolerance pen-params))
+     (- (pen-distance pen-params)
+        (next-pen-distance skeleton-forms pen-params the-turtle))))
 
-(defmethod ensure-next-pen-far-enough ((skeleton-forms vector) 
-				       (pen pen-parameters)
-				       (the-turtle turtle))
+(defun ensure-next-pen-far-enough (skeleton-forms pen-params the-turtle)
   "If the pen would move too close next time, turn it left until it wouldn't."
-  (loop while (next-pen-too-close skeleton-forms pen the-turtle)
-     do (left the-turtle (random (turn-step pen)))))
+  (loop while (next-pen-too-close skeleton-forms pen-params the-turtle)
+     do (left the-turtle (random (turn-step pen-params)))))
 
-(defmethod ensure-next-pen-close-enough ((skeleton-forms vector) 
-					 (pen pen-parameters)
-					 (the-turtle turtle))
+(defun ensure-next-pen-close-enough (skeleton-forms pen-params the-turtle)
   "If the pen would move too far next time, turn it right until it wouldn't."
-  (loop while (next-pen-too-far skeleton-forms pen the-turtle)
-     do (right the-turtle (random (turn-step pen)))))
+  (loop while (next-pen-too-far skeleton-forms pen-params the-turtle)
+     do (right the-turtle (random (turn-step pen-params)))))
 
-(defmethod drift-pen-direction ((pen pen-parameters)
-				(the-turtle turtle))
+(defun drift-pen-direction (pen-params the-turtle)
   "Adjust the pen's direction to simulate human neurophysiological noise."
-  (if (< (random 1.0) (drift-probability pen))
+  (if (< (random 1.0) (drift-probability pen-params))
       (turn the-turtle
-            (random-range (- (drift-range pen)) 
-			  (drift-range pen)))))
+            (random-range (- (drift-range pen-params)) 
+			  (drift-range pen-params)))))
 
-(defmethod adjust-next-pen ((skeleton-forms vector) (pen pen-parameters)
-			    (the-turtle turtle))
+(defun adjust-next-pen (skeleton-forms pen-params the-turtle)
   "Drift or correct the pen's heading around the shape."
-  (drift-pen-direction pen the-turtle)
-  (ensure-next-pen-far-enough skeleton-forms pen the-turtle)
-  (ensure-next-pen-close-enough skeleton-forms pen the-turtle))
+  (drift-pen-direction pen-params the-turtle)
+  (ensure-next-pen-far-enough skeleton-forms pen-params the-turtle)
+  (ensure-next-pen-close-enough skeleton-forms pen-params the-turtle))

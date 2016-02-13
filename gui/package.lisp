@@ -1,5 +1,5 @@
-;; tests.lisp - Tests for draw-something.
-;; Copyright (C) 2016  Rhea Myers rhea@myers.studio
+;; package.lisp - GTK+ GUI for draw-something.
+;; Copyright (C) 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,9 +16,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage draw-something/test
+(defpackage draw-something/gui
   (:documentation
-   "Tests for the draw-something package.")
-  (:use :common-lisp
-        :prove
+   "GTK+ GUI for the draw-something package.")
+  (:export make-window)
+  (:use :gtk :gdk :gdk-pixbuf :gobject :glib :gio :pango :cairo :cffi
+        :common-lisp
         :draw-something))

@@ -1,5 +1,5 @@
 ;;  package.lisp - The main package for draw-something
-;;  Copyright (C) 2006, 2010 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2010, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -16,12 +16,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage DRAW-SOMETHING
+(defpackage draw-something
   (:documentation
    "The draw-something package.")
-  (:use common-lisp)
+  ;; *Only* use common-lisp. Nothing else.
+  ;; This is for long-term robustness.
+  (:use :common-lisp)
   (:export
    *print-advisories*
    *print-debugs*
    generate-drawing
-           draw-something))
+   draw-something))
