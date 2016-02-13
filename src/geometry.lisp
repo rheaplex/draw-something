@@ -1,5 +1,5 @@
 ;;  geometry.lisp - Basic geometry stuff.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -17,6 +17,36 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package "DRAW-SOMETHING")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; The geometry base class
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass geometry ()
+  ()
+  (:documentation "The abstract base class for geometric(ish) objects."))
+
+(defgeneric bounds (geometry)
+  (:documentation "The object's bounds, if any."))
+
+(defgeneric area (geometry)
+  (:documentation "The object's area, if any."))
+
+(defgeneric contains (geometry geometry)
+  (:documentation "Whether the first object contains the second."))
+
+(defgeneric distance (geometry geometry)
+  (:documentation "The distance between the closest points of the objects."))
+
+(defgeneric highest-leftmost-point (geometry)
+  (:documentation "The object's highest leftmost point (may be calculated)."))
+
+(defgeneric intersects (geometry geometry)
+  (:documentation "Whether and where the objects intersect."))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Geometric(ish) values and functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconstant radian (* pi 2.0)
   "One radian.")

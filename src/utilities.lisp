@@ -1,5 +1,5 @@
 ;;  utilities.lisp - Various utilities.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -82,12 +82,16 @@ Note that this is evaluated as two loops"
         a
         (+ (random range) a))))
 
-(defmethod random-range-inclusive ((a integer) (b integer))
+(defun random-range-inclusive (a b)
   "Make a random number from a to below b."
+  (declare (type integer a b)) 
   (let ((range (+ (- b a) 1)))
     (if (= range 0)
         a
         (+ (random range) a))))
+
+(defgeneric choose-one-of (t)
+  (:documentation "Choose an item randomly from within the argument."))
 
 (defmethod choose-one-of ((possibilities list))
   "Choose one or none of the options."
@@ -107,6 +111,9 @@ Note that this is evaluated as two loops"
   (loop for item in possibilities
      when (< (random 1.0) probability)
      collect item))
+
+(defgeneric choose-n-of (integer t)
+  (:documentation "Choose n items randomly from within the argument."))
 
 (defmethod choose-n-of ((n integer) (choice-list list))
   "Choose n different entries from choice-list."
@@ -129,6 +136,9 @@ Note that this is evaluated as two loops"
         (vector-push-extend choice chosen)
         (setf choices (remove choice choices))))
     chosen))
+
+(defgeneric shuffle (t)
+  (:documentation "Randomly re-order the items in the argument in-place."))
 
 (defmethod shuffle ((l list))
   "Shuffle the list in place"
@@ -207,3 +217,16 @@ Note that this is evaluated as two loops"
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
      ,@body))
+
+;; These are here so ps/svg can access them.
+
+(defvar save-directory "./")
+
+(defun generate-filename (&optional (suffix ".eps"))
+  "Make a unique filename for the drawing, based on the current date & time."
+  (multiple-value-bind (seconds minutes hours date month year)
+      (decode-universal-time (get-universal-time))
+    (format nil
+            "~a~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A~a"
+            save-directory
+            "drawing" year month date hours minutes seconds suffix)))

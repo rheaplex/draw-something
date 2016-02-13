@@ -1,5 +1,5 @@
 ;;  line.lisp - A 2D line Segment, and utilities on points and lines.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass line ()
+(defclass line (geometry)
   ((from :accessor from
 	 :type point
 	 :initform (make-instance 'point)
@@ -44,13 +44,7 @@
 ;;        line for testing groups of lines to find closest.
 ;; This needs decomposing into smaller, more manageable and meaningful units
 
-(defmethod nearest-point-on-line ((p point) (l line)) ;;la lb)
-  (nearest-point-on-line-points p (from l) (to l)))
-
-(defmethod nearest-point-on-line-points ((p point) (la point) (lb point))
-  (nearest-point-on-line-coordinates (x p) (y p) (x la) (y la) (x lb) (y lb)))
-
-(defmethod nearest-point-on-line-coordinates (xp yp xla yla xlb ylb)
+(defun nearest-point-on-line-coordinates (xp yp xla yla xlb ylb)
   "Get the nearest point on a line"
   ;; Optimised to avoid point accessors
   (let ((dot-ta (+ (* (- xp xla) (- xlb xla))
@@ -73,11 +67,17 @@
 				   (/ (* (- ylb yla) dot-ta) 
 				      (+ dot-ta dot-tb)))))))))
 
+(defun nearest-point-on-line-points (p la lb)
+  (nearest-point-on-line-coordinates (x p) (y p) (x la) (y la) (x lb) (y lb)))
+
+(defun nearest-point-on-line (p l) ;;la lb)
+  (nearest-point-on-line-points p (from l) (to l)))
+
 (defmethod distance ((p point) (l line))
   "The distance between a point and a line."
   (distance p (nearest-point-on-line p l)))
 
-(defmethod distance-point-line ((p point) (from point) (to point))
+(defun distance-point-line (p from to)
   "The distance between a point and a line."
   (distance p (nearest-point-on-line-points p from to)))
 
@@ -87,8 +87,8 @@
 ;; Returns the time where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line 
-					  p3x p3y p4x p4y);; Second line 
+(defun lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line 
+                                      p3x p3y p4x p4y);; Second line 
   "Find whether the two lines, expressed as 8 co-ordinates, intersect."
   (let ((denominator (- (* (- p4y p3y)
 			   (- p2x p1x)) 
@@ -113,15 +113,13 @@
 	      ua
 	      nil)))))
 
-(defmethod lines-intersects-points ((l1p1 point) (l1p2 point)
-				   (l2p1 point) (l2p2 point))
+(defun lines-intersects-points (l1p1 l1p2 l2p1 l2p2)
   "Find whether the two lines, expressed as 4 points intersect."
   (lines-intersects-co-ordinates (x l1p1) (y l1p1) (x l1p2) (y l1p2)
 				 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
 
 
-(defmethod line-intersects-line-points ((l1 line)
-				       (l2p1 point) (l2p2 point))
+(defun line-intersects-line-points (l1 l2p1 l2p2)
   "Find whether the two lines, the second expressed as 2 points intersect."
   (lines-intersects-points (from l1) (to l1) l2p1 l2p2))
 
@@ -129,7 +127,7 @@
   "Find whether the two lines intersect."
   (lines-intersects-points (from l1) (to l1) (from l2) (to l2)))
 
-(defmethod line-at-t ((l line) (time real))
+(defun line-at-t (l time)
   "Evaluate the line at t where 0<=t<=1 ."
   (make-instance 'point
 		 :x (+ (x (from l))
@@ -139,11 +137,11 @@
 		       (* time (- (y (to l))
 				  (y (from l)))))))
 
-(defmethod random-point-on-line ((l line))
+(defun random-point-on-line (l)
   "Generate a random point on a line"
   (line-at-t l (random 1.0)))
 
-(defmethod random-points-on-line ((l line) (count integer))
+(defun random-points-on-line (l count)
   "Generate count points on line. These will not be in order."
   (loop for i below count
 	collect (random-point-on-line l)))

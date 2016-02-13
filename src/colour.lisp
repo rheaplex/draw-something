@@ -1,5 +1,5 @@
 ;;  colour.lisp -  Colour handling.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -33,12 +33,12 @@
 	:documentation "The brightness of the colour."))
   (:documentation "A colour"))
 
-(defmethod random-colour ()
+(defun random-colour ()
   "Make a random colour."
   (make-instance 'colour :hue (random 1.0) :saturation (random 1.0)
 		 :brightness (random 1.0)))
 
-(defmethod hsb-to-rgb ((col colour))
+(defun hsb-to-rgb (col)
   "Convert the hue/saturation/brightness colour to RGB."
   (if (= (saturation col) 0)
       (values-list (list (brightness col) (brightness col) (brightness col)))

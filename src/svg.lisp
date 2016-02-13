@@ -1,5 +1,5 @@
 ;;  svg.lisp - Writing SVG to streams.
-;;  Copyright (C) 2007,2010  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2007, 2010, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -20,7 +20,7 @@
 
 (defvar *svg-stream* t)
 
-(defmethod svg-header (width height &key (to *svg-stream*))
+(defun svg-header (width height &key (to *svg-stream*))
   "Write the start of the SVG file."
   (format to "<?xml version=\"1.0\" standalone=\"no\"?>~%")
   (format to "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"~%")
@@ -29,52 +29,52 @@
           width height width height)
   (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">~%"))
 
-(defmethod svg-footer (&key (to *svg-stream*))
+(defun svg-footer (&key (to *svg-stream*))
   "Write the end of the svg file."
   (format to "</svg>~%"))
 
-(defmethod svg-rgb ((col colour) )
+(defun svg-rgb (col)
   (multiple-value-bind (r g b) (hsb-to-rgb col)
     (format nil "#~2,'0X~2,'0X~2,'0X" (round (* r 255)) 
 	    (round (* g 255)) (round (* b 255)))))
 
-(defmethod svg-path-tag-start (&key (to *svg-stream*))
+(defun svg-path-tag-start (&key (to *svg-stream*))
   "Write the start of the path tag."
   (format to "<path"))
 
-(defmethod svg-path-tag-end (&key (to *svg-stream*))
+(defun svg-path-tag-end (&key (to *svg-stream*))
   "Write the start of the path tag."
   (format to " />~%"))
 
-(defmethod svg-path-d-start (&key (to *svg-stream*))
+(defun svg-path-d-start (&key (to *svg-stream*))
   "Write the start of the path d."
   (format to " d=\""))
 
-(defmethod svg-path-d-end (&key (to *svg-stream*))
+(defun svg-path-d-end (&key (to *svg-stream*))
   "Write the start of the path d."
   (format to "\""))
 
-(defmethod svg-fill ((col colour) &key (to *svg-stream*))
+(defun svg-fill (col &key (to *svg-stream*))
   "Write the fill property."
   (format to " fill=\"~a\" " (svg-rgb col)))
 
-(defmethod svg-stroke ((col colour) &key (to *svg-stream*))
+(defun svg-stroke (col &key (to *svg-stream*))
   "Write the stroke property."
   (format to " stroke=\"~a\" " (svg-rgb col)))
 
-(defmethod svg-close-path (&key (to *svg-stream*))
+(defun svg-close-path (&key (to *svg-stream*))
   "Close the current PostScript path by drawing a line between its endpoints."
   (format to " z"))
 
-(defmethod svg-moveto (x y &key (to *svg-stream*))
+(defun svg-moveto (x y &key (to *svg-stream*))
   "Move the PostScript pen to the given co-ordinates"
   (format to " M ~,3F ~,3F" x y))
 
-(defmethod svg-lineto (x y &key (to *svg-stream*))
+(defun svg-lineto (x y &key (to *svg-stream*))
   "Draw a line with the PostScript pen to the given co-ordinates"
   (format to " L ~,3F ~,3F" x y))
 
-(defmethod svg-subpath (points &key (to *svg-stream*))
+(defun svg-subpath (points &key (to *svg-stream*))
   "Write a subpath of a PostScript path."
   (svg-moveto (x (aref points 0))
                 (y (aref points 0))
@@ -85,14 +85,13 @@
                   (y (aref points i))
                   :to to)))
 
-(defmethod svg-rectfill ((rect rectangle) (col colour) &key (to *svg-stream*))
+(defun svg-rectfill (rect col &key (to *svg-stream*))
   "Draw a rectangle with the given co-ordinates and dimensions."
   (format to
           "<rect x=\"~F\" y=\"~F\" width=\"~F\" height=\"~F\" fill=\"~a\" />~%"
           (x rect) (y rect) (width rect) (height rect) (svg-rgb col)))
 
-(defmethod svg-rectstroke ((rect rectangle) (col colour)
-                             &key (to *svg-stream*))
+(defun svg-rectstroke (rect col &key (to *svg-stream*))
   "Draw a rectangle with the given co-ordinates and dimensions."
   (format to
    "<rect x=\"~F\" y=\"~F\" width=\"~F\" height=\"~F\" stroke=\"~a\" />~%"
@@ -102,7 +101,7 @@
 ;; Drawing writing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod svg-form-skeleton ((f form) ps)
+(defun svg-form-skeleton (the-form ps)
   "Write the skeleton the drawing is made around."
   (svg-path-tag-start :to ps)
   (svg-stroke (make-instance 'colour
@@ -111,21 +110,21 @@
                                    :brightness 0.6)
                     :to ps)
   (svg-path-d-start :to ps)
-  (svg-subpath (points (skeleton f)) :to ps)
+  (svg-subpath (points (skeleton the-form)) :to ps)
   (svg-path-d-end :to ps)
   (svg-path-tag-end :to ps))
 
-(defmethod svg-form-fill ((f form) ps)
+(defun svg-form-fill (the-form ps)
   "Write the drawing outline."
   (svg-path-tag-start :to ps)
-  (svg-fill (fill-colour f)
+  (svg-fill (fill-colour the-form)
                   :to ps)
   (svg-path-d-start :to ps)
-  (svg-subpath (points (outline f)) :to ps)
+  (svg-subpath (points (outline the-form)) :to ps)
   (svg-path-d-end :to ps)
   (svg-path-tag-end :to ps))
 
-(defmethod svg-form-stroke ((f form) ps)
+(defun svg-form-stroke (the-form ps)
   "Write the drawing outline."
  (svg-path-tag-start :to ps)
   (svg-stroke (make-instance 'colour
@@ -134,18 +133,18 @@
                                    :brightness 0.0)
                     :to ps)
   (svg-path-d-start :to ps)
-  (svg-subpath (points (outline f)) :to ps)
+  (svg-subpath (points (outline the-form)) :to ps)
   (svg-path-d-end :to ps)
   (svg-path-tag-end :to ps))
 
-(defmethod svg-form ((f form) ps)
+(defun svg-form (the-form ps)
   "Write the form."
-  (svg-form-fill f ps)
+  (svg-form-fill the-form ps)
   ;;(svg-figure-skeleton fig ps)
-  ;;(svg-form-stroke f ps)
+  ;;(svg-form-stroke the-form ps)
   )
 
-(defmethod svg-figure ((fig figure) ps)
+(defun svg-figure (fig ps)
   "Write the figure for early multi-figure versions of draw-something."
   ;;(svg-rgb 0.0 0.0 0.0 :to ps)
   ;;(svg-rectstroke (bounds fig) :to ps)
@@ -153,18 +152,18 @@
   (loop for fm across (forms fig)
        do (svg-form fm ps)))
 
-(defmethod svg-ground ((the-drawing drawing) ps)
+(defun svg-ground (the-drawing ps)
   "Colour the drawing ground."
   (svg-rectfill (bounds the-drawing) (ground the-drawing)
-                  :to ps))
+                :to ps))
 
-(defmethod svg-frame ((the-drawing drawing) ps)
+(defun svg-frame (the-drawing ps)
   "Frame the drawing. Frame is bigger than PS bounds but should be OK."
   (svg-rectstroke (inset-rectangle (bounds the-drawing) -1)
                     (make-instance 'colour :brightness 0.0)
                     :to ps))
 
-(defmethod svg-write-drawing ((name string) (the-drawing drawing))
+(defun svg-write-drawing (name the-drawing)
   "Write the drawing"
   (advisory-message (format nil "Writing drawing to file ~a .~%" name))
   (ensure-directories-exist save-directory)
@@ -181,7 +180,7 @@
     (svg-footer :to ps)
     (pathname ps)))
 
-(defmethod svg-display-drawing (filepath)
+(defun svg-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
   (let ((command
          #+(or macos macosx darwin) "/usr/bin/open"
@@ -190,13 +189,13 @@
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defmethod write-svg ((the-drawing drawing) &optional (filespec nil))
+(defun write-svg (the-drawing &optional (filespec nil))
   "Write the drawing as an svg file."
   (advisory-message "Saving drawing as svg.~%")
   (svg-write-drawing (if filespec filespec (generate-filename ".svg"))
                      the-drawing))
 
-(defmethod write-and-show-svg ((the-drawing drawing) &optional (filespec nil))
+(defun write-and-show-svg (the-drawing &optional (filespec nil))
   "Write and display the drawing as an svg file."
   (advisory-message "Viewing drawing as svg.~%")
   (svg-display-drawing (write-svg the-drawing filespec)))

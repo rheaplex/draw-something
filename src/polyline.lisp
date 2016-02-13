@@ -1,5 +1,5 @@
 ;;  polyline.lisp - A classic computer graphics polyline.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass polyline ()
+(defclass polyline (geometry)
   ;; Optimised to use arrays not lists to avoid terrible (distance) consing
   ;; For speed set initial dimension to a size unlikely to need increasing
   ((points :accessor points
@@ -31,34 +31,34 @@
            :documentation "The bounds of the polyline."))
   (:documentation "A polyline or polygon. A series of joined line segments."))
 
-(defmethod append-point ((poly polyline) (pt point))
+(defun append-point (poly pt)
   "Append a point to the polyline."
   (vector-push-extend pt (points poly))
   (if (slot-boundp poly 'bounds)
       (include-point (bounds poly) pt)
       (setf (bounds poly) (rectangle-from-point pt))))
 
-(defmethod point-count ((poly polyline))
+(defun point-count (poly)
   "Get the number of points in the polyline"
   (length (points poly)))
 
-(defmethod first-point ((poly polyline))
+(defun first-point (poly)
   "Get the first point of the polyline."
   (aref (points poly) 0))
 
-(defmethod last-point ((poly polyline))
+(defun last-point (poly)
   "Get the last point of the polyline."
   (aref (points poly)
         (- (point-count poly) 1)))
 
-(defmethod make-random-polyline-in-rectangle (rect count)
+(defun make-random-polyline-in-rectangle (rect count)
   "Create a polyline with the given number of points in the given bounds."
   (let ((poly (make-instance 'polyline)))
     (dotimes (i count)
       (append-point poly (random-point-in-rectangle rect)))
     poly))
 
-(defmethod make-polyline-from-points ((points vector))
+(defun make-polyline-from-points (points)
   "Create a polyline with the given points."
   (let ((poly (make-instance 'polyline)))
     (loop for p across points
@@ -86,15 +86,7 @@
 
 (defmethod highest-leftmost-point ((poly polyline))
   "The highest point, or highest and leftmost point (if several are highest)."
-  (let* ((the-points (points poly))
-         (highest (aref the-points 0)))
-    (dotimes (i (length the-points))
-      (let ((pt (aref the-points i)))
-        (if (or (> (y pt) (y highest))
-                (and (= (y highest) (y pt))
-                     (< (x highest) (x pt))))
-            (setf highest pt))))
-    highest))
+  (highest-leftmost-point-in-list (points poly)))
 
 (defmethod area ((poly polyline))
   "Get the area of the POLYGON"
@@ -134,6 +126,9 @@
                                                (aref pts j))
               (setf crossings(+ crossings 1)))))
         (oddp crossings))))
+
+(defgeneric as-polyline (geometry)
+  (:documentation "Convert the geometry to a polyline approximation."))
 
 (defmethod as-polyline ((rect rectangle))
   "Convert a rectangle into a five-point (closed) polyline"
@@ -185,14 +180,14 @@
         (return)))
     result))
 
-(defmethod polyline-contains-points ((poly1 polyline) (poly2 polyline))
+(defun polyline-contains-points (poly1 poly2)
   "Find whether poly1 contians any points of poly2"
   ;; Currently only intersects
   (dolist (p (points poly2))
     (when (contains poly1 p)
       (return t))))
 
-(defmethod polyline-lines-intersects ((poly1 polyline) (poly2 polyline))
+(defun polyline-lines-intersects (poly1 poly2)
   "Find whether any lines of the polylines intersect"
   (let ((result nil))
     (block outside-loops
@@ -224,25 +219,9 @@
 	;; If any line of the rectangle intersects any line of the polyline
 	(intersects poly (as-polyline rect))
 	;; If any point of the square is inside the polyline
-	(some (lambda (p) (contains poly p)) (as-points rect)))))
+	(some (lambda (p) (contains poly p)) (rect-as-points rect)))))
 
-(defmethod convex-hull (the-points)
-  "Get the convex hull of an array of points."
-  (let* ((first-point (highest-leftmost-point the-points))
-         (current-point first-point)
-         (next-point nil)
-         (hull (make-vector 10)))
-    (vector-push-extend first-point hull)
-    (loop until (and (not (eq next-point nil))
-                     (eq next-point first-point))
-          do (setf next-point
-                   (point-with-all-left current-point the-points))
-          (vector-push-extend next-point hull)
-          (setf current-point next-point))
-    (make-instance 'polyline :points hull)))
-
-(defmethod adding-point-would-cause-self-intersection ((poly polyline)
-                                                       (p point))
+(defun adding-point-would-cause-self-intersection (poly p)
   "Check if adding the point to the polyline would make it self-intersect."
   (let ((l (make-instance 'line
                           :from (last-point poly)

@@ -1,5 +1,5 @@
 ;;  circle.lisp - A 2D circle.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass circle ()
+(defclass circle (geometry)
   ((x :accessor x 
       :type float
       :initform  0.0
