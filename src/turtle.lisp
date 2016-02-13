@@ -1,5 +1,5 @@
 ;;  turtle.lisp - A classic, L-system style computer graphics turtle.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -40,41 +40,41 @@
               :documentation "The heading, in radians anticlockwise."))
    (:documentation "A classic computer graphics turtle plus randomness ."))
 
-(defmethod turn ((the-turtle turtle) amount)
+(defun turn (the-turtle amount)
   "Turn the turtle by the given amount in degrees,"
   (setf (direction the-turtle)
         (+ (direction the-turtle) amount)))
 
-(defmethod left ((the-turtle turtle) amount)
+(defun left (the-turtle amount)
   "Turn the turtle left by the given amount in degrees,"
   (turn the-turtle (- amount)))
 
-(defmethod right ((the-turtle turtle) amount)
+(defun right (the-turtle amount)
   "Turn the turtle left by the given amount in degrees,"
   (turn the-turtle amount))
 
-(defmethod next-point-x ((the-turtle turtle) amount)
+(defun next-point-x (the-turtle amount)
   "The x co-ordinate of the next point the turtle would move forward to."
   (+ (x (location the-turtle))
      (* amount (sin (direction the-turtle)))))
 
-(defmethod next-point-y ((the-turtle turtle) amount)
+(defun next-point-y (the-turtle amount)
   "The y co-ordinate of the next point the turtle would move forward to."
   (+ (y (location the-turtle))
      (* amount (cos (direction the-turtle)))))
 
-(defmethod next-point ((the-turtle turtle) amount)
+(defun next-point (the-turtle amount)
   "The next point the turtle would move forward to."
   (make-instance 'point
                  :x (next-point-x the-turtle amount)
                  :y (next-point-y the-turtle amount)))
 
-(defmethod forward ((the-turtle turtle) amount)
+(defun forward (the-turtle amount)
   "Move the turtle forward the given distance at the turtle's current angle."
   (setf (location the-turtle)
         (next-point the-turtle amount)))
 
-(defmethod backward ((the-turtle turtle) amount)
+(defun backward (the-turtle amount)
   "Move the turtle backward the given distance at the turtle's current angle."
   (setf (location the-turtle)
         (next-point the-turtle (- amount))))

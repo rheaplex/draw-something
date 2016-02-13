@@ -17,15 +17,19 @@ quicklisp
 https://www.quicklisp.org/beta/
 
 
-Development Dependencies
-========================
+GUI Dependencies
+================
+
+ros install cl-cffi-gtk
+
+Test Dependencies
+=================
 
 prove
 ------
 
-ros run
-(ql:quickload "prove")
-(ql:quickload "prove-asdf")
+ros install prove
+ros install prove-asdf
 
 
 Installation

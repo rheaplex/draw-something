@@ -1,5 +1,5 @@
 ;;  drawing.lisp - A drawing.
-;;  Copyright (C) 2006, 2010  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2010 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -45,7 +45,7 @@
 
 ;; Change to width or height being max and other being random range
 
-(defmethod make-drawing-bounds ()
+(defun make-drawing-bounds ()
   "Make a bounds rectangle for a drawing."
   (make-instance 'rectangle :x 0.0 :y 0.0
 		 :width (random-range +min-drawing-size+ 
@@ -53,7 +53,7 @@
 		 :height (random-range +min-drawing-size+ 
 				       +max-drawing-size+)))
 
-(defmethod make-drawing ()
+(defun make-drawing ()
   "Make a drawing, ready to be started."
   (let ((the-drawing (make-instance 'drawing 
 				    :bounds (make-drawing-bounds))))
@@ -61,14 +61,3 @@
 			      (floor (width (bounds the-drawing)))
 			      (floor (height (bounds the-drawing)))))
     the-drawing))
-
-(defvar save-directory "./")
-
-(defmethod generate-filename (&optional (suffix ".eps"))
-  "Make a unique filename for the drawing, based on the current date & time."
-  (multiple-value-bind (seconds minutes hours date month year)
-      (decode-universal-time (get-universal-time))
-    (format nil
-            "~a~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A~a"
-            save-directory
-            "drawing" year month date hours minutes seconds suffix)))

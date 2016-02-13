@@ -1,5 +1,5 @@
 ;; draw-something.asd - The main package for draw-something
-;; Copyright (C) 2006, 2010, 2016  Rhea Myers rhea@myers.studio
+;; Copyright (C) 2006, 2010, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -36,7 +36,6 @@
      (:file "rectangle")
      (:file "polyline")
      (:file "colour")
-     (:file "colouring-new")
      (:file "turtle")
      (:file "pen")
      (:file "form")
@@ -47,10 +46,23 @@
      (:file "drawing")
      (:file "composition") 
      (:file "plane")
+     (:file "colouring-new")
      (:file "postscript")
      (:file "svg")
      (:file "draw-something"))
     :in-order-to ((test-op (test-op draw-something/test))))
+
+(defsystem draw-something/gui
+    :description "draw-something/gui: GTK+ GUI for draw-something."
+    :version "0.5.0"
+    :author "Rhea Myers <rhea@myers.studio>"
+    :licence "GNU GPL v3+"
+    :depends-on (:draw-something
+                 :cl-cffi-gtk)
+    :pathname "gui"
+    :components
+    ((:file "package")
+     (:file "gtk")))
 
 (defsystem draw-something/test
     :description "draw-something/test: tests for draw-something."

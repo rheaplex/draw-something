@@ -1,5 +1,5 @@
 ;;  form.lisp - A form of a figure.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -51,27 +51,27 @@
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
 
-(defmethod first-point ((the-form form))
+(defun form-first-point (the-form)
   "Get the first point in the outline of the form."
   (first-point (outline the-form)))
 
-(defmethod point-count ((the-form form))
+(defun form-point-count (the-form)
   "The number of points in the outline of the form."
   (point-count (outline the-form)))
 
-(defmethod most-recent-point ((the-form form))
+(defun most-recent-point (the-form)
   "The most recent point added to the outline of the form."
   (last-point (outline the-form)))
 
-(defmethod make-form-start-point ((form-skeleton vector)
-                                  (params pen-parameters))
+(defun make-form-start-point (form-skeleton pen-params)
   "Get the point to start drawing at."
   (let ((start-point nil))
     (dovector (skel form-skeleton)
       (let* ((hp (highest-leftmost-point skel))
              (candidate (make-instance 'point
                                        :x (x hp)
-                                       :y (+ (y hp) (pen-distance params)))))
+                                       :y (+ (y hp)
+                                             (pen-distance pen-params)))))
         (when (or (not start-point)
                   (> (y candidate) (y start-point))
                   (and (= (y candidate) (y start-point))
@@ -79,14 +79,14 @@
           (setf start-point candidate))))
     start-point))
 
-(defmethod make-form-turtle ((the-form form) (params pen-parameters))
+(defun make-form-turtle (the-form pen-params)
   "Make the turtle to draw around the form."
   (make-instance 'turtle
-                 :location (make-form-start-point (skeleton the-form) params)
-                 :direction (- (/ pi 2.0))
-                 ))
+                 :location (make-form-start-point (skeleton the-form)
+                                                  pen-params)
+                 :direction (- (/ pi 2.0))))
 
-(defmethod make-form-from-points ((points vector))
+(defun make-form-from-points (points)
   "Make a form, ready to be started."
   (advisory-message (format nil "Making form.~%"))
   (let* ((skel (make-polyline-from-points points))
@@ -96,23 +96,23 @@
     ;;(draw-form the-form) ;; Remove for codelets
     the-form))
 
-(defmethod path-ready-to-close ((the-form form) (the-pen pen-parameters))
-  (and (> (point-count the-form) 2) ;; Ignore very first point
+(defun path-ready-to-close (the-form pen-params)
+  (and (> (form-point-count the-form) 2) ;; Ignore very first point
        (< (distance (most-recent-point the-form)
-                    (first-point the-form))
-          (move-step the-pen))))
+                    (form-first-point the-form))
+          (move-step pen-params))))
 
-(defmethod path-timeout ((the-form form))
+(defun path-timeout (the-form)
   "Make sure that a failure of the form algorithm hasn't resulted in a loop."
-  (> (point-count the-form)
+  (> (form-point-count the-form)
      form-step-limit))
 
-(defmethod should-finish-form ((the-form form) (the-pen pen-parameters))
+(defun should-finish-form (the-form pen-params)
   "Decide whether the form should finish."
-  (or (path-ready-to-close the-form the-pen)
+  (or (path-ready-to-close the-form pen-params)
       (path-timeout the-form)))
 
-(defmethod draw-form ((the-form form))
+(defun draw-form (the-form)
   "Find the next point forward along the drawn outline of the shape."
   (let* ((form-bounds (bounds the-form))
          (the-outline (outline the-form))
@@ -127,4 +127,4 @@
 	    (let ((new-location (location the-turtle)))
 	      (append-point the-outline new-location)
 	      (include-point form-bounds new-location))))
-    (append-point the-outline (first-point the-form))))
+    (append-point the-outline (form-first-point the-form))))

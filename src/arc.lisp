@@ -1,5 +1,5 @@
 ;;  arc.lisp - A 2D circle segment.
-;;  Copyright (C) 2006  Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass arc ()
+(defclass arc (geometry)
   ((x :accessor x 
       :type float
       :initform  0.0
@@ -42,10 +42,11 @@
    (finish-point :accessor finish-point))
   (:documentation "A simple circle."))
 
-(defmethod arc-point-at-angle ((obj arc) theta)
+(defun arc-point-at-angle (obj theta)
   "Get the point on the circumference of the arc at theta. 
    Doesn't check limits of arc."
-  (multiple-value-bind (ax ay) (co-ordinates-at-angle obj theta)
+  (multiple-value-bind (ax ay) (co-ordinates-at-angle (x obj) (y obj)
+                                                      (radius obj) theta)
       (make-instance 'point :x ax :y ay)))
 
 (defmethod initialize-instance :after ((instance arc) &rest args)
