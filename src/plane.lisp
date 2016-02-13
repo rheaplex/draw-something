@@ -24,7 +24,7 @@
 (defconstant +min-figures+ 3)
 (defconstant +max-figures+ 9)
 
-(defclass plane ()
+(defclass <plane> ()
   ((figure-policy :accessor figure-policy
 		  :initarg :figure-policy
 		  :documentation "The function for generating figures.")
@@ -52,7 +52,7 @@
   (declare (ignore plane-index num-planes))
    #|(let ((plane-factor (* (/ 1.0 (- num-planes 1))
 			 plane-index)))
-    (make-instance 'pen
+    (make-instance '<pen>
 		   :distance (+ +plane-pen-distance-minimum+
 				(* plane-factor
 				   (- +plane-pen-distance-maximum+
@@ -65,7 +65,8 @@
   nil)
 
 (defconstant +minimum-number-of-planes+ 1)
-(defconstant +maximum-number-of-planes+ (length *figure-generation-method-list*))
+(defconstant +maximum-number-of-planes+
+  (length *figure-generation-method-list*))
 
 (defun number-of-planes ()
   "Decide how many planes to have"
@@ -92,7 +93,7 @@
      for i from 0 below count
      do (advisory-message (format nil "Making plane ~d.~%" (+ i 1)))
      do (vector-push-extend 
-	 (make-instance 'plane 
+	 (make-instance '<plane>
 			:figure-count (number-of-figures-for-plane i)
 			:figure-policy point-method
 			:pen nil ;;(make-plane-pen i count)
@@ -124,12 +125,12 @@
   (loop for l across (planes the-drawing)
 	do (draw-plane-figures l)))
 
-#|(defmethod make-figure-for-plane ((figure-bounds rectangle) (plane integer))
+#|(defmethod make-figure-for-plane ((figure-bounds <rectangle>) (plane integer))
   (let* ((form-width (/ (width figure-bounds) plane))
 	 (form-height (/ (height figure-bounds) plane)))
     (make-figure figure-bounds form-width form-height)))
 
-(defmethod make-figures ((the-drawing drawing))
+(defmethod make-figures ((the-drawing <drawing>))
   "Make the figures for the drawing."
   (let ((figure-count (random-range-inclusive +min-figures+ +max-figures+)))
     (advisory-message (format nil "Making ~a figures.~%" 
@@ -149,7 +150,7 @@
   ;;       Next try form skeletons.
   ;;       Finally try form outlines.
   ;;  (assert (contains (bounds d) required-size))
-  (let ((candidate (make-instance 'rectangle :x 0 :y 0
+  (let ((candidate (make-instance '<rectangle> :x 0 :y 0
                                   :width (width required-size-rect)
                                   :height (height required-size-rect)))
         (plane-rects (plane-forms-bounds the-plane))
@@ -179,7 +180,7 @@
                              steps))
         (result nil))
     (dotimes (step steps)
-      (let* ((required-size (make-instance 'rectangle :x 0 :y 0
+      (let* ((required-size (make-instance '<rectangle> :x 0 :y 0
                                            :width (- (width max-size-rect)
                                                      (* width-step-size
                                                         step))

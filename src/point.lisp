@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass point (geometry)
+(defclass <point> (<geometry>)
   ((x :accessor x
       :type float
       :initform  0.0
@@ -37,7 +37,7 @@
   (and (= (x left) (x right))
        (= (y left) (y right))))
 
-(defmethod distance ((left point) (right point))
+(defmethod distance ((left <point>) (right <point>))
   "The distance between two points."
   (sqrt (+ (expt (- (x right) (x left)) 2)
            (expt (- (y right) (y left)) 2))))
@@ -57,13 +57,13 @@
   "Make a point placed randomly within the given bounds."
   (multiple-value-bind
         (x-dist y-dist) (random-co-ordinates width height)
-    (make-instance 'point
+    (make-instance '<point>
                    :x (+ x x-dist)
                    :y (+ y y-dist))))
 
 (defun translate-point (p by-x by-y)
   "Make a translated copy of the point."
-  (make-instance 'point
+  (make-instance '<point>
                  :x (+ (x p) by-x)
                  :y (+ (y p) by-y)))
 
@@ -197,4 +197,4 @@
                    (point-with-all-left current-point the-points))
           (vector-push-extend next-point hull)
           (setf current-point next-point))
-    (make-instance 'polyline :points hull)))
+    (make-instance '<polyline> :points hull)))

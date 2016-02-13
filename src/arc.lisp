@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass arc (geometry)
+(defclass <arc> (<geometry>)
   ((x :accessor x 
       :type float
       :initform  0.0
@@ -47,9 +47,9 @@
    Doesn't check limits of arc."
   (multiple-value-bind (ax ay) (co-ordinates-at-angle (x obj) (y obj)
                                                       (radius obj) theta)
-      (make-instance 'point :x ax :y ay)))
+      (make-instance '<point> :x ax :y ay)))
 
-(defmethod initialize-instance :after ((instance arc) &rest args)
+(defmethod initialize-instance :after ((instance <arc>) &rest args)
   "Make the from- and to- points from their angles."
   (declare (ignore args))
   (setf (start-point instance) 
@@ -58,22 +58,22 @@
 	(arc-point-at-angle instance (finish-angle instance)))
   instance)
 
-(defmethod highest-leftmost-point ((a arc))
+(defmethod highest-leftmost-point ((a <arc>))
   "The highest point of the arc."
   ;;FIXME
   (if (or (> (start-angle a) (* pi 1.5))
 	  (< (finish-angle a) (* pi 1.5)))
       (highest-leftmost-of (start-point a) (finish-point a))
-      (make-instance 'point :x (x a) :y (+ (y a) (radius a)))))
+      (make-instance '<point> :x (x a) :y (+ (y a) (radius a)))))
 
-(defmethod distance ((p point) (a arc))
+(defmethod distance ((p <point>) (a <arc>))
   "Only calculates distance to outside of arc, more a slice distance."
   (let ((theta (angle-between-two-points-co-ordinates (x p) (y p) (x a) (y a))))
     (if (and (> theta (start-angle a)) (< theta (finish-angle a)))
 	(abs (- (distance-point-co-ordinates p (x a) (y a)) (radius a)))
 	(distance-point-line p (start-point a) (finish-point a)))))
 
-(defmethod bounds ((a arc))
+(defmethod bounds ((a <arc>))
   "The bounds of the arc."
   (make-instance 'rectangle :x 0.0 :y 0.0 :width 100.0 :height 100.0)) 
 

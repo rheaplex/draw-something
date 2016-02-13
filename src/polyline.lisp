@@ -18,7 +18,7 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defclass polyline (geometry)
+(defclass <polyline> (<geometry>)
   ;; Optimised to use arrays not lists to avoid terrible (distance) consing
   ;; For speed set initial dimension to a size unlikely to need increasing
   ((points :accessor points
@@ -53,19 +53,19 @@
 
 (defun make-random-polyline-in-rectangle (rect count)
   "Create a polyline with the given number of points in the given bounds."
-  (let ((poly (make-instance 'polyline)))
+  (let ((poly (make-instance '<polyline>)))
     (dotimes (i count)
       (append-point poly (random-point-in-rectangle rect)))
     poly))
 
 (defun make-polyline-from-points (points)
   "Create a polyline with the given points."
-  (let ((poly (make-instance 'polyline)))
+  (let ((poly (make-instance '<polyline>)))
     (loop for p across points
       do (append-point poly p))
     poly))
 
-(defmethod distance ((p point) (poly polyline))
+(defmethod distance ((p <point>) (poly <polyline>))
   "The distance from a point to a polyline."
   (cond ((= (length (points poly)) 0)
          nil) ;; Infinite distance? Zero?
@@ -84,11 +84,11 @@
                    (setf distance-to-poly d))))
            distance-to-poly))))
 
-(defmethod highest-leftmost-point ((poly polyline))
+(defmethod highest-leftmost-point ((poly <polyline>))
   "The highest point, or highest and leftmost point (if several are highest)."
   (highest-leftmost-point-in-list (points poly)))
 
-(defmethod area ((poly polyline))
+(defmethod area ((poly <polyline>))
   "Get the area of the POLYGON"
   ;; Cleanme!
   (if (< (length (points poly)) 3)
@@ -108,13 +108,13 @@
         (setf area (/ area 2.0))
         (abs area))))
 
-(defmethod contains ((poly polyline) (p point))
+(defmethod contains ((poly <polyline>) (p <point>))
   "Find whether the POLYGON contains the point."
   ;; Count ray-poly-line intersections. Odd = inside, 0 or even = outside.
   (if (> (length (points poly)) 2)
       (let ((pts (points poly))
             (numpts (length (points poly)))
-            (ray-line (make-instance 'line
+            (ray-line (make-instance '<line>
                                      :from p
                                      :to (translate-point p 10000.0 0.0)))
             (crossings 0))
@@ -130,27 +130,27 @@
 (defgeneric as-polyline (geometry)
   (:documentation "Convert the geometry to a polyline approximation."))
 
-(defmethod as-polyline ((rect rectangle))
+(defmethod as-polyline ((rect <rectangle>))
   "Convert a rectangle into a five-point (closed) polyline"
-  (make-instance 'polyline
+  (make-instance '<polyline>
 		 :bounds rect
-		 :points (vector (make-instance 'point 
+		 :points (vector (make-instance '<point> 
 						:x (x rect) 
 						:y (y rect))
-				 (make-instance 'point 
+				 (make-instance '<point> 
 						:x (+ (x rect) 
 						      (width rect)) 
 						:y (y rect))
-				 (make-instance 'point 
+				 (make-instance '<point> 
 						:x (+ (x rect) 
 						      (width rect)) 
 						:y (+ (y rect) 
 						      (height rect)))
-				 (make-instance 'point 
+				 (make-instance '<point> 
 						:x (x rect) 
 						:y (+ (y rect) 
 						      (height rect)))
-				 (make-instance 'point 
+				 (make-instance '<point> 
 						:x (x rect) 
 						:y (y rect)))))
 
@@ -164,13 +164,13 @@
               (,sym nil))
           (dotimes (,i (- (point-count ,poly) 1))
             (setf ,current-point (aref ,poly-points (+ ,i 1)))
-            (setf ,sym (make-instance 'line
+            (setf ,sym (make-instance '<line>
                                       :from ,previous-point
                                       :to ,current-point))
             ,@body
             (setf ,previous-point ,current-point)))))))
 
-(defmethod intersects ((l line) (poly polyline))
+(defmethod intersects ((l <line>) (poly <polyline>))
   "Find whether the line intersects or is contained by the polyline."
   ;; Currently only intersects
   (let ((result nil))
@@ -198,7 +198,7 @@
 	    (return-from outside-loops)))))
     result))
 
-(defmethod intersects ((poly1 polyline) (poly2 polyline))
+(defmethod intersects ((poly1 <polyline>) (poly2 <polyline>))
   "Find whether the two POLYGONS intersect or contain each other."
   (and (intersects (bounds poly1) (bounds poly2))
        (or 
@@ -208,7 +208,7 @@
 	(some (lambda (p) (contains poly1 p)) (points poly1))
 	(some (lambda (p) (contains poly2 p)) (points poly2)))))
 
-(defmethod intersects ((poly polyline) (rect rectangle))
+(defmethod intersects ((poly <polyline>) (rect <rectangle>))
   "Does the polyline overlap the rectangle?"
   ;; Tests in order of computational expense
   ;; See whether the bounds overlap, then continue
@@ -223,7 +223,7 @@
 
 (defun adding-point-would-cause-self-intersection (poly p)
   "Check if adding the point to the polyline would make it self-intersect."
-  (let ((l (make-instance 'line
+  (let ((l (make-instance '<line>
                           :from (last-point poly)
                           :to p))
         (result nil))
