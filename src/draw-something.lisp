@@ -25,7 +25,7 @@
     (make-planes the-drawing (number-of-planes))
     (make-planes-skeletons the-drawing)
     (draw-planes-figures the-drawing)
-    (colour-objects the-drawing all-object-symbols)
+    (colour-objects the-drawing *all-object-symbols*)
     the-drawing))
 
 (defun draw-something (&optional (pathspec nil))

@@ -55,18 +55,18 @@
 							 (length the-points)))
                                        the-points)))))))
 
-(defconstant min-hulls-per-plane 1)
-(defconstant max-hulls-per-plane 4)
-(defconstant min-hull-points 3)
-(defconstant max-hull-points 12)
+(defconstant +min-hulls-per-plane+ 1)
+(defconstant +max-hulls-per-plane+ 4)
+(defconstant +min-hull-points+ 3)
+(defconstant +max-hull-points+ 12)
 
 (defun make-hull-figures-for-plane (points)
   "The plane population policy using hulls. "
   (make-hull-figures points
-                        (random-range min-hulls-per-plane
-                                      max-hulls-per-plane)
-                        min-hull-points
-			(min (length points) max-hull-points)))
+                        (random-range +min-hulls-per-plane+
+                                      +max-hulls-per-plane+)
+                        +min-hull-points+
+			(min (length points) +max-hull-points+)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygons
@@ -84,18 +84,18 @@
                                                            high-count)
                                              points))))))
 
-(defconstant min-polygons-per-plane 1)
-(defconstant max-polygons-per-plane 5)
-(defconstant min-polygon-points 3)
-(defconstant max-polygon-points 12)
+(defconstant +min-polygons-per-plane+ 1)
+(defconstant +max-polygons-per-plane+ 5)
+(defconstant +min-polygon-points+ 3)
+(defconstant +max-polygon-points+ 12)
 
 (defun make-polygon-figures-for-plane (points)
   "The plane population policy using polygons. "
   (make-polygon-figures points
-                        (random-range min-polygons-per-plane
-                                      max-polygons-per-plane)
-                        min-polygon-points
-			(min (length points) max-polygon-points)))
+                        (random-range +min-polygons-per-plane+
+                                      +max-polygons-per-plane+)
+                        +min-polygon-points+
+			(min (length points) +max-polygon-points+)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,15 +120,15 @@
     (map-into lines
               (lambda () (make-figure-from-points (choose-n-of 2 points))))))
 
-(defconstant min-lines-per-plane 1)
-(defconstant max-lines-per-plane 8)
+(defconstant +min-lines-per-plane+ 1)
+(defconstant +max-lines-per-plane+ 8)
 
 (defun make-line-figures-for-plane (points)
   "The plane population policy using liness. "
   (make-line-figures points
-                     (random-range min-lines-per-plane
+                     (random-range +min-lines-per-plane+
 			(min (floor (/ (length points) 2.0)) 
-			     max-lines-per-plane))))
+			     +max-lines-per-plane+))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points
@@ -150,26 +150,26 @@
                                  point-figures))
     point-figures))
 
-(defconstant min-points-per-plane 1)
-(defconstant max-points-per-plane 12)
+(defconstant +min-points-per-plane+ 1)
+(defconstant +max-points-per-plane+ 12)
 
 (defun make-point-figures-for-plane (points)
   "The plane population policy using points. "
   (make-point-figures points
-                      (random-range min-points-per-plane
-				    (min (length points) 
-					 max-points-per-plane))))
+                      (random-range +min-points-per-plane+
+                                    (min (length points) 
+                                         +max-points-per-plane+))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter figure-generation-method-list
+(defparameter *figure-generation-method-list*
   '(make-hull-figures-for-plane
     make-polygon-figures-for-plane
     make-line-figures-for-plane
     make-point-figures-for-plane))
 
 (defun figure-generation-methods (count)
-  (choose-n-of-ordered count figure-generation-method-list))
+  (choose-n-of-ordered count *figure-generation-method-list*))

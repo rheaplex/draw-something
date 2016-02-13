@@ -18,11 +18,11 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defconstant min-planes 1)
-(defconstant max-planes 5)
+(defconstant +min-planes+ 1)
+(defconstant +max-planes+ 5)
 
-(defconstant min-figures 3)
-(defconstant max-figures 9)
+(defconstant +min-figures+ 3)
+(defconstant +max-figures+ 9)
 
 (defclass plane ()
   ((figure-policy :accessor figure-policy
@@ -42,10 +42,10 @@
 	:documentation "The pen properties for the plane."))
   (:documentation "A plane of the drawing."))
 
-(defconstant plane-pen-distance-minimum 0.1)
-(defconstant plane-pen-distance-maximum 5.0)
-(defconstant plane-pen-tolerance-minimum (/ plane-pen-distance-minimum 2.0))
-(defconstant plane-pen-tolerance-maximum (/ plane-pen-distance-maximum 2.0))
+(defconstant +plane-pen-distance-minimum+ 0.1)
+(defconstant +plane-pen-distance-maximum+ 5.0)
+(defconstant +plane-pen-tolerance-minimum+ (/ +plane-pen-distance-minimum+ 2.0))
+(defconstant +plane-pen-tolerance-maximum+ (/ +plane-pen-distance-maximum+ 2.0))
 
 (defun make-plane-pen (plane-index num-planes)
   "Make a pen for the plane."
@@ -53,24 +53,24 @@
    #|(let ((plane-factor (* (/ 1.0 (- num-planes 1))
 			 plane-index)))
     (make-instance 'pen
-		   :distance (+ plane-pen-distance-minimum
+		   :distance (+ +plane-pen-distance-minimum+
 				(* plane-factor
-				   (- plane-pen-distance-maximum
-				      plane-pen-distance-minimum )))
+				   (- +plane-pen-distance-maximum+
+				      +plane-pen-distance-minimum+)))
 		   :step 1.0
-		   :tolerance (+ plane-pen-tolerance-minimum
+		   :tolerance (+ +plane-pen-tolerance-minimum+
 				 (* plane-factor
-				    (- plane-pen-tolerance-maximum
-				       plane-pen-tolerance-minimum ))))))|#
+				    (- +plane-pen-tolerance-maximum+
+				       +plane-pen-tolerance-minimum+))))))|#
   nil)
 
-(defconstant minimum-number-of-planes 1)
-(defconstant maximum-number-of-planes (length figure-generation-method-list))
+(defconstant +minimum-number-of-planes+ 1)
+(defconstant +maximum-number-of-planes+ (length *figure-generation-method-list*))
 
 (defun number-of-planes ()
   "Decide how many planes to have"
-  (random-range minimum-number-of-planes
-		maximum-number-of-planes))
+  (random-range +minimum-number-of-planes+
+                +maximum-number-of-planes+))
 
 (defun number-of-figures-for-plane (plane-index)
   "Randomly determine how many figures a plane should have."
@@ -131,7 +131,7 @@
 
 (defmethod make-figures ((the-drawing drawing))
   "Make the figures for the drawing."
-  (let ((figure-count (random-range-inclusive min-figures max-figures)))
+  (let ((figure-count (random-range-inclusive +min-figures+ +max-figures+)))
     (advisory-message (format nil "Making ~a figures.~%" 
 			      figure-count))
     (loop for i from 1 to figure-count
