@@ -2,17 +2,17 @@
 ;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
-;; 
+;;
 ;; draw-something is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; draw-something is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -56,13 +56,17 @@
 
 (defun radians-to-degrees (radians)
   "Convert a value in radians to a huamn-readable value in degrees. :-)"
-  (/ radians+radians-to-degrees+))
+  (/ radians +radians-to-degrees+))
 
 (defconstant +radians-to-t-ratio+ (/ 1.0 (* pi 2.0)))
 
 (defun radians-to-t (r)
 	"Convert the value in radians to a value from 0.0 to 1.0"
 	(* r +radians-to-t-ratio+))
+
+(defun norm-radian (value)
+  "Clamp a value to 0..2pi"
+  (mod value +radian+))
 
 (defun intersects-any (item others)
   "Returns true if item intersects any of the others"
@@ -71,3 +75,23 @@
 (defun intersects-none (item others)
   "Returns true if item intersects none of the others"
   (not (intersects-any item others)))
+
+(defun turn-positive-p (a1 a2)
+  "Is the shortest turn direction positive (t) or negative (nil)?"
+  (> (mod (+ (- a1 a2) +radian+) +radian+) pi))
+
+(defun shortest-angle-difference (a1 a2)
+  "Find the shortest positive or negative distance between two angles."
+  ;; This was slowly assembled from various online sources, none of which worked
+  ;; Normalize angles to 0..2pi
+  (let ((from (mod a1 +radian+))
+        (to (mod a2 +radian+)))
+      ;; If from and to are equal (0 = 2pi radians) the angle is zero
+      (if (or (= from to)
+              (= (+ from to) +radian+))
+          0.0d0
+          (let ((angle (- to from)))
+            (if (> (abs angle) pi)
+                ;; Please simplify me
+                (* (- (signum angle)) (- +radian+ (abs angle)))
+                angle)))))

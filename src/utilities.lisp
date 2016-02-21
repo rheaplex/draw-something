@@ -84,7 +84,7 @@ Note that this is evaluated as two loops"
 
 (defun random-range-inclusive (a b)
   "Make a random number from a to below b."
-  (declare (type integer a b)) 
+  (declare (type integer a b))
   (let ((range (+ (- b a) 1)))
     (if (= range 0)
         a
@@ -217,6 +217,12 @@ Note that this is evaluated as two loops"
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
      ,@body))
+
+(defun closest-to-zero (a b)
+  "Return value of a or b that is closest to zero."
+  (if (< (abs a) (abs b))
+      a
+      b))
 
 ;; These are here so ps/svg can access them.
 

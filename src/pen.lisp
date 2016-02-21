@@ -141,7 +141,7 @@
   "Adjust the pen's direction to simulate human neurophysiological noise."
   (if (< (random 1.0) (drift-probability pen-params))
       (turn the-turtle
-            (random-range (- (drift-range pen-params)) 
+            (random-range (- (drift-range pen-params))
 			  (drift-range pen-params)))))
 
 (defun adjust-next-pen (skeleton-forms pen-params the-turtle)

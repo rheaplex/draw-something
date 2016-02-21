@@ -2,17 +2,17 @@
 ;; Copyright (C) 2010, 2016 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
-;; 
+;;
 ;; draw-something is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; draw-something is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -30,7 +30,7 @@
 
 (setf draw-something:*print-advisories* nil)
 
-(plan 32)
+(plan 56)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities
@@ -45,7 +45,7 @@
 (defun all-pointses-in-rect (rect point-sets)
   "Assert test on every point in every set of points being within rect"
   (every (lambda (points)
-           (every (lambda (p) 
+           (every (lambda (p)
                     (draw-something::contains rect p))
                   points))
          point-sets))
@@ -63,18 +63,51 @@
                  collect form))))
 
 (defun max-pen-distance ()
-  (apply #'max (map 'list #'draw-something::pen-distance 
+  (apply #'max (map 'list #'draw-something::pen-distance
                     draw-something::*plane-pen-parameters*)))
 
 (defun max-pen-tolerance ()
-  (apply #'max (map 'list #'draw-something::pen-distance 
+  (apply #'max (map 'list #'draw-something::pen-distance
                     draw-something::*plane-pen-parameters*)))
 
 (defun drawing-overflow-bounds (drawing)
   "Outlines go over the edge of the drawing but shouldn't go outside of this"
   (draw-something::inset-rectangle (draw-something::bounds drawing)
-                                   (- (+ (max-pen-distance) 
+                                   (- (+ (max-pen-distance)
                                          ( max-pen-tolerance)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Geometry
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(is (draw-something::turn-positive-p 1 2) t)
+(is (draw-something::turn-positive-p 2 1) nil)
+(is (draw-something::turn-positive-p 1 6) nil)
+(is (draw-something::turn-positive-p 6 1) t)
+(is (draw-something::turn-positive-p 0.01 6.2) nil)
+(is (draw-something::turn-positive-p 6.2 0.01) t)
+
+;; Check different angle scenarios
+;; zero and 2pi are the same, so zero angle between the,
+(is (draw-something::shortest-angle-difference 0 draw-something::+radian+)
+    0.0d0)
+(is (draw-something::shortest-angle-difference draw-something::+radian+ 0)
+    0.0d0)
+;; Positive differences are positive
+(is (draw-something::shortest-angle-difference 0 1) 1.0d0)
+(is (draw-something::shortest-angle-difference 1 4) 3.0d0)
+;; Negative differences are negative
+(is (draw-something::shortest-angle-difference 1 0) -1.0d0)
+(is (draw-something::shortest-angle-difference 4 1) -3.0d0)
+;; Angles that would be greater than pi are changed to be less than
+(is (draw-something::shortest-angle-difference 1 6) -1.2831853071795862d0)
+(is (draw-something::shortest-angle-difference 1 5) -2.2831853071795862d0)
+;; Angles that cross zero/2pi are less than pi
+(is (draw-something::shortest-angle-difference 6 1)
+    1.2831853071795862d0)
+(is (draw-something::shortest-angle-difference (- draw-something::+radian+ 0.1)
+                                               3)
+    3.100000001490116d0)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
@@ -86,8 +119,35 @@
 
 ;; Point equality
 (ok (draw-something::point= +from+ +from+))
+
 ;; Point inequality
 (ok (not (draw-something::point= +from+ +to+)))
+
+;; Point angles counterclockwise from x-axis
+;; 0 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 1 0)
+    0.0)
+;; 45 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 1 1)
+    0.7853982)
+;; 90 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 0 1)
+    1.5707964)
+;; 135 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 -1 1)
+    2.3561945)
+;; 180 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 -1 0)
+    3.1415927)
+;; 225 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 -1 -1)
+    3.926990811024801d0)
+;; 270 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 0 -1)
+    4.7123889366733d0)
+;; 315 degrees
+(is (draw-something::angle-between-two-points-co-ordinates 0 0 1 -1)
+    5.497787121926443d0)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line
@@ -97,7 +157,7 @@
                                     :from +from+
                                     :to +to+))
 
-;; line-at-t for 0 is line start 
+;; line-at-t for 0 is line start
 (ok (draw-something::point= (draw-something::line-at-t +line+
                                                        0.0)
                             +from+))
@@ -114,19 +174,19 @@
 ;; Rectangle
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +rect+ (make-instance 'draw-something::<rectangle> 
+(defparameter +rect+ (make-instance 'draw-something::<rectangle>
                                     :x 0 :y 0 :width 500 :height 1000))
 
-(defparameter +intersecting-rects+ 
-  (list (make-instance 'draw-something::<rectangle> 
+(defparameter +intersecting-rects+
+  (list (make-instance 'draw-something::<rectangle>
                        :x -100 :y -100 :width 1000 :height 1000)
-        (make-instance 'draw-something::<rectangle> 
+        (make-instance 'draw-something::<rectangle>
                        :x 100 :y 100 :width 1000 :height 1000)))
 
-(defparameter +non-intersecting-rects+ 
-  (list (make-instance 'draw-something::<rectangle> 
+(defparameter +non-intersecting-rects+
+  (list (make-instance 'draw-something::<rectangle>
                        :x -10000 :y -10000 :width 50 :height 10)
-        (make-instance 'draw-something::<rectangle> 
+        (make-instance 'draw-something::<rectangle>
                        :x 10000 :y 10000 :width 50 :height 10)))
 
 ;; Rectangle intersection
@@ -141,7 +201,7 @@
                                           +intersecting-rects+)))
 
 ;; Random points inside a rectangle fall within that rectangle
-(ok (all-points-in-rect +rect+ 
+(ok (all-points-in-rect +rect+
                         (draw-something::random-points-in-rectangle +rect+
                                                                     10000)))
 ;; Random points on rectangle bounds fall on that rectangle's bounds
@@ -149,7 +209,7 @@
                         (draw-something::random-points-on-rectangle +rect+
                                                                     10000)))
 ;; Random points at rectangle corners fall on that rectangle's bounds
-(ok (all-points-in-rect +rect+	
+(ok (all-points-in-rect +rect+
                         (draw-something::random-points-at-rectangle-corners
                          +rect+ 4)))
 
@@ -158,9 +218,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (let ((polylines
-       (map-into (make-array 100) 
+       (map-into (make-array 100)
                  (lambda ()
-                   (draw-something::make-random-polyline-in-rectangle 
+                   (draw-something::make-random-polyline-in-rectangle
                     +rect+ 10))))
       (polyrecta
        (draw-something::as-polyline (make-instance
@@ -184,7 +244,7 @@
                                      :height 10))))
   ;; Every created polyline's points fall within its source bounds
   (ok
-   (every (lambda (poly) 
+   (every (lambda (poly)
             (every (lambda (p)
                      (draw-something::contains +rect+ p))
                    (draw-something::points poly)))
@@ -205,7 +265,7 @@
 
 (defparameter +red+
   (make-instance 'draw-something::<colour>
-                 :hue 0.0 
+                 :hue 0.0
                  :saturation 1.0
                  :brightness 1.0))
 
@@ -241,7 +301,7 @@
        (composition-points
         (draw-something::make-composition-points drawing 10000))
        (bad-skeletons
-        (vector (vector (make-instance 'draw-something::<point> 
+        (vector (vector (make-instance 'draw-something::<point>
                                        :x 1000000 :y 0))))
        (polygon-figures
         (draw-something::make-polygon-figures composition-points
@@ -260,30 +320,30 @@
 ;; Planes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +figure-bounds+  
+(defparameter +figure-bounds+
   (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 200 :height 400))
 
-(defparameter +search-size-good+  
+(defparameter +search-size-good+
   (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 20 :height 40))
 
-(defparameter +search-size-bad+  
+(defparameter +search-size-bad+
   (make-instance 'draw-something::<rectangle> :x 0 :y 0 :width 300 :height 300))
 
-(let* ((the-form 
+(let* ((the-form
         (make-instance 'draw-something::<form>
                        :bounds +figure-bounds+))
-       (the-figure 
+       (the-figure
         (make-instance 'draw-something::<figure>
                        :bounds +figure-bounds+
                        :forms (vector the-form)))
-       (the-plane 
+       (the-plane
         (make-instance 'draw-something::<plane>
                        :figures (vector the-figure)))
-       (drawing 
+       (drawing
         (make-instance 'draw-something::<drawing>
                        :bounds (make-instance
-                                'draw-something::<rectangle> 
-                                :x 0 :y 0 
+                                'draw-something::<rectangle>
+                                :x 0 :y 0
                                 :width 400 :height 400)
                        :planes (vector the-plane))))
   ;; It's possible to find space for a new form that fits on the layer
