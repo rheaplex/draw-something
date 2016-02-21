@@ -56,12 +56,12 @@
 (defun next-point-x (the-turtle amount)
   "The x co-ordinate of the next point the turtle would move forward to."
   (+ (x (location the-turtle))
-     (* amount (sin (direction the-turtle)))))
+     (* amount (cos (direction the-turtle)))))
 
 (defun next-point-y (the-turtle amount)
   "The y co-ordinate of the next point the turtle would move forward to."
   (+ (y (location the-turtle))
-     (* amount (cos (direction the-turtle)))))
+     (* amount (sin (direction the-turtle)))))
 
 (defun next-point (the-turtle amount)
   "The next point the turtle would move forward to."

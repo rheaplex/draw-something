@@ -2,24 +2,24 @@
 ;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
-;; 
+;;
 ;; draw-something is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; draw-something is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package "DRAW-SOMETHING")
 
 (defclass <rectangle> (<geometry>)
-  ((x :accessor x 
+  ((x :accessor x
       :type float
       :initform  0.0
       :initarg :x
@@ -43,12 +43,12 @@
 
 (defun copy-rectangle (r)
   "Make a copy of the rectangle."
-  (make-instance '<rectangle> 
+  (make-instance '<rectangle>
 		 :x (x r) :y (y r) :width (width r) :height (height r)))
 
 (defun random-point-in-rectangle (bounds-rect)
   "Make a point placed randomly within the given bounding rectangle."
-  (make-instance '<point> 
+  (make-instance '<point>
 		 :x (+ (x bounds-rect) (random (width bounds-rect)))
 		 :y (+ (y bounds-rect) (random (height bounds-rect)))))
 
@@ -84,20 +84,6 @@
 		   :y new-y
 		   :width new-width
 		   :height new-height)))
-  
-(defun random-rectangle-in-rectangle (bounds-rect)
-  "Make a random rectangle of at least size 1x1 in another rectangle."
-  (let* ((new-width (random (width bounds-rect)))
-	 (new-height (random (height bounds-rect)))
-	 (new-x (+ (x bounds-rect)
-		   (random (- (width bounds-rect) new-width))))
-	 (new-y (+ (y bounds-rect)
-		   (random (- (height bounds-rect) new-height)))))
-    (make-instance '<rectangle>
-		   :x new-x
-		   :y new-y
-		   :width new-width
-		   :height new-height)))
 
 (defun inset-rectangle (source offset)
   "Trim a rectangle by the given amount."
@@ -115,7 +101,7 @@
   "Get the rectangle as an array of four points"
   (vector (make-instance '<point> :x (x rect) :y (y rect))
 	  (make-instance '<point> :x (+ (x rect) (width rect)) :y (y rect))
-	  (make-instance '<point> :x (+ (x rect) (width rect)) 
+	  (make-instance '<point> :x (+ (x rect) (width rect))
                      :y (+ (y rect) (height rect)))
 	  (make-instance '<point> :x (x rect) :y (+ (y rect) (height rect)))))
 
@@ -150,28 +136,28 @@
   (let ((right (+ (x rect) (width rect)))
 	(top (+ (y rect) (height rect))))
     (cond
-      ((< (x p) (x rect)) 
-       (setf (width rect) 
+      ((< (x p) (x rect))
+       (setf (width rect)
 	     (+ (width rect) (- (x rect) (x p))))
        (setf (x rect) (x p)))
-      ((> (x p) right) 
-       (setf (width rect) 
+      ((> (x p) right)
+       (setf (width rect)
 	     (+ (width rect) (- (x p) right))))
-      ((< (y p) (y rect)) 
-       (setf (height rect) 
+      ((< (y p) (y rect))
+       (setf (height rect)
 	     (+ (height rect) (- (y rect) (y p))))
        (setf (y rect) (y p)))
-      ((> (y p) top) 
-       (setf (height rect) 
+      ((> (y p) top)
+       (setf (height rect)
 	     (+ (height rect) (- (y p) top)))))))
 
 (defun include-rectangle (rect include)
   "Expand the first rectangle to include the second."
   (include-point rect (make-instance '<point> :x (x include) :y (y include)))
-  (include-point rect (make-instance '<point> :x (x include) 
+  (include-point rect (make-instance '<point> :x (x include)
                                      :y (+ (y include) (height include))))
   (include-point rect (make-instance '<point>
-                                     :x (+ (x include) (width include)) 
+                                     :x (+ (x include) (width include))
                                      :y (+ (y include) (height include))))
   (include-point rect (make-instance '<point> :x (+ (x include) (width include))
 				     :y (y include))))
@@ -231,24 +217,24 @@
 		       :to (make-instance '<point>
 					  :x (x r)
 					  :y (y r)))))))
-		       
+
 (defun random-points-on-rectangle (r count)
   "Generate count points on a rectangle's outline. These will not be ordered."
   (map-into (make-vector count) (lambda () (random-point-on-rectangle r))))
 
-(defun random-points-at-rectangle-corners (r count) 
+(defun random-points-at-rectangle-corners (r count)
   "Return from 0 to 4 corner points of a rectangle, clamping out-of-range."
   ;; Inefficient but easy to code and easy to read ;-]
   (choose-n-of count
                (vector (make-instance '<point>
-                                      :x (x r) 
+                                      :x (x r)
                                       :y (y r))
                        (make-instance '<point>
-                                      :x (x r) 
+                                      :x (x r)
                                       :y (+ (y r) (height r) -1))
                        (make-instance '<point>
-                                      :x (+ (x r) (width r) -1) 
+                                      :x (+ (x r) (width r) -1)
                                       :y (+ (y r) (height r) -1))
                        (make-instance '<point>
-                                      :x (+ (x r) (width r) -1) 
+                                      :x (+ (x r) (width r) -1)
                                       :y (y r)))))

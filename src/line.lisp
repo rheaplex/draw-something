@@ -2,17 +2,17 @@
 ;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
 ;;
 ;; This file is part of draw-something.
-;; 
+;;
 ;; draw-something is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; draw-something is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -32,15 +32,15 @@
    (:documentation "A simple line (segment) between two points."))
 
 ;;        nearest_point_on_line
-;;        From "Crashing Into the New Year", 
+;;        From "Crashing Into the New Year",
 ;;        Jeff Lander, GD Magazine, Jan 1999.
-;;        From point t to line A = p1->p2, B is t -> p1, C is t ->p2, 
+;;        From point t to line A = p1->p2, B is t -> p1, C is t ->p2,
 ;;        n is nearest point on A to t
 ;;                 (p2 - p1) * (B o A)
 ;;        n = p1 + -------------------
 ;;                  (B o A) + (C o A)
 ;;        [o is the dot product sign]
-;;        Note: Cull out-of-range points on the bounding circle of the 
+;;        Note: Cull out-of-range points on the bounding circle of the
 ;;        line for testing groups of lines to find closest.
 ;; This needs decomposing into smaller, more manageable and meaningful units
 
@@ -53,18 +53,18 @@
     (if (<= dot-ta 0.0)
 	(make-instance '<point> :x xla :y yla)
 	;; else
-	(let ((dot-tb (+ (* (- xp xlb) (- xla xlb)) 
+	(let ((dot-tb (+ (* (- xp xlb) (- xla xlb))
 			 (* (- yp ylb) (- yla ylb)))))
 	  ;;(format t "~F%~%" dot-tb)
 	  (if (<= dot-tb 0.0)
 	      (make-instance '<point> :x xlb :y ylb)
-	      ;; else      
+	      ;; else
 	      (make-instance '<point>
-			     :x (+ xla 
-				   (/ (* (- xlb xla) dot-ta) 
+			     :x (+ xla
+				   (/ (* (- xlb xla) dot-ta)
 				  (+ dot-ta dot-tb)))
 			     :y (+ yla
-				   (/ (* (- ylb yla) dot-ta) 
+				   (/ (* (- ylb yla) dot-ta)
 				      (+ dot-ta dot-tb)))))))))
 
 (defun nearest-point-on-line-points (p la lb)
@@ -87,24 +87,24 @@
 ;; Returns the time where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line 
-                                      p3x p3y p4x p4y);; Second line 
+(defun lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line
+                                      p3x p3y p4x p4y);; Second line
   "Find whether the two lines, expressed as 8 co-ordinates, intersect."
   (let ((denominator (- (* (- p4y p3y)
-			   (- p2x p1x)) 
+			   (- p2x p1x))
 			(* (- p4x p3x)
 			   (- p2y p1y)))))
     (if (= denominator 0.0)
 	nil ;; Parallel lines
-	(let ((ua (/ (- (* (- p4x p3x) 
+	(let ((ua (/ (- (* (- p4x p3x)
 			   (- p1y p3y))
-			(* (- p4y p3y) 
+			(* (- p4y p3y)
 			   (- p1x p3x)))
 		     denominator))
-	      (ub (/ (- (* (- p2x p1x) 
-			   (- p1y p3y)) 
-			(* (- p2y p1y) 
-			   (- p1x p3x))) 
+	      (ub (/ (- (* (- p2x p1x)
+			   (- p1y p3y))
+			(* (- p2y p1y)
+			   (- p1x p3x)))
 		     denominator)))
 	  (if (and (>= ua 0.0)
 		   (<= ua 1.0)
@@ -133,7 +133,7 @@
 		 :x (+ (x (from l))
 		       (* time (- (x (to l))
 				  (x (from l)))))
-		 :y (+ (y (from l)) 
+		 :y (+ (y (from l))
 		       (* time (- (y (to l))
 				  (y (from l)))))))
 
