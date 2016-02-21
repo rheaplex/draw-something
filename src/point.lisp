@@ -37,15 +37,18 @@
   (and (= (x left) (x right))
        (= (y left) (y right))))
 
+(defun distance-co-ordinates (x1 y1 x2 y2)
+  "The distance between two points."
+  (sqrt (+ (expt (- x2 x1) 2)
+           (expt (- y2 y1) 2))))
+
 (defmethod distance ((left <point>) (right <point>))
   "The distance between two points."
-  (sqrt (+ (expt (- (x right) (x left)) 2)
-           (expt (- (y right) (y left)) 2))))
+  (distance-co-ordinates (x left) (y left) (x right) (y right)))
 
 (defun distance-point-co-ordinates (point x2 y2)
   "The distance between two points."
-  (sqrt (+ (expt (- x2 (x point)) 2)
-           (expt (- y2 (y point)) 2))))
+  (distance-co-ordinates (x point) (y point) x2 y2))
 
 (defun random-co-ordinates (x-range y-range)
   "Make random co-ordinates avoiding bell-curve point distribution."
@@ -77,25 +80,14 @@
    Doesn't check limits of arc."
   (co-ordinates-at-angle-around-point-co-ordinates x y radius theta))
 
-(defun angle-between-two-points-co-ordinates (x1 y1 x2 y2)
-  "Calculate the angle of the second point around the first."
-  (let ((dx (- x2 x1))
-        (dy (- y2 y1)))
-    (cond
-      ((= dx 0.0)
-       (cond
-         ((= dx 0.0) 0.0)
-         ((> dy 0.0) (/ pi 2.0))
-         (t (* pi 2.0 3.0))))
-      ((= dy 0.0)
-       (cond
-         ((> dx 0.0) 0.0)
-         (t pi)))
-      (t
-       (cond
-         ((< dx 0.0) (+ (atan (/ dy dx)) pi))
-         ((< dy 0.0) (+ (atan (/ dy dx)) (* pi 2)))
-         (t (atan (/ dy dx))))))))
+;; Angle between two points, in radians
+
+(defun angle-between-two-points-co-ordinates (x0 y0 x1 y1)
+  (let ((angle (- (atan y1 x1)
+                  (atan y0 x0))))
+    (if (< angle 0)
+        (+ angle +radian+)
+        angle)))
 
 (defun angle-between-two-points (p1 p2)
   "Calculate the angle of the second point around the first."
