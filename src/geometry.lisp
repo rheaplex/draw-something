@@ -1,5 +1,5 @@
 ;;  geometry.lisp - Basic geometry stuff.
-;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -26,22 +26,22 @@
   ()
   (:documentation "The abstract base class for geometric(ish) objects."))
 
-(defgeneric bounds (geometry)
+(defgeneric bounds (o)
   (:documentation "The object's bounds, if any."))
 
-(defgeneric area (<geometry>)
+(defgeneric area (o)
   (:documentation "The object's area, if any."))
 
-(defgeneric contains (<geometry> <geometry>)
+(defgeneric contains (a b)
   (:documentation "Whether the first object contains the second."))
 
-(defgeneric distance (<geometry> <geometry>)
+(defgeneric distance (a b)
   (:documentation "The distance between the closest points of the objects."))
 
-(defgeneric highest-leftmost-point (<geometry>)
+(defgeneric highest-leftmost-point (o)
   (:documentation "The object's highest leftmost point (may be calculated)."))
 
-(defgeneric intersects (<geometry> <geometry>)
+(defgeneric intersects (a b)
   (:documentation "Whether and where the objects intersect."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
