@@ -1,5 +1,5 @@
 ;;  utilities.lisp - Various utilities.
-;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers rhea@myers.studio
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -90,7 +90,7 @@ Note that this is evaluated as two loops"
         a
         (+ (random range) a))))
 
-(defgeneric choose-one-of (t)
+(defgeneric choose-one-of (possibilities)
   (:documentation "Choose an item randomly from within the argument."))
 
 (defmethod choose-one-of ((possibilities list))
@@ -112,7 +112,7 @@ Note that this is evaluated as two loops"
      when (< (random 1.0) probability)
      collect item))
 
-(defgeneric choose-n-of (integer t)
+(defgeneric choose-n-of (n choices)
   (:documentation "Choose n items randomly from within the argument."))
 
 (defmethod choose-n-of ((n integer) (choice-list list))
@@ -137,7 +137,7 @@ Note that this is evaluated as two loops"
         (setf choices (remove choice choices))))
     chosen))
 
-(defgeneric shuffle (t)
+(defgeneric shuffle (source)
   (:documentation "Randomly re-order the items in the argument in-place."))
 
 (defmethod shuffle ((l list))
