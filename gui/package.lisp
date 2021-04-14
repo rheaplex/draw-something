@@ -1,5 +1,5 @@
 ;; package.lisp - GTK+ GUI for draw-something.
-;; Copyright (C) 2016 Rhea Myers rhea@myers.studio
+;; Copyright (C) 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

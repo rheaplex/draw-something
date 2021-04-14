@@ -1,5 +1,5 @@
 ;; gtk.lisp - A Gtk+ user interface for draw-something.
-;; Copyright (C) 2010  Rhea Myers rhea@myers.studio
+;; Copyright (C) 2010  Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

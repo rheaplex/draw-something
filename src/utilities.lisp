@@ -1,5 +1,5 @@
 ;;  utilities.lisp - Various utilities.
-;;  Copyright (C) 2006, 2016, 2021 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

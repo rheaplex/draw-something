@@ -1,5 +1,5 @@
 ;;  line.lisp - A 2D line Segment, and utilities on points and lines.
-;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
