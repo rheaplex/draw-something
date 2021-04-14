@@ -1,5 +1,5 @@
 ;;  circle.lisp - A 2D circle.
-;;  Copyright (C) 2006 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

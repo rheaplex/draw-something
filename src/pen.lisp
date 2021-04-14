@@ -1,5 +1,5 @@
 ;;  pen.lisp - The pen to draw around skeletal forms with.
-;;  Copyright (C) 2007, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2007, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

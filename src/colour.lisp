@@ -1,5 +1,5 @@
 ;;  colour.lisp -  Colour handling.
-;;  Copyright (C) 2006, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2006, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

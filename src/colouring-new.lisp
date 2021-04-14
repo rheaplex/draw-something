@@ -1,5 +1,5 @@
 ;;  colouring-new.lisp -  Colour scheme generation and application.
-;;  Copyright (C) 2008, 2016 Rhea Myers rhea@myers.studio
+;;  Copyright (C) 2008, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

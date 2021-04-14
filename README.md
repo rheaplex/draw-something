@@ -1,7 +1,7 @@
 draw-something
 ==============
 
-By Rhea Myers - rhea@myers.studio
+By Rhea Myers
 
 An artistic image generator inspired by Harold Cohen's AARON.
 
