@@ -1,5 +1,5 @@
 ;; plane.lisp - A plane (layer, level, plane) in the drawing.
-;; Copyright (C) 2006, 2010, 2016 Rob Myers rob@robmyers.org
+;; Copyright (C) 2006, 2010, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

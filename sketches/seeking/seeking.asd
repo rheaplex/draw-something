@@ -1,5 +1,5 @@
 ;; seeking.asd - Turtle graphics point seeking.
-;; Copyright (C) 2016 Rob Myers rob@robmyers.org
+;; Copyright (C) 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -18,7 +18,7 @@
 
 (asdf:defsystem #:seeking
   :description "Simple seeking behaviour testing."
-  :author "Rob Myers <rob@robmyers.org>"
+  :author "Rhea Myers"
   :license "GNU GPL v3, or later at your option"
   :depends-on (#:cl-cffi-gtk)
   :serial t

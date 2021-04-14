@@ -1,5 +1,5 @@
 ;;  drawing.lisp - A drawing.
-;;  Copyright (C) 2006, 2010 Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2010 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 

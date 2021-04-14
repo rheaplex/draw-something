@@ -1,5 +1,5 @@
 ;; draw-something.asd - The main package for draw-something
-;; Copyright (C) 2006, 2010, 2016 Rob Myers rob@robmyers.org
+;; Copyright (C) 2006, 2010, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -21,7 +21,7 @@
 (defsystem draw-something
     :description "draw-something: a drawing generation system."
     :version "0.5.0"
-    :author "Rob Myers <rob@robmyers.org>"
+    :author "Rhea Myers"
     :licence "GNU GPL v3+"
     :pathname "src"
     :serial t
@@ -55,7 +55,7 @@
 (defsystem draw-something/gui
     :description "draw-something/gui: GTK+ GUI for draw-something."
     :version "0.5.0"
-    :author "Rob Myers <rob@robmyers.org>"
+    :author "Rhea Myers"
     :licence "GNU GPL v3+"
     :depends-on (:draw-something
                  :cl-cffi-gtk)
@@ -67,7 +67,7 @@
 (defsystem draw-something/test
     :description "draw-something/test: tests for draw-something."
     :version "0.5.0"
-    :author "Rob Myers <rob@robmyers.org>"
+    :author "Rhea Myers"
     :licence "GNU GPL v3+"
     :depends-on (:draw-something
                  :prove)

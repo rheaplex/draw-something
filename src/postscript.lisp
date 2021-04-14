@@ -1,5 +1,5 @@
 ;;  postscript.lisp - Writing PostScript to streams.
-;;  Copyright (C) 2006, 2016 Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

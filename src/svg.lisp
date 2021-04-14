@@ -1,5 +1,5 @@
 ;;  svg.lisp - Writing SVG to streams.
-;;  Copyright (C) 2007, 2010, 2016 Rob Myers rob@robmyers.org
+;;  Copyright (C) 2007, 2010, 2016 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

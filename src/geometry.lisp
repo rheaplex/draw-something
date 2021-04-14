@@ -1,5 +1,5 @@
 ;;  geometry.lisp - Basic geometry stuff.
-;;  Copyright (C) 2006, 2016, 2021 Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

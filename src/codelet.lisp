@@ -1,5 +1,5 @@
 ;;  codelet.lisp - Codelets and the coderack.
-;;  Copyright (C) 2006  Rob Myers rob@robmyers.org
+;;  Copyright (C) 2006  Rhea Myers
 ;;
 ;;  This program is free software; you can redistribute it and/or modify
 ;;  it under the terms of the GNU General Public License as published by
