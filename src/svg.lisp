@@ -1,5 +1,5 @@
 ;;  svg.lisp - Writing SVG to streams.
-;;  Copyright (C) 2007, 2010, 2016 Rhea Myers
+;;  Copyright (C) 2007, 2010, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -27,10 +27,13 @@
   (format to "  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">~%")
   (format to "<svg width=\"~dpx\" height=\"~dpx\" viewBox=\"0 0 ~d ~d\"~%"
           width height width height)
-  (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">~%"))
+  (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">~%")
+  ;; Change the SVG co-ordinates to PS co-ordinates
+  (format to "<g transform=\"matrix(1 0 0 -1 0 ~d)\">" height 2.0))
 
 (defun svg-footer (&key (to *svg-stream*))
   "Write the end of the svg file."
+  (format to "</g>")
   (format to "</svg>~%"))
 
 (defun svg-rgb (col)
@@ -56,11 +59,15 @@
 
 (defun svg-fill (col &key (to *svg-stream*))
   "Write the fill property."
-  (format to " fill=\"~a\" " (svg-rgb col)))
-
+  (if col
+      (format to " fill=\"~a\"" (svg-rgb col))
+    (format to " fill=\"none\"")))
+  
 (defun svg-stroke (col &key (to *svg-stream*))
   "Write the stroke property."
-  (format to " stroke=\"~a\" " (svg-rgb col)))
+  (if col 
+      (format to " stroke=\"~a\"" (svg-rgb col))
+    (format to " stroke=\"none\"")))
 
 (defun svg-close-path (&key (to *svg-stream*))
   "Close the current PostScript path by drawing a line between its endpoints."
@@ -101,101 +108,126 @@
 ;; Drawing writing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun svg-form-skeleton (the-form ps)
+(defun svg-form-skeleton (form svg)
   "Write the skeleton the drawing is made around."
-  (svg-path-tag-start :to ps)
+  (svg-path-tag-start :to svg)
+  (svg-fill nil :to svg)
   (svg-stroke (make-instance '<colour>
-                                   :hue 0.3
-                                   :saturation 0.6
-                                   :brightness 0.6)
-                    :to ps)
-  (svg-path-d-start :to ps)
-  (svg-subpath (points (skeleton the-form)) :to ps)
-  (svg-path-d-end :to ps)
-  (svg-path-tag-end :to ps))
+                             :hue 0.7
+                             :saturation 0.4
+                             :brightness 0.9)
+              :to svg)
+  (svg-path-d-start :to svg)
+  ;; This will break if we use other shapes in the skeleton.
+  (svg-subpath (points (aref (skeleton form) 0)) :to svg)
+  (svg-path-d-end :to svg)
+  (svg-path-tag-end :to svg))
 
-(defun svg-form-fill (the-form ps)
+(defun svg-form-fill (form svg)
   "Write the drawing outline."
-  (svg-path-tag-start :to ps)
-  (svg-fill (fill-colour the-form)
-                  :to ps)
-  (svg-path-d-start :to ps)
-  (svg-subpath (points (outline the-form)) :to ps)
-  (svg-path-d-end :to ps)
-  (svg-path-tag-end :to ps))
+  (svg-path-tag-start :to svg)
+  (svg-stroke nil :to svg)
+  (svg-fill (fill-colour form) :to svg)
+  (svg-path-d-start :to svg)
+  (svg-subpath (points (outline form)) :to svg)
+  (svg-path-d-end :to svg)
+  (svg-path-tag-end :to svg))
 
-(defun svg-form-stroke (the-form ps)
+(defun svg-form-stroke (form svg)
   "Write the drawing outline."
- (svg-path-tag-start :to ps)
+  (svg-path-tag-start :to svg)
+  (svg-fill nil :to svg)
   (svg-stroke (make-instance '<colour>
-                                   :hue 0.0
-                                   :saturation 0.0
-                                   :brightness 0.0)
-                    :to ps)
-  (svg-path-d-start :to ps)
-  (svg-subpath (points (outline the-form)) :to ps)
-  (svg-path-d-end :to ps)
-  (svg-path-tag-end :to ps))
+                             :hue 0.0
+                             :saturation 0.0
+                             :brightness 0.0)
+              :to svg)
+  (svg-path-d-start :to svg)
+  (svg-subpath (points (outline form)) :to svg)
+  (svg-path-d-end :to svg)
+  (svg-path-tag-end :to svg))
 
-(defun svg-form (the-form ps)
+(defun svg-form (form svg)
   "Write the form."
-  (svg-form-fill the-form ps)
-  ;;(svg-figure-skeleton fig ps)
-  ;;(svg-form-stroke the-form ps)
-  )
+  (svg-form-fill form svg)
+  (svg-form-skeleton form svg)
+  (svg-form-stroke form svg))
 
-(defun svg-figure (fig ps)
-  "Write the figure for early multi-figure versions of draw-something."
-  ;;(svg-rgb 0.0 0.0 0.0 :to ps)
-  ;;(svg-rectstroke (bounds fig) :to ps)
-  ;;(svg-stroke :to ps)
-  (loop for fm across (forms fig)
-       do (svg-form fm ps)))
-
-(defun svg-ground (the-drawing ps)
-  "Colour the drawing ground."
-  (svg-rectfill (bounds the-drawing) (ground the-drawing)
-                :to ps))
-
-(defun svg-frame (the-drawing ps)
-  "Frame the drawing. Frame is bigger than PS bounds but should be OK."
-  (svg-rectstroke (inset-rectangle (bounds the-drawing) -1)
-                    (make-instance '<colour> :brightness 0.0)
-                    :to ps))
-
-(defun svg-write-drawing (name the-drawing)
-  "Write the drawing"
-  (advisory-message (format nil "Writing drawing to file ~a .~%" name))
+(defun svg-write-form (form drawing-bounds filespec)
+  "Write the form"
+  (advisory-message (format nil "Writing form to file ~a .~%" filespec))
   (ensure-directories-exist *save-directory*)
-  (with-open-file (ps name :direction :output
+  (with-open-file (svg filespec :direction :output
                       :if-exists :supersede)
-    (svg-header (width (bounds the-drawing))
-                (height (bounds the-drawing))
-                      :to ps)
-    (svg-ground the-drawing ps)
-    ;;(svg-frame the-drawing ps)
-    (loop for plane across (planes the-drawing)
+                  (svg-header (width drawing-bounds)
+                              (height drawing-bounds)
+                              :to svg)
+                  ;;(svg-ground drawing svg)
+                  ;;(svg-frame drawing svg)
+                  (svg-form form svg)
+                  (svg-footer :to svg)
+                  (pathname svg)))
+
+
+(defun write-svg-form (form drawing-bounds &optional (filespec nil))
+  "Write the form as an svg file."
+  (advisory-message "Saving form as svg.~%")
+  (svg-write-form form 
+                  drawing-bounds
+                  (if filespec filespec (generate-filename ".svg"))))
+
+(defun svg-figure (figure svg)
+  "Write the figure for early multi-figure versions of draw-something."
+  ;;(svg-rgb 0.0 0.0 0.0 :to svg)
+  ;;(svg-rectstroke (bounds fig) :to svg)
+  ;;(svg-stroke :to svg)
+  (loop for fm across (forms figure)
+       do (svg-form fm svg)))
+
+(defun svg-ground (drawing svg)
+  "Colour the drawing ground."
+  (let ((ground-colour (ground drawing)))
+    (if ground-colour
+        (svg-rectfill (bounds drawing) ground-colour :to svg))))
+
+(defun svg-frame (drawing svg)
+  "Frame the drawing. Frame is bigger than SVG bounds but should be OK."
+  (svg-rectstroke (inset-rectangle (bounds drawing) -1)
+                    (make-instance '<colour> :brightness 0.0)
+                    :to svg))
+
+(defun svg-write-drawing (drawing filespec)
+  "Write the drawing"
+  (advisory-message (format nil "Writing drawing to file ~a .~%" filespec))
+  (ensure-directories-exist *save-directory*)
+  (with-open-file (svg filespec :direction :output
+                      :if-exists :supersede)
+    (svg-header (width (bounds drawing))
+                (height (bounds drawing))
+                      :to svg)
+    (svg-ground drawing svg)
+    ;;(svg-frame drawing svg)
+    (loop for plane across (planes drawing)
        do (loop for fig across (figures plane)
-                   do (svg-figure fig ps)))
-    (svg-footer :to ps)
-    (pathname ps)))
+                   do (svg-figure fig svg)))
+    (svg-footer :to svg)
+    (pathname svg)))
 
 (defun svg-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
   (let ((command
          #+(or macos macosx darwin) "/usr/bin/open"
-         #-(or macos macosx darwin) "/usr/bin/iceweasel"))
+         #-(or macos macosx darwin) "/usr/bin/display"))
     #+sbcl (sb-ext:run-program command (list filepath) :wait nil)
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defun write-svg (the-drawing &optional (filespec nil))
+(defun write-svg (drawing &optional (filespec nil))
   "Write the drawing as an svg file."
   (advisory-message "Saving drawing as svg.~%")
-  (svg-write-drawing (if filespec filespec (generate-filename ".svg"))
-                     the-drawing))
+  (svg-write-drawing drawing (if filespec filespec (generate-filename ".svg"))))
 
-(defun write-and-show-svg (the-drawing &optional (filespec nil))
+(defun write-and-show-svg (drawing &optional (filespec nil))
   "Write and display the drawing as an svg file."
   (advisory-message "Viewing drawing as svg.~%")
-  (svg-display-drawing (write-svg the-drawing filespec)))
+  (svg-display-drawing (write-svg drawing filespec)))

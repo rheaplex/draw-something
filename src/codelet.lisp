@@ -1,19 +1,21 @@
 ;;  codelet.lisp - Codelets and the coderack.
-;;  Copyright (C) 2006  Rhea Myers
+;;  Copyright (C) 2006, 2021 Rhea Myers
 ;;
-;;  This program is free software; you can redistribute it and/or modify
-;;  it under the terms of the GNU General Public License as published by
-;;  the Free Software Foundation; either version 2 of the License, or
-;;  (at your option) any later version.
+;; This file is part of draw-something.
 ;;
-;;  This program is distributed in the hope that it will be useful,
-;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;  GNU General Public License for more details.
+;; draw-something is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3 of the License, or
+;; (at your option) any later version.
 ;;
-;;  You should have received a copy of the GNU General Public License
-;;  along with this program; if not, write to the Free Software
-;;  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+;; draw-something is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 ;; Fluid Concepts & Creative Analogies notes:
 ;; - Platonet, slipnet, workspace, coderack.
@@ -35,42 +37,42 @@
 
 (defclass <codelet> ()
   ((action :accessor action
-	   :type symbol
-	   :initarg :action
-	   :documentation "The method to call.")
+	       :type symbol
+	       :initarg :action
+	       :documentation "The method to call.")
    (arguments :accessor arguments
-	      :type list
-	      :initform '()
-	      :initarg :arguments
-	      :documentation "The arguments to pass to the method.")
+	          :type list
+	          :initform '()
+	          :initarg :arguments
+	          :documentation "The arguments to pass to the method.")
    (category :accessor category
-	     :type symbol
-	     :initform 'general
-	     :initarg :category
-	     :documentation "The category of the codelet.")
+	         :type symbol
+	         :initform 'general
+	         :initarg :category
+	         :documentation "The category of the codelet.")
    (urgency :accessor urgency
-	    :type integer
-	    :initform +minimum-urgency+
-	    :initarg :urgency
-	    :documentation "The urgency of the codelet.")
+	        :type integer
+	        :initform +minimum-urgency+
+	        :initarg :urgency
+	        :documentation "The urgency of the codelet.")
    (created :accessor created
-	    :type integer
-	    :initarg :created
-	    :documentation "The creation time of the codelet."))
+	        :type integer
+	        :initarg :created
+	        :documentation "The creation time of the codelet."))
   (:documentation "A codelet."))
 
 (defclass <coderack> ()
   ((codelets :accessor codelets
-	     :type vector
-	     :initform (make-vector +maximum-number-of-codelets+)
-	     :documentation "The codelets.")
+	         :type vector
+	         :initform (make-vector +maximum-number-of-codelets+)
+	         :documentation "The codelets.")
    (time :accessor codelet-ticks
-	 :type integer
-	 :initform 0
-	 :documentation "The number of ticks (run loop cycles) that have run.")
+	     :type integer
+	     :initform 0
+	     :documentation "The number of ticks (run loop cycles) that have run.")
    (should-continue :accessor should-continue
-		    :initform t
-		    :documentation "Whether the codelrt loop should continue."))
+		            :initform t
+		            :documentation "Whether the codelet loop should continue."))
   (:documentation "The coderack."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
