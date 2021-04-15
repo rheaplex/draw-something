@@ -1,5 +1,5 @@
 ;;  cell-matrix.lisp - A picture cell matrix.
-;;  Copyright (C) 2006  Rhea Myers
+;;  Copyright (C) 2006 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;

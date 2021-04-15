@@ -1,5 +1,5 @@
 ;;  drawing.lisp - A drawing.
-;;  Copyright (C) 2006, 2010 Rhea Myers
+;;  Copyright (C) 2006, 2010, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;; 
@@ -23,25 +23,25 @@
 
 (defclass <drawing> ()
   ((bounds :accessor bounds
-	   :type rectangle
-	   :initarg :bounds
-	   :documentation "The dimensions of the drawing.")
+	       :type rectangle
+	       :initarg :bounds
+	       :documentation "The dimensions of the drawing.")
    (planes :accessor planes
-	    :type vector
-	    :initarg :planes
-	    :initform (make-vector 10)
-	    :documentation "The planes of the drawing.")
+	       :type vector
+	       :initarg :planes
+	       :initform (make-vector 10)
+	       :documentation "The planes of the drawing.")
    (ground :accessor ground
-	   :type colour
-	   :initarg :ground
-	   :initform (random-colour)
-	   :documentation "The flat background colour of the drawing.")
+	       :type colour
+	       :initarg :ground
+	       :initform nil
+	       :documentation "The flat background colour of the drawing.")
    (composition-points :accessor composition-points
-		       :type vector
-		       :initarg :composition-points
-		       :initform (make-vector 10)
-		       :documentation "The points for the composition"))
-   (:documentation "A drawing in progress."))
+		               :type vector
+		               :initarg :composition-points
+		               :initform (make-vector 10)
+		               :documentation "The points for the composition"))
+  (:documentation "A drawing in progress."))
 
 ;; Change to width or height being max and other being random range
 
@@ -56,8 +56,8 @@
 (defun make-drawing ()
   "Make a drawing, ready to be started."
   (let ((the-drawing (make-instance '<drawing> 
-				    :bounds (make-drawing-bounds))))
+				                    :bounds (make-drawing-bounds))))
     (advisory-message (format nil "Making drawing. Size: ~dx~d.~%" 
-			      (floor (width (bounds the-drawing)))
-			      (floor (height (bounds the-drawing)))))
+			                  (floor (width (bounds the-drawing)))
+			                  (floor (height (bounds the-drawing)))))
     the-drawing))

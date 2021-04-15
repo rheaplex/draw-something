@@ -1,5 +1,5 @@
 #    Groundhog - A program that finds rectangular spaces within bounds
-#    Copyright (C) 2010  Rhea Myers
+#    Copyright (C) 2010 Rhea Myers
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

@@ -1,5 +1,5 @@
 ;;  draw-something.lisp -  The main lifecycle code for draw-something.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -18,17 +18,53 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defun generate-drawing ()
-  "Make the drawing data structures and create the image."
-  (let ((the-drawing (make-drawing)))
-    (make-composition-points the-drawing (random-range 8 42))
-    (make-planes the-drawing (number-of-planes))
-    (make-planes-skeletons the-drawing)
-    (draw-planes-figures the-drawing)
-    (colour-objects the-drawing *all-object-symbols*)
-    the-drawing))
+(defconstant +drawing-size+ 600.0)
+(defconstant +num-skeleton-points+ 12)
 
-(defun draw-something (&optional (pathspec nil))
+;; defconstant isn't happy here o_O
+(defparameter *pen-params*
+  (make-instance '<pen-parameters>
+                 :move-step          1.0
+                 :distance           5.0
+                 :distance-tolerance 1.5
+                 :turn-step          0.1
+                 :drift-probability  0.0
+                 :drift-range        0.1))
+
+(defparameter *border-width* (* 2 (pen-distance *pen-params*)))
+
+(defun draw-something (&optional (pathspec nil)) ;;generate-drawing ()
+  "Make the drawing data structures and create the image."
+  (advisory-message "Starting draw-something.~%")
+  (setf *random-state* (make-random-state t))
+  (let* ((drawing-bounds (make-instance '<rectangle>
+                                               :x 0
+                                               :y 0
+                                               :width +drawing-size+
+                                               :height +drawing-size+))
+         (point-bounds (inset-rectangle drawing-bounds *border-width*))
+         (skeleton-points (random-points-in-rectangle point-bounds
+                                                      +num-skeleton-points+))
+         (form (make-form-from-points skeleton-points)))
+         ;;(the-drawing (make-instance '<drawing> :bounds drawing-bounds)))
+         ;;(make-composition-points the-drawing 12) ;; (random-range 8 42))
+    ;; (make-planes the-drawing number-of-planes))
+    ;;(vector-push-extend
+     ;;(make-instance '<plane>
+	;;		        :figure-count 1
+	;;		        :figure-policy point-method
+	;;		        :pen ))
+    ;;(planes the-drawing)
+    ;;(make-planes-skeletons the-drawing)
+    ;;(draw-planes-figures the-drawing)
+    ;;(colour-objects the-drawing *all-object-symbols*)
+    (draw-form form *pen-params*)
+    (advisory-message "Finished drawing.~%")
+    (let ((filepath (write-svg-form form drawing-bounds pathspec)))
+      (advisory-message "Finished draw-something.~%")
+      filepath)))
+
+#|(defun draw-something (&optional (pathspec nil))
   "The main method that generates the drawing and writes it to file."
   (advisory-message "Starting draw-something.~%")
   (setf *random-state* (make-random-state t))
@@ -37,4 +73,4 @@
     (advisory-message "Finished drawing.~%")
     (let ((filepath (write-svg the-drawing pathspec)))
       (advisory-message "Finished draw-something.~%")
-      filepath)))
+      filepath)))|#
