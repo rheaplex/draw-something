@@ -1,5 +1,5 @@
 ;;  form.lisp - A form of a figure.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -31,7 +31,7 @@
              :type vector
              :initarg :skeleton
              :initform (make-vector 5)
-             :documentation "The guide shape for the outline.")
+             :documentation "The guide shapes for the outline.")
    (outline :accessor outline
             :type polyline
             :initform (make-instance '<polyline>)
@@ -42,10 +42,18 @@
            :initarg :bounds
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
-                :type colour
+                :type <colour>
                 :initarg :colour
-                :initform nil ;;(random-colour)
-                :documentation "The flat body colour of the form."))
+                :initform nil
+                :documentation "The flat body colour of the form.")
+   (stroke-colour :accessor stroke-colour
+                  :type <colour>
+                  :initarg :colour
+                  :initform (make-instance '<colour>
+                                           :hue 0.0
+                                           :saturation 0.0
+                                           :brightness 0.0)
+                  :documentation "The outline colour of the form."))
   (:documentation "A form drawn in the drawing."))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
@@ -112,18 +120,17 @@
   (or (path-ready-to-close the-form pen-params)
       (path-timeout the-form)))
 
-(defun draw-form (the-form)
+(defun draw-form (the-form pen-params)
   "Find the next point forward along the drawn outline of the shape."
   (let* ((form-bounds (bounds the-form))
          (the-outline (outline the-form))
-         (the-pen (choose-one-of *plane-pen-parameters*))
-	 (the-turtle (make-form-turtle the-form the-pen)))
+	     (the-turtle (make-form-turtle the-form pen-params)))
     (advisory-message "Drawing form.~%")
     (append-point the-outline (location the-turtle))
-    (loop until (should-finish-form the-form the-pen)
+    (loop until (should-finish-form the-form pen-params)
        do (progn 
-	    (adjust-next-pen (skeleton the-form) the-pen the-turtle)
-	    (forward the-turtle (move-step the-pen))
+	    (adjust-next-pen (skeleton the-form) pen-params the-turtle)
+	    (forward the-turtle (move-step pen-params))
 	    (let ((new-location (location the-turtle)))
 	      (append-point the-outline new-location)
 	      (include-point form-bounds new-location))))

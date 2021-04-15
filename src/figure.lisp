@@ -45,4 +45,4 @@
   "Draw the forms of a figure."
   (loop for form across (forms fig)
      do (advisory-message "Drawing figure.~%")
-     do (draw-form form)))
+     do (draw-form form (choose-one-of *plane-pen-parameters*))))
