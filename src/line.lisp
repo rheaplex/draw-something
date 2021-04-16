@@ -20,10 +20,10 @@
 
 (defclass <line> (<geometry>)
   ((from :accessor from
-	 :type point
-	 :initform (make-instance '<point>)
-	 :initarg :from
-	 :documentation "The start of the line.")
+     :type point
+     :initform (make-instance '<point>)
+     :initarg :from
+     :documentation "The start of the line.")
    (to :accessor to
        :type point
        :initform (make-instance '<point>)
@@ -48,24 +48,24 @@
   "Get the nearest point on a line"
   ;; Optimised to avoid point accessors
   (let ((dot-ta (+ (* (- xp xla) (- xlb xla))
-		 (* (- yp yla) (- ylb yla)))))
+         (* (- yp yla) (- ylb yla)))))
     ;;(format t "~F%~%" dot-ta)
     (if (<= dot-ta 0.0)
-	(make-instance '<point> :x xla :y yla)
-	;; else
-	(let ((dot-tb (+ (* (- xp xlb) (- xla xlb))
-			 (* (- yp ylb) (- yla ylb)))))
-	  ;;(format t "~F%~%" dot-tb)
-	  (if (<= dot-tb 0.0)
-	      (make-instance '<point> :x xlb :y ylb)
-	      ;; else
-	      (make-instance '<point>
-			     :x (+ xla
-				   (/ (* (- xlb xla) dot-ta)
-				  (+ dot-ta dot-tb)))
-			     :y (+ yla
-				   (/ (* (- ylb yla) dot-ta)
-				      (+ dot-ta dot-tb)))))))))
+    (make-instance '<point> :x xla :y yla)
+    ;; else
+    (let ((dot-tb (+ (* (- xp xlb) (- xla xlb))
+             (* (- yp ylb) (- yla ylb)))))
+      ;;(format t "~F%~%" dot-tb)
+      (if (<= dot-tb 0.0)
+          (make-instance '<point> :x xlb :y ylb)
+          ;; else
+          (make-instance '<point>
+                 :x (+ xla
+                   (/ (* (- xlb xla) dot-ta)
+                  (+ dot-ta dot-tb)))
+                 :y (+ yla
+                   (/ (* (- ylb yla) dot-ta)
+                      (+ dot-ta dot-tb)))))))))
 
 (defun nearest-point-on-line-points (p la lb)
   (nearest-point-on-line-coordinates (x p) (y p) (x la) (y la) (x lb) (y lb)))
@@ -91,32 +91,32 @@
                                       p3x p3y p4x p4y);; Second line
   "Find whether the two lines, expressed as 8 co-ordinates, intersect."
   (let ((denominator (- (* (- p4y p3y)
-			   (- p2x p1x))
-			(* (- p4x p3x)
-			   (- p2y p1y)))))
+               (- p2x p1x))
+            (* (- p4x p3x)
+               (- p2y p1y)))))
     (if (= denominator 0.0)
-	nil ;; Parallel lines
-	(let ((ua (/ (- (* (- p4x p3x)
-			   (- p1y p3y))
-			(* (- p4y p3y)
-			   (- p1x p3x)))
-		     denominator))
-	      (ub (/ (- (* (- p2x p1x)
-			   (- p1y p3y))
-			(* (- p2y p1y)
-			   (- p1x p3x)))
-		     denominator)))
-	  (if (and (>= ua 0.0)
-		   (<= ua 1.0)
-		   (>= ub 0.0)
-		   (<= ub 1.0)) ;; Intersection (or not)
-	      ua
-	      nil)))))
+    nil ;; Parallel lines
+    (let ((ua (/ (- (* (- p4x p3x)
+               (- p1y p3y))
+            (* (- p4y p3y)
+               (- p1x p3x)))
+             denominator))
+          (ub (/ (- (* (- p2x p1x)
+               (- p1y p3y))
+            (* (- p2y p1y)
+               (- p1x p3x)))
+             denominator)))
+      (if (and (>= ua 0.0)
+           (<= ua 1.0)
+           (>= ub 0.0)
+           (<= ub 1.0)) ;; Intersection (or not)
+          ua
+          nil)))))
 
 (defun lines-intersects-points (l1p1 l1p2 l2p1 l2p2)
   "Find whether the two lines, expressed as 4 points intersect."
   (lines-intersects-co-ordinates (x l1p1) (y l1p1) (x l1p2) (y l1p2)
-				 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
+                 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
 
 
 (defun line-intersects-line-points (l1 l2p1 l2p2)
@@ -130,12 +130,12 @@
 (defun line-at-t (l time)
   "Evaluate the line at t where 0<=t<=1 ."
   (make-instance '<point>
-		 :x (+ (x (from l))
-		       (* time (- (x (to l))
-				  (x (from l)))))
-		 :y (+ (y (from l))
-		       (* time (- (y (to l))
-				  (y (from l)))))))
+         :x (+ (x (from l))
+               (* time (- (x (to l))
+                  (x (from l)))))
+         :y (+ (y (from l))
+               (* time (- (y (to l))
+                  (y (from l)))))))
 
 (defun random-point-on-line (l)
   "Generate a random point on a line"
@@ -144,4 +144,4 @@
 (defun random-points-on-line (l count)
   "Generate count points on line. These will not be in order."
   (loop for i below count
-	collect (random-point-on-line l)))
+    collect (random-point-on-line l)))

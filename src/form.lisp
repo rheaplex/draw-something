@@ -124,14 +124,14 @@
   "Find the next point forward along the drawn outline of the shape."
   (let* ((form-bounds (bounds the-form))
          (the-outline (outline the-form))
-	     (the-turtle (make-form-turtle the-form pen-params)))
+         (the-turtle (make-form-turtle the-form pen-params)))
     (advisory-message "Drawing form.~%")
     (append-point the-outline (location the-turtle))
     (loop until (should-finish-form the-form pen-params)
-       do (progn 
-	    (adjust-next-pen (skeleton the-form) pen-params the-turtle)
-	    (forward the-turtle (move-step pen-params))
-	    (let ((new-location (location the-turtle)))
-	      (append-point the-outline new-location)
-	      (include-point form-bounds new-location))))
+       do (progn
+        (adjust-next-pen (skeleton the-form) pen-params the-turtle)
+        (forward the-turtle (move-step pen-params))
+        (let ((new-location (location the-turtle)))
+          (append-point the-outline new-location)
+          (include-point form-bounds new-location))))
     (append-point the-outline (form-first-point the-form))))

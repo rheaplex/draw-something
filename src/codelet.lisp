@@ -37,42 +37,42 @@
 
 (defclass <codelet> ()
   ((action :accessor action
-	       :type symbol
-	       :initarg :action
-	       :documentation "The method to call.")
+           :type symbol
+           :initarg :action
+           :documentation "The method to call.")
    (arguments :accessor arguments
-	          :type list
-	          :initform '()
-	          :initarg :arguments
-	          :documentation "The arguments to pass to the method.")
+              :type list
+              :initform '()
+              :initarg :arguments
+              :documentation "The arguments to pass to the method.")
    (category :accessor category
-	         :type symbol
-	         :initform 'general
-	         :initarg :category
-	         :documentation "The category of the codelet.")
+             :type symbol
+             :initform 'general
+             :initarg :category
+             :documentation "The category of the codelet.")
    (urgency :accessor urgency
-	        :type integer
-	        :initform +minimum-urgency+
-	        :initarg :urgency
-	        :documentation "The urgency of the codelet.")
+            :type integer
+            :initform +minimum-urgency+
+            :initarg :urgency
+            :documentation "The urgency of the codelet.")
    (created :accessor created
-	        :type integer
-	        :initarg :created
-	        :documentation "The creation time of the codelet."))
+            :type integer
+            :initarg :created
+            :documentation "The creation time of the codelet."))
   (:documentation "A codelet."))
 
 (defclass <coderack> ()
   ((codelets :accessor codelets
-	         :type vector
-	         :initform (make-vector +maximum-number-of-codelets+)
-	         :documentation "The codelets.")
+             :type vector
+             :initform (make-vector +maximum-number-of-codelets+)
+             :documentation "The codelets.")
    (time :accessor codelet-ticks
-	     :type integer
-	     :initform 0
-	     :documentation "The number of ticks (run loop cycles) that have run.")
+         :type integer
+         :initform 0
+         :documentation "The number of ticks (run loop cycles) that have run.")
    (should-continue :accessor should-continue
-		            :initform t
-		            :documentation "Whether the codelet loop should continue."))
+                    :initform t
+                    :documentation "Whether the codelet loop should continue."))
   (:documentation "The coderack."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -95,18 +95,18 @@
 (defmethod add-codelet ((rack <coderack>) action urgency category &rest arguments)
   "Make and add the codelet to the list."
   (add-codelet-to-coderack (make-instance '<codelet>
-					  :action action
-					  :arguments arguments
-					  :category category
-					  :urgency urgency
-					  :created (codelet-ticks rack))
-			   rack))
+                      :action action
+                      :arguments arguments
+                      :category category
+                      :urgency urgency
+                      :created (codelet-ticks rack))
+               rack))
 
 (defmethod remove-codelet ((rack <coderack>) i)
   "Remove the codelet from the vector, filling the resulting hole."
   (if (< i (1- (fill-pointer (codelets rack))))
-      (setf (aref (codelets rack) i) 
-	    (aref (codelets rack) (1- (fill-pointer (codelets rack))))))
+      (setf (aref (codelets rack) i)
+        (aref (codelets rack) (1- (fill-pointer (codelets rack))))))
   (decf (fill-pointer (codelets rack))))
 
 (defmethod remove-codelets-matching ((rack <coderack>) predicate)
@@ -130,9 +130,9 @@
   (dotimes (i (length (codelets rack)))
     (let ((candidate (aref (codelets rack) i)))
       (when (codelet-should-run rack candidate)
-	(run-codelet candidate) 
-	(remove-codelet rack i)
-	(return)))))
+    (run-codelet candidate)
+    (remove-codelet rack i)
+    (return)))))
 
 (defmethod random-urgency ()
   "A random urgency."
@@ -146,19 +146,19 @@
   "Should the codelet be removed? Weighted random choice."
   (> (random-urgency)
      (/ (urgency c)
-	(codelet-age c))))
+    (codelet-age c))))
 
 (defmethod prune-codelets ((rack <coderack>))
   "Randomly remove codelets that are too old and low priority."
   (let ((to-remove (make-vector 10)))
     (dotimes (i (length (codelets rack)))
       (let ((c (aref (codelets rack) i)))
-	(when (should-remove-codelet c)
-	  (format t "Removing: ~a~%" (string-downcase (string (action c))))
-	  (vector-push-extend i to-remove))))
+    (when (should-remove-codelet c)
+      (format t "Removing: ~a~%" (string-downcase (string (action c))))
+      (vector-push-extend i to-remove))))
     (dolist (remove to-remove)
       (remove-codelet rack remove))))
-  
+
 (defmethod initialise-coderack ((rack <coderack>) the-drawing)
   "Populate the coderack with the initial codelets."
   ;; Randomly add n. codelets
@@ -170,7 +170,7 @@
   ;; this is just deterministic, go probabilistic for 0.5
   (dotimes (i (random-range min-figures max-figures))
     (add-figure-making-codelet rack the-drawing)))
-  
+
 (defmethod draw-loop-step ((rack <coderack>) the-drawing)
   "One step of the loop"
   (declare (ignore the-drawing))
@@ -204,8 +204,8 @@
 
 (defmethod add-figure-drawing-codelet ((rack <coderack>) the-drawing fig)
   "Add a codelet to draw the figure."
-  (add-codelet rack 'figure-drawing-codelet 100 'drawing rack 
-	       the-drawing fig))
+  (add-codelet rack 'figure-drawing-codelet 100 'drawing rack
+           the-drawing fig))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -246,7 +246,7 @@
 ;; Codelets can post another codelet(s), remove codelets, add notes
 ;; create skeletons, draw outlines or fills, add other structures
 
-;; The drawing can have skeletons, fills, outlines, negative space, 
+;; The drawing can have skeletons, fills, outlines, negative space,
 ;; compositional guides, potential places for figures, and so on as objects
 ;; It is the workspace
 

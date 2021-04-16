@@ -89,9 +89,9 @@ class Rectangle:
       def random_point_in_bounds(self, x_inset=0, y_inset=0,
                                  w_inset=0, h_inset=0):
             """Create a random point within the rectangle's bounds"""
-            return Point(random.randrange(self.x + x_inset, 
+            return Point(random.randrange(self.x + x_inset,
                                           self.x + self.width - (w_inset + 1)),
-                         random.randrange(self.y + x_inset, 
+                         random.randrange(self.y + x_inset,
                                           self.y + self.height - (h_inset + 1)))
 
 
@@ -112,7 +112,7 @@ class CellMatrix:
                         row_representation += "%s" % (cell)
                   representation = row_representation + "\n" + representation
             return representation
-      
+
       def mark_cell(self, x, y, value):
             """Mark the cell with a value"""
             assert self.bounds.contains_coords(x, y), \
@@ -150,7 +150,7 @@ class SpaceFinder:
          Once initialized, the same object can be used to find many spaces.
          Trying to find space may fail if there is no suitable space,
          or if the object's brute-force search fails."""
-                  
+
       def __init__(self, cell_matrix, bounds_range):
             #FIXME: We grow height/width equally at present,
             #  so height/width are same
@@ -161,7 +161,7 @@ class SpaceFinder:
             self.min_height = cheat_min #min_height
             self.max_width = cheat_max #max_width
             self.max_height = cheat_max #max_height
-                  
+
       def start_search(self):
             """Initialize this run"""
             self.origin = None
@@ -174,7 +174,7 @@ class SpaceFinder:
                   self.origin = bounds.random_point_in_bounds(0, 0,
                                                               self.min_width,
                                                               self.min_height)
-                  # Found an un-marked cell? 
+                  # Found an un-marked cell?
                   if not self.cell_matrix.is_marked(self.origin.x,
                                                     self.origin.y):
                         # Set up the state to start searching there
@@ -187,7 +187,7 @@ class SpaceFinder:
 
       def new_top_border_contains_marked_cells(self, new_width, new_height):
             """Check proposed top border for marked cells"""
-            does = False      
+            does = False
             # Check only new border pixels from grown rectangle
             # Check proposed new top of bounding rectangle for collisions
             for x in range(self.bounds.x, self.bounds.x + new_width):
@@ -200,7 +200,7 @@ class SpaceFinder:
 
       def new_right_border_contains_marked_cells(self, new_width, new_height):
             """Check proposed right border for marked cells"""
-            does = False        
+            does = False
             # -1 So we don't test the furthest pixel twice
             for y in range(self.bounds.y, self.bounds.y + new_height - 1):
                   # -1: rect bounds exclude
@@ -439,10 +439,10 @@ class GroundhogApp(gtk.Window):
             darea.connect("expose-event", self.expose)
             self.add(darea)
             self.show_all()
-    
+
       def draw(self, widget):
             cr = widget.window.cairo_create()
-            
+
             for figure in self.drawing.figures:
                   cr.set_source_rgb(figure.colour.r,
                                     figure.colour.g,
@@ -450,7 +450,7 @@ class GroundhogApp(gtk.Window):
                   r = figure.geometry
                   cr.rectangle(r.x, r.y, r.width, r.height)
                   cr.fill()
-            
+
       def expose(self, widget, event):
             self.draw(widget)
 

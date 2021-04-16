@@ -24,12 +24,12 @@
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
   (make-instance '<pen-parameters>
-                 :move-step          1.0
+                 :move-step          2.0 ;;1.0
                  :distance           5.0
                  :distance-tolerance 1.5
-                 :turn-step          0.1
+                 :turn-step          0.05 ;;0.1
                  :drift-probability  0.0
-                 :drift-range        0.1))
+                 :drift-range        0.0)) ;;0.1
 
 (defparameter *border-width* (* 2 (pen-distance *pen-params*)))
 
@@ -51,9 +51,9 @@
     ;; (make-planes the-drawing number-of-planes))
     ;;(vector-push-extend
      ;;(make-instance '<plane>
-	;;		        :figure-count 1
-	;;		        :figure-policy point-method
-	;;		        :pen ))
+    ;;              :figure-count 1
+    ;;              :figure-policy point-method
+    ;;              :pen ))
     ;;(planes the-drawing)
     ;;(make-planes-skeletons the-drawing)
     ;;(draw-planes-figures the-drawing)
