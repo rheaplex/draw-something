@@ -2,24 +2,24 @@
 ;;  Copyright (C) 2006 Rhea Myers
 ;;
 ;; This file is part of draw-something.
-;; 
+;;
 ;; draw-something is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; draw-something is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package "DRAW-SOMETHING")
 
 (defclass <circle> (<geometry>)
-  ((x :accessor x 
+  ((x :accessor x
       :type float
       :initform  0.0
       :initarg :x
@@ -39,7 +39,7 @@
 (defmethod distance ((p <point>) (c <circle>))
   "The distance from a point to a polyline. Negative is inside circle."
   (- (distance-point-co-ordinates p (x c) (y c))
-	  (radius c)))
+      (radius c)))
 
 (defmethod highest-leftmost-point ((c <circle>))
   "The highest point of the circle."
