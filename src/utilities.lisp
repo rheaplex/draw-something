@@ -25,15 +25,15 @@
   "Write the message to the error stream, not to standard output."
   (when *print-debugs*
     (format *debug-io*
-	    "~A~%"
-	    msg)
+        "~A~%"
+        msg)
     (finish-output *debug-io*)))
 
 (defun advisory-message (msg)
   "Write the message to the error stream, not to standard output. No newline."
   (when *print-advisories*
     (format *debug-io*
-	    msg)
+        msg)
     (finish-output *debug-io*)))
 
 (defun make-vector (initial-size)
@@ -61,9 +61,9 @@
 var = 5, 6, 7, 8, 9, 0, 1, 2, 3, 4
 Note that this is evaluated as two loops"
   `(progn (loop for ,var from ,start below ,to
-	     do (progn ,@body))
-	  (loop for ,var from ,from below ,start
-	     do (progn ,@body))))
+         do (progn ,@body))
+      (loop for ,var from ,from below ,start
+         do (progn ,@body))))
 
 (defun dequote (item)
   "Remove the quote from a symbol, returning the symbol."
@@ -143,9 +143,9 @@ Note that this is evaluated as two loops"
 (defmethod shuffle ((l list))
   "Shuffle the list in place"
   (loop for i below (length l) do
-	(rotatef
-	 (elt l i)
-	 (elt l (random (length l)))))
+    (rotatef
+     (elt l i)
+     (elt l (random (length l)))))
   l)
 
 (defmethod shuffle ((v vector))
@@ -153,10 +153,10 @@ Note that this is evaluated as two loops"
   ;; Fisher-Yates shuffle
   (loop for n from (- (length v) 1) downto 0
        do (let* ((k (random-number (+ n 1))) ;; 0 <= k <= n
-		 (temp (aref v k)))
-	    ;; Simple variable swap
-	    (setf (aref v k) (aref v n))
-	    (setf (aref v n) temp)))
+         (temp (aref v k)))
+        ;; Simple variable swap
+        (setf (aref v k) (aref v n))
+        (setf (aref v n) temp)))
   v)
 
 (defun choose-n-of-ordered (n choice-list)

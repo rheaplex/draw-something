@@ -61,8 +61,8 @@
 (defconstant +radians-to-t-ratio+ (/ 1.0 (* pi 2.0)))
 
 (defun radians-to-t (r)
-	"Convert the value in radians to a value from 0.0 to 1.0"
-	(* r +radians-to-t-ratio+))
+    "Convert the value in radians to a value from 0.0 to 1.0"
+    (* r +radians-to-t-ratio+))
 
 (defun norm-radian (value)
   "Clamp a value to 0..2pi"

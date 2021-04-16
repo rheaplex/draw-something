@@ -51,8 +51,8 @@
                 (make-figure-from-points
                  (points (convex-hull
                           (choose-n-of (random-range low-count
-						    (min high-count 
-							 (length the-points)))
+                            (min high-count
+                             (length the-points)))
                                        the-points)))))))
 
 (defconstant +min-hulls-per-plane+ 1)
@@ -66,7 +66,7 @@
                         (random-range +min-hulls-per-plane+
                                       +max-hulls-per-plane+)
                         +min-hull-points+
-			(min (length points) +max-hull-points+)))
+            (min (length points) +max-hull-points+)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygons
@@ -75,7 +75,7 @@
 (defun make-polygon-figures (points count low-count high-count)
   "Make count polygon figures. They may overlap or touch. Todo: prevent this."
   (advisory-message (format nil "Making ~d polygon figure(s) for plane.~%"
-			    count))
+                count))
   (let ((polygons (make-vector count)))
     (map-into
      polygons
@@ -95,7 +95,7 @@
                         (random-range +min-polygons-per-plane+
                                       +max-polygons-per-plane+)
                         +min-polygon-points+
-			(min (length points) +max-polygon-points+)))
+            (min (length points) +max-polygon-points+)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,8 +127,8 @@
   "The plane population policy using liness. "
   (make-line-figures points
                      (random-range +min-lines-per-plane+
-			(min (floor (/ (length points) 2.0)) 
-			     +max-lines-per-plane+))))
+            (min (floor (/ (length points) 2.0))
+                 +max-lines-per-plane+))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points
@@ -157,7 +157,7 @@
   "The plane population policy using points. "
   (make-point-figures points
                       (random-range +min-points-per-plane+
-                                    (min (length points) 
+                                    (min (length points)
                                          +max-points-per-plane+))))
 
 

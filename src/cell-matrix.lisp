@@ -81,7 +81,7 @@
                     (funcall apply-fun x y))))))
 
 (defmethod apply-rectangle-outline  (fun x y width height
-				     &key ((:xstep xstep) 1) ((:ystep ystep) 1))
+                     &key ((:xstep xstep) 1) ((:ystep ystep) 1))
   "Call fun at each co-ordinate pair along the outline of the rectangle."
   (let ((left x)
         (right (+ x width))
@@ -90,26 +90,26 @@
     (if (or (equal width 1) (equal height 1))
         ;; If it's just a line, just draw a line
         (apply-line left bottom right top)
-	(progn
-	  ;; Top line,
-	  (apply-line left top right top)
-	  ;; Right line, not overlapping top
-	  (apply-line right (- top 1) left bottom)
-	  ;; Bottom line, not overlapping right
-	  (apply-line (- right 1) bottom left bottom)
-	  ;; Left line, not overlapping bottom or top
-	  (apply-line left (+ 1 bottom) left (- 1 top))))))
+    (progn
+      ;; Top line,
+      (apply-line left top right top)
+      ;; Right line, not overlapping top
+      (apply-line right (- top 1) left bottom)
+      ;; Bottom line, not overlapping right
+      (apply-line (- right 1) bottom left bottom)
+      ;; Left line, not overlapping bottom or top
+      (apply-line left (+ 1 bottom) left (- 1 top))))))
 
 (defmethod apply-rectangle-fill (fun x y width height
-				 &key ((:xstep xstep) 1) ((:ystep ystep) 1))
+                 &key ((:xstep xstep) 1) ((:ystep ystep) 1))
   "Call fun at each co-ordinate pair in rectangle"
   (loop for v from y below (+ y height) by ystep
         do (loop for h from x below (+ x width) by xstep
               do (funcall fun h v))))
 
 (defmethod apply-rectangle-fill-radial (fun x y width height
-					&key ((:xstep xstep) 1) 
-					((:ystep ystep) 1))
+                    &key ((:xstep xstep) 1)
+                    ((:ystep ystep) 1))
   "Call fun at each co-ordinate pair radially in the square."
   (let ((xslop 0)
         (yslop 0))
@@ -117,22 +117,22 @@
     ;; Lines go opposite way to rectangle outlines. Fix?
     (cond
       ((< height width) (progn
-			 (setf xslop (/ (- width height) 2))
-			 (apply-line (- x xslop) y (+ x xslop 2) y)))
+             (setf xslop (/ (- width height) 2))
+             (apply-line (- x xslop) y (+ x xslop 2) y)))
       ((> height width) (progn
-			 (setf yslop (/ (- height width) 2))
-			 (apply-line x (- y yslop) x (+ y yslop))))
+             (setf yslop (/ (- height width) 2))
+             (apply-line x (- y yslop) x (+ y yslop))))
       ((< height width) (progn
-			 (setf xslop (- width height))
-			 (apply-line (- x (/ xslop 2) y (+ x (/ xslop 2))))))
+             (setf xslop (- width height))
+             (apply-line (- x (/ xslop 2) y (+ x (/ xslop 2))))))
       ((equal height width) (funcall fun x y)))
     (loop for v from y below (+ y height) by ystep
        do (loop for h from x below (+ x width) by xstep
-	     do (apply-rectangle-outline fun
-					 (- x h xslop)
-					 (- y v yslop)
-					 (+ x h xslop)
-					 (+ y v yslop))))))
+         do (apply-rectangle-outline fun
+                     (- x h xslop)
+                     (- y v yslop)
+                     (+ x h xslop)
+                     (+ y v yslop))))))
 
 (defgeneric cell-figure (t int int)
   (:documentation "Get the figure the cell is marked with."))
@@ -225,12 +225,12 @@
                           :if-exists :supersede
                           :element-type '(unsigned-byte 8))
     (let ((x (array-dimension cells 1))
-	  (y (array-dimension cells 0)))
+      (y (array-dimension cells 0)))
       (format stream "P6~%#~A~%~D ~D~%~d~%" comment x y 255)
       (dotimes (i y)
-	(dotimes (j x)
-	  (multiple-value-bind (r g b) (hsb-to-rgb (colour-for-cell cells i j))
-	    (write-byte (normal-to-255 r) stream)
-	    (write-byte (normal-to-255 g) stream)
-	    (write-byte (normal-to-255 b) stream))))
+    (dotimes (j x)
+      (multiple-value-bind (r g b) (hsb-to-rgb (colour-for-cell cells i j))
+        (write-byte (normal-to-255 r) stream)
+        (write-byte (normal-to-255 g) stream)
+        (write-byte (normal-to-255 b) stream))))
       (namestring stream))))

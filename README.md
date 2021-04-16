@@ -22,6 +22,8 @@ Creating Drawings
 
 ./draw-something /path/to/directory/another-drawing.svg
 
+./draw-something && inkscape `ls -tr *.svg | tail -1`
+
 Running Tests
 -------------
 

@@ -20,6 +20,19 @@
 
 (defvar *svg-stream* t)
 
+(defvar *layer-index* 1)
+
+(defun to-svg-y (ps-y svg-height)
+  "Flip our y-up values to y-down."
+  (- svg-height ps-y))
+
+(defun flip-points (points svg-height)
+  "Flip the y of a copy of each of the points."
+  (map 'vector (lambda (p)
+                 (make-instance '<point>
+                                :x (point-x p)
+                                :y (to-svg-y (point-y p) svg-height)))))
+
 (defun svg-header (width height &key (to *svg-stream*))
   "Write the start of the SVG file."
   (format to "<?xml version=\"1.0\" standalone=\"no\"?>~%")
@@ -27,19 +40,19 @@
   (format to "  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">~%")
   (format to "<svg width=\"~dpx\" height=\"~dpx\" viewBox=\"0 0 ~d ~d\"~%"
           width height width height)
-  (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">~%")
-  ;; Change the SVG co-ordinates to PS co-ordinates
-  (format to "<g transform=\"matrix(1 0 0 -1 0 ~d)\">" height 2.0))
+  (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"~%")
+  ;; For the layer information
+  (format to
+          "xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">~%"))
 
 (defun svg-footer (&key (to *svg-stream*))
   "Write the end of the svg file."
-  (format to "</g>")
   (format to "</svg>~%"))
 
 (defun svg-rgb (col)
   (multiple-value-bind (r g b) (hsb-to-rgb col)
-    (format nil "#~2,'0X~2,'0X~2,'0X" (round (* r 255)) 
-	    (round (* g 255)) (round (* b 255)))))
+    (format nil "#~2,'0X~2,'0X~2,'0X" (round (* r 255))
+        (round (* g 255)) (round (* b 255)))))
 
 (defun svg-path-tag-start (&key (to *svg-stream*))
   "Write the start of the path tag."
@@ -62,10 +75,10 @@
   (if col
       (format to " fill=\"~a\"" (svg-rgb col))
     (format to " fill=\"none\"")))
-  
+
 (defun svg-stroke (col &key (to *svg-stream*))
   "Write the stroke property."
-  (if col 
+  (if col
       (format to " stroke=\"~a\"" (svg-rgb col))
     (format to " stroke=\"none\"")))
 
@@ -73,24 +86,26 @@
   "Close the current PostScript path by drawing a line between its endpoints."
   (format to " z"))
 
-(defun svg-moveto (x y &key (to *svg-stream*))
+(defun svg-moveto (x y y-height &key (to *svg-stream*))
   "Move the PostScript pen to the given co-ordinates"
-  (format to " M ~,3F ~,3F" x y))
+  (format to " M ~,3F ~,3F" x (to-svg-y y y-height)))
 
-(defun svg-lineto (x y &key (to *svg-stream*))
+(defun svg-lineto (x y y-height &key (to *svg-stream*))
   "Draw a line with the PostScript pen to the given co-ordinates"
-  (format to " L ~,3F ~,3F" x y))
+  (format to " ~,3F ~,3F" x (to-svg-y y y-height)))
 
-(defun svg-subpath (points &key (to *svg-stream*))
+(defun svg-subpath (points y-height &key (to *svg-stream*))
   "Write a subpath of a PostScript path."
   (svg-moveto (x (aref points 0))
-                (y (aref points 0))
-                :to to)
+              (y (aref points 0))
+              y-height
+              :to to)
   (do ((i 1 (+ i 1)))
       ((= i (length points)))
     (svg-lineto (x (aref points i))
-                  (y (aref points i))
-                  :to to)))
+                (y (aref points i))
+                y-height
+                :to to)))
 
 (defun svg-rectfill (rect col &key (to *svg-stream*))
   "Draw a rectangle with the given co-ordinates and dimensions."
@@ -104,12 +119,25 @@
    "<rect x=\"~F\" y=\"~F\" width=\"~F\" height=\"~F\" stroke=\"~a\" />~%"
    (x rect) (y rect) (width rect) (height rect) (svg-rgb col)))
 
+(defun svg-layer-start (kind &key (to *svg-stream*))
+  "Start an Inkscape layer for Axidraw."
+  (format to
+          "<g inkscape:groupmode=\"layer\" inkscape:label=\"~d-~a\">~%"
+          *layer-index*
+          kind)
+  (incf *layer-index*))
+
+(defun svg-layer-end (&key (to *svg-stream*))
+  "End an Inkscape layer."
+  (format to "</g>~%"))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Drawing writing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun svg-form-skeleton (form svg)
+(defun svg-form-skeleton (form y-height svg)
   "Write the skeleton the drawing is made around."
+  (svg-layer-start "skeleton" :to svg)
   (svg-path-tag-start :to svg)
   (svg-fill nil :to svg)
   (svg-stroke (make-instance '<colour>
@@ -119,39 +147,42 @@
               :to svg)
   (svg-path-d-start :to svg)
   ;; This will break if we use other shapes in the skeleton.
-  (svg-subpath (points (aref (skeleton form) 0)) :to svg)
+  (svg-subpath (points (aref (skeleton form) 0)) y-height :to svg)
   (svg-path-d-end :to svg)
-  (svg-path-tag-end :to svg))
+  (svg-path-tag-end :to svg)
+  (svg-layer-end :to svg))
 
-(defun svg-form-fill (form svg)
+(defun svg-form-fill (form y-height svg)
+  "Write the drawing fill."
+  (if (fill-colour form)
+      (progn
+        (svg-path-tag-start :to svg)
+        (svg-stroke nil :to svg)
+        (svg-fill (fill-colour form) :to svg)
+        (svg-path-d-start :to svg)
+        (svg-subpath (points (outline form)) y-height :to svg)
+        (svg-path-d-end :to svg)
+        (svg-path-tag-end :to svg))))
+
+(defun svg-form-stroke (form y-height svg)
   "Write the drawing outline."
-  (svg-path-tag-start :to svg)
-  (svg-stroke nil :to svg)
-  (svg-fill (fill-colour form) :to svg)
-  (svg-path-d-start :to svg)
-  (svg-subpath (points (outline form)) :to svg)
-  (svg-path-d-end :to svg)
-  (svg-path-tag-end :to svg))
+  (if (stroke-colour form)
+      (progn
+        (svg-layer-start "outline" :to svg)
+        (svg-path-tag-start :to svg)
+        (svg-fill nil :to svg)
+        (svg-stroke (stroke-colour form) :to svg)
+        (svg-path-d-start :to svg)
+        (svg-subpath (points (outline form)) y-height :to svg)
+        (svg-path-d-end :to svg)
+        (svg-path-tag-end :to svg)
+        (svg-layer-end :to svg))))
 
-(defun svg-form-stroke (form svg)
-  "Write the drawing outline."
-  (svg-path-tag-start :to svg)
-  (svg-fill nil :to svg)
-  (svg-stroke (make-instance '<colour>
-                             :hue 0.0
-                             :saturation 0.0
-                             :brightness 0.0)
-              :to svg)
-  (svg-path-d-start :to svg)
-  (svg-subpath (points (outline form)) :to svg)
-  (svg-path-d-end :to svg)
-  (svg-path-tag-end :to svg))
-
-(defun svg-form (form svg)
+(defun svg-form (form y-height svg)
   "Write the form."
-  (svg-form-fill form svg)
-  (svg-form-skeleton form svg)
-  (svg-form-stroke form svg))
+  (svg-form-fill form y-height svg)
+  (svg-form-skeleton form y-height svg)
+  (svg-form-stroke form y-height svg))
 
 (defun svg-write-form (form drawing-bounds filespec)
   "Write the form"
@@ -164,7 +195,7 @@
                               :to svg)
                   ;;(svg-ground drawing svg)
                   ;;(svg-frame drawing svg)
-                  (svg-form form svg)
+                  (svg-form form (height drawing-bounds) svg)
                   (svg-footer :to svg)
                   (pathname svg)))
 
@@ -172,17 +203,17 @@
 (defun write-svg-form (form drawing-bounds &optional (filespec nil))
   "Write the form as an svg file."
   (advisory-message "Saving form as svg.~%")
-  (svg-write-form form 
+  (svg-write-form form
                   drawing-bounds
                   (if filespec filespec (generate-filename ".svg"))))
 
-(defun svg-figure (figure svg)
+(defun svg-figure (figure y-height svg)
   "Write the figure for early multi-figure versions of draw-something."
   ;;(svg-rgb 0.0 0.0 0.0 :to svg)
   ;;(svg-rectstroke (bounds fig) :to svg)
   ;;(svg-stroke :to svg)
   (loop for fm across (forms figure)
-       do (svg-form fm svg)))
+       do (svg-form fm y-height svg)))
 
 (defun svg-ground (drawing svg)
   "Colour the drawing ground."
@@ -209,7 +240,7 @@
     ;;(svg-frame drawing svg)
     (loop for plane across (planes drawing)
        do (loop for fig across (figures plane)
-                   do (svg-figure fig svg)))
+                   do (svg-figure fig (height (bounds drawing)) svg)))
     (svg-footer :to svg)
     (pathname svg)))
 
