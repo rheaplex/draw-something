@@ -69,18 +69,26 @@ Note that this is evaluated as two loops"
   "Remove the quote from a symbol, returning the symbol."
   (cadr item))
 
+(defun random-init (init-value)
+  "Initialize the random number generator."
+  (MT19937:init-random-state init-value))
+
+(defun %random (below)
+  "Generate a random number 0 <= n < below."
+  (MT19937:random below))
+
 (defun random-number (a)
-  "The built in random doesn't like 0.0 ."
+  "The built-in random doesn't like 0.0 ."
   (if (= a 0)
       a
-      (random a)))
+    (%random a)))
 
 (defun random-range (a b)
   "Make a random number from a to below b."
   (let ((range (- b a)))
     (if (= range 0)
         a
-        (+ (random range) a))))
+        (+ (%random range) a))))
 
 (defun random-range-inclusive (a b)
   "Make a random number from a to below b."
@@ -88,28 +96,28 @@ Note that this is evaluated as two loops"
   (let ((range (+ (- b a) 1)))
     (if (= range 0)
         a
-        (+ (random range) a))))
+        (+ (%random range) a))))
 
 (defgeneric choose-one-of (possibilities)
   (:documentation "Choose an item randomly from within the argument."))
 
 (defmethod choose-one-of ((possibilities list))
   "Choose one or none of the options."
-  (nth (random (length possibilities)) possibilities))
+  (nth (%random (length possibilities)) possibilities))
 
 (defmethod choose-one-of ((possibilities vector))
   "Choose one or none of the options."
-  (aref possibilities (random (length possibilities))))
+  (aref possibilities (%random (length possibilities))))
 
 (defun maybe-choose-one-of (possibilities)
   "Choose one or none of the options."
-  (when (< (random 1.0) 0.5)
+  (when (< (%random 1.0) 0.5)
     (choose-one-of possibilities)))
 
 (defun maybe-choose-some-of (possibilities probability)
   "Choose none or more possibilities when random 1.0 < probability for it."
   (loop for item in possibilities
-     when (< (random 1.0) probability)
+     when (< (%random 1.0) probability)
      collect item))
 
 (defgeneric choose-n-of (n choices)
@@ -145,7 +153,7 @@ Note that this is evaluated as two loops"
   (loop for i below (length l) do
     (rotatef
      (elt l i)
-     (elt l (random (length l)))))
+     (elt l (%random (length l)))))
   l)
 
 (defmethod shuffle ((v vector))
@@ -174,7 +182,7 @@ Note that this is evaluated as two loops"
 
 (defun prefs-cond (spec)
   "Make a cond to choose an option. eg (prefs 4 'a 4 'b 2 'c)"
-  `(let ((i (random ,(prefs-range spec))))
+  `(let ((i (%random ,(prefs-range spec))))
     (cond
       ,@(loop for prob in spec by #'cddr
               for val in (cdr spec) by #'cddr
