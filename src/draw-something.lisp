@@ -33,10 +33,10 @@
 
 (defparameter *border-width* (* 2 (pen-distance *pen-params*)))
 
-(defun draw-something (&optional (pathspec nil)) ;;generate-drawing ()
+(defun draw-something (pathspec randseed)
   "Make the drawing data structures and create the image."
   (advisory-message "Starting draw-something.~%")
-  (setf *random-state* (make-random-state t))
+  (random-init randseed)
   (let* ((drawing-bounds (make-instance '<rectangle>
                                                :x 0
                                                :y 0
