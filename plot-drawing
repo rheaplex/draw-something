@@ -1,0 +1,17 @@
+#!/bin/bash
+
+SVG_FILE=$1
+
+# Clean up the invocation of display below.
+trap 'kill $(jobs -p)' EXIT
+
+display "${SVG_FILE}" &
+
+echo "Plotting ${SVG_FILE}"
+read -n 1 -s -r -p "Set paper and blue pen then press any key to continue."
+echo ""
+axicli --model 2 --mode layers --layer 1 "${SVG_FILE}"
+read -n 1 -s -r -p "Set black pen then press any key to continue."
+echo ""
+axicli --model 2 --mode layers --layer 2 "${SVG_FILE}"
+echo "Done."
