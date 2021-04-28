@@ -53,7 +53,7 @@
 (defun random-co-ordinates (x-range y-range)
   "Make random co-ordinates avoiding bell-curve point distribution."
   ;; Yay bignum!
-  (floor (random (+ x-range y-range))
+  (floor (random-number (+ x-range y-range))
          x-range))
 
 (defun random-point-in-bounds (x y width height)

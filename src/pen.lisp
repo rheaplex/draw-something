@@ -1,5 +1,5 @@
-;;  pen.lisp - The pen to draw around skeletal forms with.
-;;  Copyright (C) 2007, 2016 Rhea Myers
+;; pen.lisp - The pen to draw around skeletal forms with.
+;; Copyright (C) 2007, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -117,29 +117,29 @@
 
 (defun next-pen-too-close (skeleton-forms pen-params the-turtle)
   "Will the pen move to be too close from the guide shape next time?"
-  (< (random (distance-tolerance pen-params))
+  (< (random-number (distance-tolerance pen-params))
      (- (next-pen-distance skeleton-forms pen-params the-turtle)
        (pen-distance pen-params))))
 
 (defun next-pen-too-far (skeleton-forms pen-params the-turtle)
   "Will the pen move to be too far from the guide shape next time?"
-  (< (random (distance-tolerance pen-params))
+  (< (random-number (distance-tolerance pen-params))
      (- (pen-distance pen-params)
         (next-pen-distance skeleton-forms pen-params the-turtle))))
 
 (defun ensure-next-pen-far-enough (skeleton-forms pen-params the-turtle)
   "If the pen would move too close next time, turn it left until it wouldn't."
   (loop while (next-pen-too-close skeleton-forms pen-params the-turtle)
-     do (left the-turtle (random (turn-step pen-params)))))
+     do (left the-turtle (random-number (turn-step pen-params)))))
 
 (defun ensure-next-pen-close-enough (skeleton-forms pen-params the-turtle)
   "If the pen would move too far next time, turn it right until it wouldn't."
   (loop while (next-pen-too-far skeleton-forms pen-params the-turtle)
-     do (right the-turtle (random (turn-step pen-params)))))
+     do (right the-turtle (random-number (turn-step pen-params)))))
 
 (defun drift-pen-direction (pen-params the-turtle)
   "Adjust the pen's direction to simulate human neurophysiological noise."
-  (if (< (random 1.0) (drift-probability pen-params))
+  (if (< (random-number 1.0) (drift-probability pen-params))
       (turn the-turtle
             (random-range (- (drift-range pen-params))
               (drift-range pen-params)))))

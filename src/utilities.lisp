@@ -69,9 +69,10 @@ Note that this is evaluated as two loops"
   "Remove the quote from a symbol, returning the symbol."
   (cadr item))
 
-(defun random-init (init-value)
+(defun random-init (seed)
   "Initialize the random number generator."
-  (MT19937:init-random-state init-value))
+  (setf MT19937:*random-state*
+        (MT19937::make-random-object :state (MT19937:init-random-state seed))))
 
 (defun %random (below)
   "Generate a random number 0 <= n < below."

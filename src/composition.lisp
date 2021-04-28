@@ -1,5 +1,5 @@
-;;  composition.lisp - Generating an image with some kind of intent.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;; composition.lisp - Generating an image with some kind of intent.
+;; Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -26,9 +26,9 @@
   "Generate the points on the image plane that the composition will use."
   (advisory-message (format nil "Making ~d composition points.~%" count))
   (let* ((b (bounds the-drawing))
-         (corner-count (random 4))
-         (interior-count (random (- count
-                                    corner-count)))
+         (corner-count (random-number 4))
+         (interior-count (random-number (- count
+                                           corner-count)))
          (edge-count (- count
                         interior-count
                         corner-count)))
