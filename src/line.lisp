@@ -1,5 +1,5 @@
-;;  line.lisp - A 2D line Segment, and utilities on points and lines.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;; line.lisp - A 2D line Segment, and utilities on points and lines.
+;; Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -139,7 +139,7 @@
 
 (defun random-point-on-line (l)
   "Generate a random point on a line"
-  (line-at-t l (random 1.0)))
+  (line-at-t l (random-number 1.0)))
 
 (defun random-points-on-line (l count)
   "Generate count points on line. These will not be in order."

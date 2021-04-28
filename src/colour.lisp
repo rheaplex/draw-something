@@ -1,5 +1,5 @@
-;;  colour.lisp -  Colour handling.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;; colour.lisp -  Colour handling.
+;; Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -35,8 +35,9 @@
 
 (defun random-colour ()
   "Make a random colour."
-  (make-instance '<colour> :hue (random 1.0) :saturation (random 1.0)
-         :brightness (random 1.0)))
+  (make-instance '<colour> :hue (random-number 1.0)
+                 :saturation (random-number 1.0)
+                 :brightness (random-number 1.0)))
 
 (defun hsb-to-rgb (col)
   "Convert the hue/saturation/brightness colour to RGB."

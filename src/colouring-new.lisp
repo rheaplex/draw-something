@@ -1,5 +1,5 @@
-;;  colouring-new.lisp -  Colour scheme generation and application.
-;;  Copyright (C) 2008, 2016 Rhea Myers
+;; colouring-new.lisp -  Colour scheme generation and application.
+;; Copyright (C) 2008, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -189,9 +189,9 @@
 
 (defun make-hue-additive-series (hue-list)
   (let ((series (make-hash-table))
-    (hue-value (random 1.0)))
+    (hue-value (random-number 1.0)))
     (dolist (hue-symbol hue-list)
-      (setf hue-value (mod (+ hue-value (random 0.3))
+      (setf hue-value (mod (+ hue-value (random-number 0.3))
                1.0))
       (setf (gethash hue-symbol series)
         hue-value))

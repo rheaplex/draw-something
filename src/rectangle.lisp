@@ -1,5 +1,5 @@
-;;  rectangle.lisp - A 2D rectangle.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;; rectangle.lisp - A 2D rectangle.
+;; Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -49,8 +49,8 @@
 (defun random-point-in-rectangle (bounds-rect)
   "Make a point placed randomly within the given bounding rectangle."
   (make-instance '<point>
-         :x (+ (x bounds-rect) (random (width bounds-rect)))
-         :y (+ (y bounds-rect) (random (height bounds-rect)))))
+         :x (+ (x bounds-rect) (random-number (width bounds-rect)))
+         :y (+ (y bounds-rect) (random-number (height bounds-rect)))))
 
 (defun random-points-in-rectangle (bounds-rect count)
   "Create count points placed randomly within bounds-rect."
@@ -59,12 +59,12 @@
 
 (defun random-rectangle-in-rectangle (bounds-rect)
   "Make a random rectangle of at least size 1x1 in another rectangle."
-  (let* ((new-width (random (width bounds-rect)))
-     (new-height (random (height bounds-rect)))
+  (let* ((new-width (random-number (width bounds-rect)))
+     (new-height (random-number (height bounds-rect)))
      (new-x (+ (x bounds-rect)
-           (random (- (width bounds-rect) new-width))))
+           (random-number (- (width bounds-rect) new-width))))
      (new-y (+ (y bounds-rect)
-           (random (- (height bounds-rect) new-height)))))
+           (random-number (- (height bounds-rect) new-height)))))
     (make-instance '<rectangle>
            :x new-x
            :y new-y
@@ -168,7 +168,7 @@
 
 (defun random-point-on-rectangle (r)
   "Make a random point somewhere on the border of a rectangle."
-  (case (random 4)
+  (case (random-number 4)
     (0 (random-point-on-line
     (make-instance '<line>
                :from (make-instance '<point>

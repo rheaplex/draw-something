@@ -18,8 +18,12 @@
 
 (in-package "DRAW-SOMETHING")
 
-(defconstant +drawing-size+ 600.0)
-(defconstant +num-skeleton-points+ 12)
+;; 11in x 14in
+(defparameter +page-size+ '(1056 . 1344))
+(defparameter +drawing-size+ '(900 . 900))
+(defparameter +drawing-x+ (/ (- (car +page-size+) (car +drawing-size+)) 2.0))
+(defparameter +drawing-y+ (/ (- (cdr +page-size+) (cdr +drawing-size+)) 2.0))
+(defparameter +num-skeleton-points+ 12)
 
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
@@ -38,10 +42,10 @@
   (advisory-message "Starting draw-something.~%")
   (random-init randseed)
   (let* ((drawing-bounds (make-instance '<rectangle>
-                                               :x 0
-                                               :y 0
-                                               :width +drawing-size+
-                                               :height +drawing-size+))
+                                        :x +drawing-x+
+                                        :y +drawing-y+
+                                        :width (car +drawing-size+)
+                                        :height (cdr +drawing-size+)))
          (point-bounds (inset-rectangle drawing-bounds *border-width*))
          (skeleton-points (random-points-in-rectangle point-bounds
                                                       +num-skeleton-points+))
@@ -60,7 +64,13 @@
     ;;(colour-objects the-drawing *all-object-symbols*)
     (draw-form form *pen-params*)
     (advisory-message "Finished drawing.~%")
-    (let ((filepath (write-svg-form form drawing-bounds pathspec)))
+    (let ((filepath (write-svg-form form
+                                    (make-instance '<rectangle>
+                                                   :x 0
+                                                   :y 0
+                                                   :width (car +page-size+)
+                                                   :height (cdr +page-size+))
+                                                   pathspec)))
       (advisory-message "Finished draw-something.~%")
       filepath)))
 
