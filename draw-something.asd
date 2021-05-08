@@ -1,5 +1,5 @@
 ;; draw-something.asd - The main package for draw-something
-;; Copyright (C) 2006, 2010, 2016,2021 Rhea Myers
+;; Copyright (C) 2006, 2010, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
