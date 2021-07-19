@@ -1,0 +1,137 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros --load-system draw-something -- $0 "$@"
+|#
+
+(defconstant hashes
+  (vector
+   "3f08fc0ea819ed66e0a43139c9ccfca44d774dbee9a098b4307fd881dd246567"
+   "8810059a04fb123397b62de5526f4cc787467cbf985143cf07200fdecaf2e5ff"
+   "1464db13cd8cd081e5f534813f047915874054be963d3604fe74dba1f1893046"
+   "b619b94ed79d43a7e6473b33e5096880c173ecc70953056022a8df10a39be8f1"
+   "e1bd343ba5c72c580f022d57bfe70acc834db1ba5af9ffd6d3c4b7124c45581d"
+   "d444e5d254b18e7c405cb64244114101b6c8f79726d6c1f06b9dabb762ced902"
+   "8d403d6eae202515b9b12906728a88c8e56e48a3d8db29043e4068b29e9eab87"
+   "94baef79d00f18c5778ad9cc5d05c3df5017e392c1736c0a7cc7392468f95bc5"
+   "893916909a40e2fd02f1e4e1d57553ab8d00691382edfd195a0b72867a4e5a82"
+   "a9fc6a5c5978ba8e4aef40878f21d12bbd5b901ff44e52c60302a97e03e9385f"
+   "e89835249eae403c3fb26159b8024d870d0e3bf5b9ba1777e0c36f30cea04900"
+   "95058cd58f4515a25d4aa0bf320548a05c996162e1a39ec85a678760e860903f"
+   "52f95497a703560d06fc7a059d155fee18cac29bb4b40178db9934ed26239441"
+   "aad6d2490f6241d9ad741e762eb7a3fc9f597495bc6c9b1d1ee5ba25f56a90d1"
+   "5cb945b5db63dea4e73f1b218c885dc3bfa527b0dc044913f9c07c2865a0b826"
+   "07d6781b327609be5fd97fba5ce014fe0a98ee4e21200f7ef3b5cd5e35ac0908"
+   "809070c02de845294c8e70e082b8546bf30cea089991df59a5036d07fe10e45a"
+   "01f5ca83fb78a7bc53b9c8534f2b9fb0c6426bf194f40ea23b49718dedabd6ab"
+   "60cb44af659178dde402b91393dffbdac1aef8dd26d6909c0df74b40a0cb3287"
+   "ec3e62d8bf7ae6441c41119f0846dce8a0b245b86be8225ec129ed833891214c"
+   "e28b702930bae19c756cfa8c879c694422d5f1e78519b0eedabe1eb35a39d43c"
+   "53c53c9ad7a86d3c7f05a72c66634f8e2829703125af790be7661b52431f8f47"
+   "0dc2c353c30f18ced07fe4471b5a93d978cc444cfd82a781e3db4bec7dd23d0c"
+   "1fb1cf2cda6cb3f364828301571fc10ab5c3578f2d468b88b77adc6e0eaea864"
+   "ec9a10dfb6f6a641ef7187467934eb6f931c84549c05843bd97e7dea612f2795"
+   "89dc8f2366eff44aaa5b0fa89b0d385d593e9224e8dacf199c10d7288687a3e3"
+   "9ecba40451b1093eed7c8a0872a77b80d31511c792602da0924c5da30110909b"
+   "d92c1f8c032d0978912d4d7c8eb169b50c84195302d25ffcdf010f9af949810f"
+   "aa09d1a006f08c608de6125df92397035f49d6bc1a157e86806358f28538c743"
+   "5cc2fca4375eb49558e2a3cedbce21a509966e95f84a4323c002177286c9bdf2"
+   "83798112f231497d6f37519ade475638481b785818e0617dd946476b5c735659"
+   "f8959ba06a32ab1b50f304b78b83bb0a76b909bec4de7a840fcf259e1ff0f2b1")
+  "The 64-char hexadecimal string hashes to turn into skeletons")
+
+(defconstant edition-size (length hashes)
+  "How many drawings to produce.")
+
+#|
+(defconstant ds (+ (ash (char-code #\d) 24)
+(ash (char-code #\s) 16))
+"The string 'ds' in the upper 16 bits of a 32-bit int")
+
+(defun make-initvec (str)
+"Convert a string of <= 32 chars to a Solidity-style bytes value
+as an array of 32 unsigned bytes."
+(let ((string-len (length str)))
+(assert (<= string-len 32))
+(coerce
+(loop for i from 0 to 31
+collect (if (< i string-len)
+(char-code (char str i))
+0))
+'(array (unsigned-byte 32) (*)))))
+|#
+
+;; Units are mm
+
+(defparameter *pen-params*
+  (make-instance 'draw-something::<pen-parameters>
+                 :move-step          0.35  ;; 1.3px ;;1.0
+                 :distance           1.4   ;; 5.2 px
+                 :distance-tolerance 0.2   ;; 0.7 px
+                 :turn-step          0.01  ;;0.1
+                 :drift-probability  0.0
+                 :drift-range        0.0)) ;;0.1
+
+;; 17 x 14" in mm = 432 x 356 mm
+;; Axidraw V3A3 travel in mm = 430 x 297 mm
+;; We need a square that fits, so it has to be 297 x 297 mm
+;; This amounts to a 297mm column, with a 297mm square in the vertical center
+;; of the page height (not the plotter y travel distance).
+
+
+(defparameter +page-size+ '(297 . 356))
+(defparameter +skeleton-inset+ (* 2
+                                  (draw-something::pen-distance *pen-params*)))
+;; https://github.com/evil-mad/axidraw/blob/master/inkscape%20driver/axidraw_conf.py#L145
+(defparameter +drawing-size+ (cons (- 297 +skeleton-inset+)
+                                   (- 297 +skeleton-inset+)))
+(defparameter +drawing-x+ (/ (- (car +page-size+) (car +drawing-size+)) 2.0))
+(defparameter +drawing-y+ (/ (- (cdr +page-size+) (cdr +drawing-size+)) 2.0))
+
+(defun draw-something (pathspec hash randseed)
+  "Make the drawing data structures and create the image."
+  (draw-something::advisory-message "Starting draw-something.~%")
+  (draw-something::random-init randseed)
+  (let* ((drawing-bounds (make-instance 'draw-something::<rectangle>
+                                        :x +drawing-x+
+                                        :y +drawing-y+
+                                        :width (car +drawing-size+)
+                                        :height (cdr +drawing-size+)))
+         (points (draw-something::hash-to-points
+                  hash
+                  (draw-something::x drawing-bounds)
+                  (draw-something::y drawing-bounds)
+                  (draw-something::width drawing-bounds)
+                  (draw-something::height drawing-bounds)))
+         (form (draw-something::make-form-from-points points)))
+    (draw-something::draw-form form *pen-params*)
+    (draw-something::advisory-message "Finished drawing.~%")
+    (let ((filepath
+           (draw-something::write-svg-form
+            form
+            (make-instance draw-something::'<rectangle>
+                           :x 0
+                           :y 0
+                           :width (car +page-size+)
+                           :height (cdr +page-size+))
+            pathspec)))
+      (draw-something::advisory-message "Finished draw-something.~%")
+      filepath)))
+
+(defun main ()
+  (dotimes (i edition-size)
+    (let* ((edition-number (+ i 1))
+           ;; The edition number zero-padded to two characters, e.g. "09", "24"
+           (seed-string (format nil "~2,'0d" edition-number))
+           ;; A 32-bit int of the form "ds09"
+           #|(seed-int (+ ds
+           (ash (char-code (aref seed-string 0)) 8)
+           (char-code(aref seed-string 1))))
+           ; An array of 32 unsigned bytes containing a descriptive string ;
+           (seed-vec (make-initvec (format nil
+           "draw-something ~A"
+           seed-string)))|#
+           (path (format nil "draw-something-edition-~A.svg" seed-string))
+           (hash (aref hashes i)))
+      (draw-something path hash edition-number)))
+  "Done.")

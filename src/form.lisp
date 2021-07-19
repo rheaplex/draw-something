@@ -22,7 +22,7 @@
 (defconstant +min-form-points+ 1)
 (defconstant +max-form-points+ 12)
 
-(defconstant +form-step-limit+ 5000)
+(defconstant +form-step-limit+ 10000)
 
 (defconstant +pen-width+ 1.0)
 
@@ -112,8 +112,11 @@
 
 (defun path-timeout (the-form)
   "Make sure that a failure of the form algorithm hasn't resulted in a loop."
-  (> (form-point-count the-form)
-     +form-step-limit+))
+  (let ((has-timed-out (> (form-point-count the-form)
+                          +form-step-limit+)))
+    (when has-timed-out
+      (debug-message "ERROR: FORM PATH TIMED OUT ============================"))
+    has-timed-out))
 
 (defun should-finish-form (the-form pen-params)
   "Decide whether the form should finish."

@@ -231,7 +231,33 @@ Note that this is evaluated as two loops"
   "Return value of a or b that is closest to zero."
   (if (< (abs a) (abs b))
       a
-      b))
+    b))
+
+(defun hex-char-p (char)
+  "Return whether the character is a (lowercase...) hex char"
+  (if (find char "0123456789abcdef" :test #'eq)
+      t
+    nil))
+
+(defun hex-string-p (str)
+  "Return whether the string is a (lowercase...) hex string"
+  (every #'hex-char-p str))
+
+(defun split-seq-stride (seq stride)
+  "Split a sequence (string, list, etc.) into a list of chunks
+   of the given stride length (last chunk may be shorter)"
+  (assert (> stride 0))
+  (let ((len (length seq)))
+    (loop for i from 0 below len by stride
+          collect (subseq seq i (min len (+ i stride))))))
+
+(defun hash-to-ints (hash)
+  "Convert a 64-char hexadecimal hash value to a list of 32 ints from 0.255"
+  (assert (= (length hash) 64))
+  (assert (hex-string-p hash))
+  (map 'list
+       #'(lambda (n) (parse-integer n :radix 16))
+       (split-seq-stride hash 2)))
 
 ;; These are here so ps/svg can access them.
 

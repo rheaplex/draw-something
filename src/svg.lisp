@@ -38,12 +38,16 @@
   (format to "<?xml version=\"1.0\" standalone=\"no\"?>~%")
   (format to "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"~%")
   (format to "  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">~%")
-  (format to "<svg width=\"~dpx\" height=\"~dpx\" viewBox=\"0 0 ~d ~d\"~%"
+  ;; Note that we use millimetres
+  (format to "<svg width=\"~dmm\" height=\"~dmm\"~%  viewBox=\"0 0 ~d ~d\"~%"
           width height width height)
-  (format to "xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"~%")
+  ;; For previewing
+  (format to "  viewport-fill=\"white\"~%")
+  (format to "  xmlns=\"http://www.w3.org/2000/svg\"~%  version=\"1.1\"~%")
   ;; For the layer information
-  (format to
-          "xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">~%"))
+  (format
+   to
+   "  xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\">~%"))
 
 (defun svg-footer (&key (to *svg-stream*))
   "Write the end of the svg file."
