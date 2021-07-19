@@ -28,10 +28,10 @@
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
   (make-instance '<pen-parameters>
-                 :move-step          2.0 ;;1.0
-                 :distance           5.0
-                 :distance-tolerance 1.5
-                 :turn-step          0.05 ;;0.1
+                 :move-step          1.3 ;;1.0
+                 :distance           5.2
+                 :distance-tolerance 0.7
+                 :turn-step          0.01 ;;0.1
                  :drift-probability  0.0
                  :drift-range        0.0)) ;;0.1
 
@@ -70,7 +70,7 @@
                                                    :y 0
                                                    :width (car +page-size+)
                                                    :height (cdr +page-size+))
-                                                   pathspec)))
+                                    pathspec)))
       (advisory-message "Finished draw-something.~%")
       filepath)))
 

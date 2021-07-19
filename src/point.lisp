@@ -1,5 +1,5 @@
 ;;  point.lisp - A 2D point.
-;;  Copyright (C) 2006, 2016 Rhea Myers
+;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -190,3 +190,19 @@
           (vector-push-extend next-point hull)
           (setf current-point next-point))
     (make-instance '<polyline> :points hull)))
+
+;; We don't have enough crypto code to warrant its own file yet,
+;; so this goes here for now.
+(defun hash-to-points (hash x-origin y-origin x-range y-range)
+  "Convert a 64-char hex hash to a list of 8 points within the given bounds"
+  ;; Cache the scales. Since we use floats the results won't always be great...
+  (let ((x-scale (/ x-range 255.0))
+        (y-scale (/ y-range 255.0)))
+    ;; Convert the list of co-ordinates to a list of points
+    (map 'vector
+         ;; Convert the co-ordinate pairs to points in the given bounds
+         #'(lambda (xy) (make-instance '<point>
+                                       :x (+ x-origin (* (car xy) x-scale))
+                                       :y (+ y-origin (* (cadr xy) y-scale))))
+         ;; Convert the hash to a list of 0..255 co-ordinate pairs
+         (split-seq-stride (hash-to-ints hash) 2))))
