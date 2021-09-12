@@ -95,7 +95,7 @@ collect (if (< i string-len)
   (let ((edition-number 1))
     (dolist (hash hashes)
       (draw-something
-       (format nil "draw-something-edition-~2,'0d.svg" edition-number)
+       (format nil "build/draw-something-txes-~2,'0d.svg" edition-number)
        hash
        edition-number)
       (incf edition-number))
