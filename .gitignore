@@ -3,3 +3,5 @@
 *.fasl
 *.svg
 *.png
+\.env
+node_modules/
