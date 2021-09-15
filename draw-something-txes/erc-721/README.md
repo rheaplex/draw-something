@@ -21,11 +21,12 @@ npx run hardhat test
 Local Testing Of Scripts
 ------------------------
 
-Install and run ganache-cli in one terminal window:
+Install and run ganache-cli in one terminal window.
+Note that we use a non-standard port and a specific mnemonic:
 
 ``` shell
 npm install -g ganache-cli
-ganache-cli --port 5485
+ganache-cli --port 5485 --mnemonic 'charge control never below detail kite antenna plunge limb city apart artwork'
 ```
 
 Run the scripts in another teminal window:
