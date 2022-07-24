@@ -6,33 +6,15 @@ exec ros --load-system draw-something -- $0 "$@"
 
 (defconstant hashes-filename "tx-hashes")
 
-(defconstant hashes
-  (with-open-file (stream hashes-filename)
-    (loop for line = (read-line stream nil)
-          while line
-          collect line))
-  "A list of the 64-char hexadecimal string hashes to turn into skeletons")
+(defconstant specs
+  (with-open-file (in hashes-filename)
+    (let ((*read-eval* nil))
+      (read in)))
+  "A list of the token IDs, and their associater 64-char hexadecimal string
+   hashes to turn into skeletons")
 
-(defconstant edition-size (length hashes)
+(defconstant edition-size (length specs)
   "How many drawings to produce.")
-
-#|
-(defconstant ds (+ (ash (char-code #\d) 24)
-(ash (char-code #\s) 16))
-"The string 'ds' in the upper 16 bits of a 32-bit int")
-
-(defun make-initvec (str)
-"Convert a string of <= 32 chars to a Solidity-style bytes value
-as an array of 32 unsigned bytes."
-(let ((string-len (length str)))
-(assert (<= string-len 32))
-(coerce
-(loop for i from 0 to 31
-collect (if (< i string-len)
-(char-code (char str i))
-0))
-'(array (unsigned-byte 32) (*)))))
-|#
 
 ;; Units are mm
 
@@ -51,11 +33,13 @@ collect (if (< i string-len)
 ;; This amounts to a 297mm column, with a 297mm square in the vertical center
 ;; of the page height (not the plotter y travel distance).
 
-
-(defparameter +page-size+ '(297 . 356))
+;; This was 297 . 356 but that rendered weirdly for the PNG,
+;; So we now handle the vertical offset in the column using the AxiDraw CLI.
+(defparameter +page-size+ '(297 . 297))
 (defparameter +skeleton-inset+ (* 2
                                   (draw-something::pen-distance *pen-params*)))
 ;; https://github.com/evil-mad/axidraw/blob/master/inkscape%20driver/axidraw_conf.py#L145
+;; The drawing is square, even although the paper is rectangular
 (defparameter +drawing-size+ (cons (- 297 +skeleton-inset+)
                                    (- 297 +skeleton-inset+)))
 (defparameter +drawing-x+ (/ (- (car +page-size+) (car +drawing-size+)) 2.0))
@@ -92,11 +76,12 @@ collect (if (< i string-len)
       filepath)))
 
 (defun main ()
-  (let ((edition-number 1))
-    (dolist (hash hashes)
+  (ensure-directories-exist "./drawings/")
+  (dolist (spec specs)
+    (let ((edition-number (car spec))
+          (hash (cdr spec)))
       (draw-something
-       (format nil "build/draw-something-txes-~2,'0d.svg" edition-number)
+       (format nil "drawings/~a.svg" hash)
        hash
-       edition-number)
-      (incf edition-number))
-    "Done."))
+       edition-number)))
+  "Done.")

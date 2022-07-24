@@ -7,6 +7,7 @@ async function main() {
     fs.readFileSync(
       `${__dirname}/../artifacts/contracts/DrawSomethingTxes.sol/DrawSomethingTxes.json`
     ).toString());
+
   const { address } = JSON.parse(fs.readFileSync(
       `${__dirname}/../addresses/DrawSomethingTxes-${network.name}.json`
   ).toString());
@@ -18,7 +19,7 @@ async function main() {
   const MAX_TOKENS = await ds_rw.MAX_TOKENS();
   
   let count = await ds_rw.totalSupply();
-  console.log(`${count} of ${MAX_TOKENS} minted on $(network.name).`);
+  console.log(`${count} of ${MAX_TOKENS} minted on ${network.name}.`);
   while (count.lt(MAX_TOKENS)) {
     const tx = await ds_rw.mintToken();
     // We do not want to use the hash or mint the next token

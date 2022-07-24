@@ -25,8 +25,10 @@ async function main() {
       null
     );
   let events = await ds.queryFilter(filter);
+  console.log('(');
   events.forEach((event, index) => {
-    if(event.args.tokenId.toNumber() != (index+ 1)) {
+    const tokenId = event.args.tokenId.toNumber();
+    if(tokenId != (index + 1)) {
       console.error("TXES OUT OF ORDER");
       process.exit(1);
     }
@@ -35,8 +37,9 @@ async function main() {
       console.error("TX HASH ID WRONG LENGTH");
       process.exit(1);
     }
-    console.log(id);
+    console.log(`(${tokenId} . "${id}")`);
   });
+  console.log(')');
 
   /*let mintHashes = events.map(
     event => ({

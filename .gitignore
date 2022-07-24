@@ -5,3 +5,4 @@
 *.png
 \.env
 node_modules/
+console-history.txt
