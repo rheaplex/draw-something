@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# PNG sizing and border
+# 8K length is 7680
+SIZE=7180
+# 250px each side
+BORDER=500
+# 7180 + 500 7680
+
+i=1
+for svg in drawings/*.svg; do
+    echo "${svg}"
+    pdf="${svg%.*}.pdf"
+    png="${svg%.*}.png"
+
+    inkscape "${svg}" \
+             --batch-process --export-type=pdf --export-background=white \
+             --export-filename="${pdf}" --export-area-page
+
+    inkscape "${svg}" \
+             --batch-process --export-type=png --export-background=white \
+             --export-filename="${png}" --export-area-page \
+             --export-width="${SIZE}" --export-height="${SIZE}"
+
+    convert "${png}" -bordercolor white -border "$BORDER" "${png}"
+
+    i=$(( i + 1 ))
+done

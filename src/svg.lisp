@@ -84,7 +84,12 @@
   "Write the stroke property."
   (if col
       (format to " stroke=\"~a\"" (svg-rgb col))
-    (format to " stroke=\"none\"")))
+      (format to " stroke=\"none\"")))
+
+(defun svg-stroke-width (width &key (to *svg-stream*))
+  "Write the stroke width property."
+  (when width
+      (format to " stroke-width=\"~a\"" width)))
 
 (defun svg-close-path (&key (to *svg-stream*))
   "Close the current PostScript path by drawing a line between its endpoints."
@@ -149,6 +154,7 @@
                              :saturation 0.4
                              :brightness 0.9)
               :to svg)
+  (svg-stroke-width 0.6 :to svg)
   (svg-path-d-start :to svg)
   ;; This will break if we use other shapes in the skeleton.
   (svg-subpath (points (aref (skeleton form) 0)) y-height :to svg)
