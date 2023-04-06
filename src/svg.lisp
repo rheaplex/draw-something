@@ -185,8 +185,9 @@
 (defun svg-form (form y-height svg)
   "Write the form."
   (svg-form-fill form y-height svg)
-  (svg-form-skeleton form y-height svg)
-  (svg-form-stroke form y-height svg))
+  ;;(svg-form-skeleton form y-height svg)
+  ;;(svg-form-stroke form y-height svg)
+  )
 
 (defun svg-write-form (form drawing-bounds filespec)
   "Write the form"
@@ -231,22 +232,22 @@
                     (make-instance '<colour> :brightness 0.0)
                     :to svg))
 
-(defun svg-write-drawing (drawing filespec)
+(defun svg-write-drawing (page-size drawing filespec)
   "Write the drawing"
-  (advisory-message (format nil "Writing drawing to file ~a .~%" filespec))
-  (ensure-directories-exist *save-directory*)
-  (with-open-file (svg filespec :direction :output
-                      :if-exists :supersede)
-    (svg-header (width (bounds drawing))
-                (height (bounds drawing))
-                      :to svg)
-    (svg-ground drawing svg)
-    ;;(svg-frame drawing svg)
-    (loop for plane across (planes drawing)
-       do (loop for fig across (figures plane)
-                   do (svg-figure fig (height (bounds drawing)) svg)))
-    (svg-footer :to svg)
-    (pathname svg)))
+  (let ((page-width (car page-size))
+        (page-height (cdr page-size)))
+    (advisory-message (format nil "Writing drawing to file ~a .~%" filespec))
+    (ensure-directories-exist *save-directory*)
+    (with-open-file (svg filespec :direction :output
+                         :if-exists :supersede)
+      (svg-header page-width page-height :to svg)
+      (svg-ground drawing svg)
+      ;;(svg-frame drawing svg)
+      (loop for plane across (planes drawing)
+            do (loop for fig across (figures plane)
+                     do (svg-figure fig page-height svg)))
+      (svg-footer :to svg)
+      (pathname svg))))
 
 (defun svg-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
@@ -257,12 +258,12 @@
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defun write-svg (drawing &optional (filespec nil))
+(defun write-svg (page-size drawing &optional (filespec nil))
   "Write the drawing as an svg file."
   (advisory-message "Saving drawing as svg.~%")
-  (svg-write-drawing drawing (if filespec filespec (generate-filename ".svg"))))
+  (svg-write-drawing page-size drawing (if filespec filespec (generate-filename ".svg"))))
 
-(defun write-and-show-svg (drawing &optional (filespec nil))
+(defun write-and-show-svg (page-size drawing &optional (filespec nil))
   "Write and display the drawing as an svg file."
   (advisory-message "Viewing drawing as svg.~%")
-  (svg-display-drawing (write-svg drawing filespec)))
+  (svg-display-drawing (write-svg page-size drawing filespec)))

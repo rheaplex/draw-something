@@ -41,6 +41,14 @@
       :documentation "The height of the rectangle."))
   (:documentation "A simple rectangle"))
 
+(defun rectangle-string (rect)
+  "Make a human readable string describing the rectangle."
+  (format nil "x: ~,2f, y: ~,2f width: ~,2f height: ~,2f"
+          (x rect)
+          (y rect)
+          (width rect)
+          (height rect)))
+
 (defun copy-rectangle (r)
   "Make a copy of the rectangle."
   (make-instance '<rectangle>

@@ -23,7 +23,6 @@
 (defparameter +drawing-size+ '(900 . 900))
 (defparameter +drawing-x+ (/ (- (car +page-size+) (car +drawing-size+)) 2.0))
 (defparameter +drawing-y+ (/ (- (cdr +page-size+) (cdr +drawing-size+)) 2.0))
-(defparameter +num-skeleton-points+ 12)
 
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
@@ -46,41 +45,13 @@
                                         :y +drawing-y+
                                         :width (car +drawing-size+)
                                         :height (cdr +drawing-size+)))
-         (point-bounds (inset-rectangle drawing-bounds *border-width*))
-         (skeleton-points (random-points-in-rectangle point-bounds
-                                                      +num-skeleton-points+))
-         (form (make-form-from-points skeleton-points)))
-         ;;(the-drawing (make-instance '<drawing> :bounds drawing-bounds)))
-         ;;(make-composition-points the-drawing 12) ;; (random-range 8 42))
-    ;; (make-planes the-drawing number-of-planes))
-    ;;(vector-push-extend
-     ;;(make-instance '<plane>
-    ;;              :figure-count 1
-    ;;              :figure-policy point-method
-    ;;              :pen ))
-    ;;(planes the-drawing)
-    ;;(make-planes-skeletons the-drawing)
-    ;;(draw-planes-figures the-drawing)
-    ;;(colour-objects the-drawing *all-object-symbols*)
-    (draw-form form *pen-params*)
+         (the-drawing (make-instance '<drawing> :bounds drawing-bounds)))
+    (make-composition-points the-drawing (random-range 8 42))
+    (make-planes the-drawing (number-of-planes))
+    (planes the-drawing)
+    (make-planes-skeletons the-drawing)
+    (draw-planes-figures the-drawing)
+    (colour-objects the-drawing *all-object-symbols*)
     (advisory-message "Finished drawing.~%")
-    (let ((filepath (write-svg-form form
-                                    (make-instance '<rectangle>
-                                                   :x 0
-                                                   :y 0
-                                                   :width (car +page-size+)
-                                                   :height (cdr +page-size+))
-                                    pathspec)))
-      (advisory-message "Finished draw-something.~%")
-      filepath)))
-
-#|(defun draw-something (&optional (pathspec nil))
-  "The main method that generates the drawing and writes it to file."
-  (advisory-message "Starting draw-something.~%")
-  (setf *random-state* (make-random-state t))
-  ;;(format t "Random state: ~a.~%" (write-to-string *random-state*))
-  (let ((the-drawing (generate-drawing)))
-    (advisory-message "Finished drawing.~%")
-    (let ((filepath (write-svg the-drawing pathspec)))
-      (advisory-message "Finished draw-something.~%")
-      filepath)))|#
+    (write-svg +page-size+ the-drawing pathspec)
+    (advisory-message "Finished draw-something.~%")))

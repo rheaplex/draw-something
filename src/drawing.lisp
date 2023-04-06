@@ -43,21 +43,8 @@
                        :documentation "The points for the composition"))
   (:documentation "A drawing in progress."))
 
-;; Change to width or height being max and other being random range
-
-(defun make-drawing-bounds ()
-  "Make a bounds rectangle for a drawing."
-  (make-instance '<rectangle> :x 0.0 :y 0.0
-         :width (random-range +min-drawing-size+
-                      +max-drawing-size+)
-         :height (random-range +min-drawing-size+
-                       +max-drawing-size+)))
-
-(defun make-drawing ()
-  "Make a drawing, ready to be started."
-  (let ((the-drawing (make-instance '<drawing>
-                                    :bounds (make-drawing-bounds))))
-    (advisory-message (format nil "Making drawing. Size: ~dx~d.~%"
-                              (floor (width (bounds the-drawing)))
-                              (floor (height (bounds the-drawing)))))
-    the-drawing))
+(defmethod initialize-instance :after ((drawing <drawing>) &key)
+  (advisory-message "Making drawing.~%")
+  (advisory-message (format nil
+                            "Bounds: ~a .~%"
+                            (rectangle-string (bounds drawing)))))

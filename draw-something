@@ -1,19 +1,4 @@
-#!/bin/sh
-#|-*- mode:lisp -*-|#
-#|
-exec ros --load-system draw-something -- $0 "$@"
-|#
-
-(defun print-usage ()
-  "Print the command line usage information"
-  (write-line "draw-something [outfile-path]")
-  (write-line "    outfile-path : the svg filename for output (optional)"))
-
-(defun main (&rest argv)
-  (let ((seed (get-universal-time)))
-    (if (= (length argv) 1)
-        (let ((arg (elt argv 0)))
-          (if (member arg '("-h" "--help") :test #'string=)
-              (print-usage)
-            (draw-something:draw-something arg seed)))
-      (draw-something:draw-something nil seed))))
+#!/bin/bash
+exec ros --source-registry "$(pwd)" \
+     --system "draw-something" \
+     --eval   "(draw-something:draw-something nil (get-universal-time))"
