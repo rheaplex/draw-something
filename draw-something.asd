@@ -20,11 +20,12 @@
 
 (defsystem draw-something
     :description "draw-something: a drawing generation system."
-    :version "0.5.0"
+    :version "0.20.23"
     :author "Rhea Myers"
     :licence "GNU GPL v3+"
     :pathname "src"
     :serial t
+    :depends-on (:cl-pdf)
     :components
     ((:file "package")
      (:file "mt19937")
@@ -41,29 +42,14 @@
      (:file "pen")
      (:file "form")
      (:file "figure")
-     ;;(:file "codelet")
-     ;;(:file "cell-matrix")
-     ;;(:file "find-space")
      (:file "drawing")
      (:file "composition")
      (:file "plane")
      (:file "colouring-new")
      (:file "postscript")
-     (:file "svg")
+     (:file "pdf")
      (:file "draw-something"))
     :in-order-to ((test-op (test-op draw-something/test))))
-
-(defsystem draw-something/gui
-    :description "draw-something/gui: GTK+ GUI for draw-something."
-    :version "0.5.0"
-    :author "Rhea Myers"
-    :licence "GNU GPL v3+"
-    :depends-on (:draw-something
-                 :cl-cffi-gtk)
-    :pathname "gui"
-    :components
-    ((:file "package")
-     (:file "gtk")))
 
 (defsystem draw-something/test
     :description "draw-something/test: tests for draw-something."
