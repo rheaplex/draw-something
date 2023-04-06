@@ -1,9 +1,0 @@
-#!/bin/sh
-#|-*- mode:lisp -*-|#
-#|
-exec ros --load-system draw-something/gui -- $0 "$@"
-|#
-
-(defun main (&rest argv)
-  (declare (ignore argv))
-  (setf *window* (draw-something/gui:make-window))

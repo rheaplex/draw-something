@@ -53,5 +53,5 @@
     (draw-planes-figures the-drawing)
     (colour-objects the-drawing *all-object-symbols*)
     (advisory-message "Finished drawing.~%")
-    (write-svg +page-size+ the-drawing pathspec)
+    (write-pdf +page-size+ the-drawing pathspec)
     (advisory-message "Finished draw-something.~%")))

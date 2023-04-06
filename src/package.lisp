@@ -21,7 +21,8 @@
    "The draw-something package.")
   ;; *Only* use common-lisp. Nothing else.
   ;; This is for long-term robustness.
-  (:use :common-lisp)
+  (:use :common-lisp
+        :cl-pdf)
   (:export
    *print-advisories*
    *print-debugs*
