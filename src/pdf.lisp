@@ -187,11 +187,10 @@ drawing-bounds
   (let ((command
           #+(or macos macosx darwin) "/usr/bin/open"
           #-(or macos macosx darwin) "/usr/bin/xdg-open"))
-    #+sbcl (sb-ext:run-program command (list filepath) :wait nil)
-    #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
+    (uiop:run-program (list command (namestring filepath))))
   filepath)
 
-(defun write-pdf (page-size drawing directory filename)
+(defun write-drawing (page-size drawing directory filename)
   "Write the drawing as an pdf file."
   (log:info "Saving drawing as pdf.")
   (ensure-directories-exist directory)
@@ -203,7 +202,7 @@ drawing-bounds
                        :type "pdf")
                       directory)))
 
-(defun write-and-show-pdf (page-size drawing directory filename)
+(defun write-and-show-drawing (page-size drawing directory filename)
   "Write and display the drawing as an pdf file."
   (log:info "Viewing drawing as pdf.")
-  (pdf-display-drawing (write-pdf page-size drawing directory filename)))
+  (pdf-display-drawing (write-drawing page-size drawing directory filename)))
