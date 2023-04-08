@@ -137,30 +137,31 @@
 
 (defmethod draw-composition-points ()
   "Draw all the drawing's composition points"
-  (draw-something::dovector 
-   (point (draw-something::composition-points *drawing*))
-   (arc (draw-something::x point) (draw-something::y point) 
-	2 0 (* 2 pi))
-  (set-line-width 1)
-  (set-source-rgb 0 0 0)
-  (stroke)
-  (stroke-preserve)
-  (set-source-rgb 1 1 1)
-  (fill-path)))
+  (loop for point across (draw-something::composition-points *drawing*)
+        do (progn
+             (arc (draw-something::x point) (draw-something::y point) 
+	                2 0 (* 2 pi))
+             (set-line-width 1)
+             (set-source-rgb 0 0 0)
+             (stroke)
+             (stroke-preserve)
+             (set-source-rgb 1 1 1)
+             (fill-path))))
 
 (defmethod draw-form-skeletons ((f draw-something::form))
   "Draw the form's skeleton polylines (usually only one)"
   (set-line-width 1)
-  (draw-something::dovector (bone (draw-something::skeleton f))
-    (draw-something::do-poly-lines (line bone)
-      (move-to (draw-something::x (draw-something::from line))
-	       (draw-something::y (draw-something::from line)))
-      (line-to (draw-something::x (draw-something::to line))
-	       (draw-something::y (draw-something::to line))))
-    (set-source-rgb (draw-something::random-range 0.5 0.9)
-		    (draw-something::random-range 0.5 0.9)
-		    (draw-something::random-range 0.5 0.9))
-    (stroke)))
+  (loop for bone across (draw-something::skeleton f)
+        do (progn
+             (draw-something::do-poly-lines (line bone)
+               (move-to (draw-something::x (draw-something::from line))
+	                      (draw-something::y (draw-something::from line)))
+               (line-to (draw-something::x (draw-something::to line))
+	                      (draw-something::y (draw-something::to line))))
+             (set-source-rgb (draw-something::random-range 0.5 0.9)
+		                         (draw-something::random-range 0.5 0.9)
+		                         (draw-something::random-range 0.5 0.9))
+             (stroke))))
 
 (defmethod draw-skeletons ()
   "Draw the skeletons of every form in the drawing"
