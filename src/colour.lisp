@@ -28,10 +28,8 @@
                 #:random-range
                 #:random-range-inclusive)
   (:export #:<colour>
-           #:choose-colour-for
            #:hsb-to-rgb
-           #:make-colour-scheme
-           #:make-colour-scheme-applier))
+           #:make-colour-scheme-applier-fun))
 
 (in-package #:draw-something.colour)
 
@@ -291,7 +289,6 @@
            :documentation "The function to choose sv values.")
    (sv-probabilites :type hash-table
             :initform (make-hash-table)
-            :initarg :sv-probabilities
             :accessor applier-probabilities
             :documentation "The probabilities of the chooser sv specs")
    (sv-occurrences :type hash-table
@@ -301,36 +298,22 @@
   (:documentation
    "The data used in applying a colour scheme to an image."))
 
-(defun set-applier-probabilities (applier spec-list)
-  "Set the probabilites from a list of num/specs, and set occurences to zero"
-  (let ((total-prob (float (prefs-range spec-list))))
-    (loop for prob in spec-list by #'cddr
-      for spec in (cdr spec-list) by #'cddr
-      do (setf (gethash (dequote spec)
-                (applier-probabilities applier))
-           (/ prob total-prob))
-      do (setf (gethash (dequote spec)
- (applier-occurences applier))
-               0))))
-
-(defun set-applier-chooser (applier spec-list)
-  "Make and set the chooser function for sv specs from the list."
-  (setf (applier-sv-chooser applier)
-    (prefs-list-lambda spec-list)))
-
-(defun set-applier-sv-spec (applier spec-list)
-  "Configure the applier from the sv spec eg '(1 'hh 4 'ml 3 'lm)"
-  (set-applier-chooser applier spec-list)
-  (set-applier-probabilities applier spec-list))
-
-;; Change to being an :after initialize-instance method
-(defun make-colour-scheme-applier (scheme spec-list)
-  "Make a colour scheme applier."
-  (let ((applier (make-instance '<colour-scheme-applier>
-                :scheme scheme)))
-    (set-applier-chooser applier spec-list)
-    (set-applier-probabilities applier spec-list)
-    applier))
+(defmethod initialize-instance :after ((object <colour-scheme-applier>)
+                                       &key (spec-list nil))
+  "Fill out the chooser properties from the spec-list, if provided."
+  (when spec-list
+    ;; Make and set the chooser function for sv specs from the list.
+    (setf (applier-sv-chooser object) (prefs-list-lambda spec-list))
+    ;; Set probabilites from list of num/specs, and set occurences to zero.
+    (let ((total-prob (float (prefs-range spec-list))))
+      (loop for prob in spec-list by #'cddr
+            for spec in (cdr spec-list) by #'cddr
+            do (setf (gethash (dequote spec)
+                              (applier-probabilities object))
+                     (/ prob total-prob))
+            do (setf (gethash (dequote spec)
+                              (applier-occurences object))
+                     0)))))
 
 (defun spec-probability-difference (applier spec)
   "Get the difference between the intended and actual occurence of a spec."
@@ -408,4 +391,29 @@
                  *sv-spec-options*)
     collect (random-range-inclusive +minimum-spec-probability+
                     +maximum-spec-probability+)
-    collect spec))
+        collect spec))
+
+;; Object symbols used in colouring
+
+(defparameter *object-symbol-choices*
+  '(leaf vein blade branch flower tendril))
+
+(defparameter *all-object-symbols*
+  (cons 'background *object-symbol-choices*))
+
+(defun object-symbol (obj)
+  (declare (ignore obj))
+  (choose-one-of *object-symbol-choices*))
+
+;;FIXME: change to apply-colours and pass in the iterator function to pass
+;;       the lambda to.
+(defun make-colour-scheme-applier-fun ()
+  "Make a colour scheme applier."
+  (let ((applier (make-instance '<colour-scheme-applier>
+                                :scheme (make-colour-scheme *all-object-symbols*
+                                                            7
+                                                            7
+                                                            0.3
+                                                            0.6)
+                                :spec-list (chooser-spec))))
+    (lambda (object) (choose-colour-for applier (object-symbol object)))))

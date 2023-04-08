@@ -50,6 +50,7 @@
   (:export #:<drawing>
            #:<pen-parameters>
            #:composition-points
+           #:do-drawing-forms
            #:draw-planes-figures
            #:figures
            #:fill-colour
@@ -382,19 +383,20 @@ Note that this is evaluated as two loops"
                    do (vector-push-extend (bounds form) results)))
     results))
 
-(defun make-planes (the-drawing count)
+(defun make-planes (the-drawing)
   "Make the planes, ready to have skeletons for figures generated."
   (log:info "Making planes.")
-  (loop for point-method in (figure-generation-methods count)
-        for i from 0 below count
-        do (log:info "Making plane ~d ." (+ i 1))
-        do (vector-push-extend
-            (make-instance '<plane>
-                           :figure-count (number-of-figures-for-plane i)
-                           :figure-policy point-method
-                           :pen nil ;;(make-plane-pen i count)
-                           )
-            (planes the-drawing))))
+  (let ((count (number-of-planes)))
+    (loop for point-method in (figure-generation-methods count)
+          for i from 0 below count
+          do (log:info "Making plane ~d ." (+ i 1))
+          do (vector-push-extend
+              (make-instance '<plane>
+                             :figure-count (number-of-figures-for-plane i)
+                             :figure-policy point-method
+                             :pen nil ;;(make-plane-pen i count)
+                             )
+              (planes the-drawing)))))
 
 (defun make-plane-skeletons (the-plane the-drawing)
   "Generate the skeletons for the figures of the plane."
@@ -647,6 +649,15 @@ do (add-figure the-drawing
                  (include-point form-bounds new-location))))
     (append-point the-outline (form-first-point the-form))))
 
+(defmacro do-drawing-forms ((drawing form-variable-name) &body body)
+  "Run code for each form of each figure of a drawing."
+  (let ((plane-var (gensym))
+        (figure-var (gensym)))
+    `(loop for ,plane-var across (planes ,drawing)
+           do (loop for ,figure-var across (figures ,plane-var)
+                    do (loop for ,form-variable-name across (forms ,figure-var)
+                             do (progn ,@body))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generating the point population for the composition
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -798,3 +809,4 @@ do (add-figure the-drawing
 
 (defun figure-generation-methods (count)
   (choose-n-of-ordered count *figure-generation-method-list*))
+

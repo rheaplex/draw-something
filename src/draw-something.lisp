@@ -20,96 +20,54 @@
 (defpackage #:draw-something
   (:use #:cl)
   (:import-from #:draw-something.choosing
-                #:choose-one-of
                 #:random-init
-                #:random-number
                 #:random-range)
   (:import-from #:draw-something.colour
-                #:choose-colour-for
-                #:chooser-spec
-                #:make-colour-scheme
-                #:make-colour-scheme-applier)
+                #:make-colour-scheme-applier-fun)
   (:import-from #:draw-something.geometry
                 #:<rectangle>)
   (:import-from #:draw-something.drawing
                 #:<drawing>
                 #:<pen-parameters>
+                #:do-drawing-forms
                 #:draw-planes-figures
-                #:figures
                 #:fill-colour
-                #:forms
-                #:ground
                 #:make-composition-points
                 #:make-planes
-                #:make-planes-skeletons
-                #:number-of-planes
-                #:pen-distance
-                #:planes)
+                #:make-planes-skeletons)
   (:import-from #:draw-something.pdf
-                #:write-pdf)
+                #:write-drawing
+                #:write-and-show-drawing)
   (:export #:draw-something))
 
 (in-package #:draw-something)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Object symbols used in colouring
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defparameter *object-symbol-choices*
-  '(leaf vein blade branch flower tendril))
-
-(defparameter *all-object-symbols*
-  (cons 'background *object-symbol-choices*))
-
-(defun object-symbol (obj)
-  (declare (ignore obj))
-  (choose-one-of *object-symbol-choices*))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Colouring the objects.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun colour-objects (drawing &optional (symbols *all-object-symbols*))
-  (let* ((scheme (make-colour-scheme symbols 7 7 .3 .6))
-     (sv-spec-list (chooser-spec))
-     (applier (make-colour-scheme-applier scheme sv-spec-list)))
-    (log:info "Colouring forms.")
-    (log:info scheme)
-    (log:info "sv-spec: ~a" sv-spec-list)
-    (setf (ground drawing)
-      (choose-colour-for applier
-                 'background))
-    (loop for plane across (planes drawing)
-      do (loop for figure across (figures plane)
-           do (loop for form across (forms figure)
-                do (setf (fill-colour form)
-                     (choose-colour-for
-                      applier
-                      (object-symbol form))))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Let's go!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; 11in x 14in
-(defparameter +page-size+ '(1056 . 1344))
-(defparameter +drawing-size+ '(900 . 900))
-(defparameter +drawing-x+ (/ (- (car +page-size+) (car +drawing-size+)) 2.0))
-(defparameter +drawing-y+ (/ (- (cdr +page-size+) (cdr +drawing-size+)) 2.0))
-
+(defparameter +pen-outline-distance+ 5.2)
+(defparameter +pen-outline-distance-tolerance+ 0.7)
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
   (make-instance '<pen-parameters>
                  :move-step          1.3 ;;1.0
-                 :distance           5.2
-                 :distance-tolerance 0.7
+                 :distance           +pen-outline-distance+
+                 :distance-tolerance +pen-outline-distance-tolerance+
                  :turn-step          0.01 ;;0.1
                  :drift-probability  0.0
                  :drift-range        0.0)) ;;0.1
 
-(defparameter *border-width* (* 2 (pen-distance *pen-params*)))
+;;TODO work this in to the drawing but not the ground
+(defparameter *border-width* (+ +pen-outline-distance+
+                                +pen-outline-distance-tolerance+))
 
-(defvar *save-directory* "./")
+;; 11in x 14in
+(defparameter +page-size+ '(1056 . 1344))
+(defparameter +drawing-width+ 900)
+(defparameter +drawing-height+ 900)
+(defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
+(defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -119,27 +77,33 @@
             "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
             "drawing" year month date hours minutes seconds)))
 
-(defun draw-something (savedir filename randseed)
+(defun draw-something (randseed savedir filename)
   "Make the drawing data structures and create the image."
+  (log:config :nopretty :notime :nofile)
   (log:info "Starting draw-something.")
   (random-init randseed)
-  (let* ((drawing-bounds (make-instance '<rectangle>
+  (let* ((choose-colour (make-colour-scheme-applier-fun))
+         (drawing-bounds (make-instance '<rectangle>
                                         :x +drawing-x+
                                         :y +drawing-y+
-                                        :width (car +drawing-size+)
-                                        :height (cdr +drawing-size+)))
-         (the-drawing (make-instance '<drawing> :bounds drawing-bounds)))
-    (make-composition-points the-drawing (random-range 8 42))
-    (make-planes the-drawing (number-of-planes))
-    (planes the-drawing)
-    (make-planes-skeletons the-drawing)
-    (draw-planes-figures the-drawing)
-    (colour-objects the-drawing)
+                                        :width +drawing-width+
+                                        :height +drawing-height+))
+         (drawing (make-instance '<drawing>
+                                 :bounds drawing-bounds
+                                 :ground (funcall choose-colour 'background))))
+    (make-composition-points drawing (random-range 8 42))
+    (make-planes drawing)
+    (make-planes-skeletons drawing)
+    (draw-planes-figures drawing)
+    (do-drawing-forms (drawing form)
+      (setf (fill-colour form)
+            (funcall choose-colour form)))
     (log:info "Finished drawing.")
-    (write-pdf +page-size+
-               the-drawing
-               (or savedir
-                   (make-pathname :directory '(:relative "drawings")))
-               (or filename
-                   (generate-filename)))
+    (write-and-show-drawing +page-size+
+                            drawing
+                            (or savedir
+                                (make-pathname :directory
+                                               '(:relative "drawings")))
+                            (or filename
+                                (generate-filename)))
     (log:info "Finished draw-something.")))
