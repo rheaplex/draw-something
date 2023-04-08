@@ -1,5 +1,5 @@
 ;; draw-something.asd - The main package for draw-something
-;; Copyright (C) 2006, 2010, 2016, 2021 Rhea Myers
+;; Copyright (C) 2006, 2010, 2016, 2021, 2023 Rhea Myers
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -19,49 +19,35 @@
 (in-package :asdf-user)
 
 (defsystem draw-something
-    :description "draw-something: a drawing generation system."
-    :version "0.20.23"
-    :author "Rhea Myers"
-    :licence "GNU GPL v3+"
-    :pathname "src"
-    :serial t
-    :depends-on (:cl-pdf)
-    :components
-    ((:file "package")
-     (:file "mt19937")
-     (:file "utilities")
-     (:file "geometry")
-     (:file "point")
-     (:file "line")
-     (:file "circle")
-     (:file "arc")
-     (:file "rectangle")
-     (:file "polyline")
-     (:file "colour")
-     (:file "turtle")
-     (:file "pen")
-     (:file "form")
-     (:file "figure")
-     (:file "drawing")
-     (:file "composition")
-     (:file "plane")
-     (:file "colouring-new")
-     (:file "postscript")
-     (:file "pdf")
-     (:file "draw-something"))
-    :in-order-to ((test-op (test-op draw-something/test))))
+  :description "draw-something: a drawing generation system."
+  :version "2023a"
+  :author "Rhea Myers"
+  :licence "GNU GPL v3+"
+  :pathname "src"
+  :serial t
+  :depends-on (:cl-pdf :log4cl)
+  :components
+  ((:file "mt19937")
+   (:file "choosing")
+   (:file "colour")
+   (:file "geometry")
+   (:file "drawing")
+   (:file "pdf")
+   (:file "draw-something")
+   )
+  :in-order-to ((test-op (test-op draw-something/test))))
 
 (defsystem draw-something/test
-    :description "draw-something/test: tests for draw-something."
-    :version "0.5.0"
-    :author "Rhea Myers"
-    :licence "GNU GPL v3+"
-    :depends-on (:draw-something
-                 :prove)
-    :defsystem-depends-on (:prove-asdf)
-    :pathname "test"
-    :components
-    ((:file "package")
-     (:test-file "test"))
-    :perform (test-op :after (op c)
-                      (funcall (intern #.(string :run) :prove) c)))
+  :description "draw-something/test: tests for draw-something."
+  :version "0.5.0"
+  :author "Rhea Myers"
+  :licence "GNU GPL v3+"
+  :depends-on (:draw-something
+               :prove)
+  :defsystem-depends-on (:prove-asdf)
+  :pathname "test"
+  :components
+  ((:file "package")
+   (:test-file "test"))
+  :perform (test-op :after (op c)
+                    (funcall (intern #.(string :run) :prove) c)))

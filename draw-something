@@ -1,4 +1,4 @@
 #!/bin/bash
 exec ros --source-registry "$(pwd)" \
      --system "draw-something" \
-     --eval   "(draw-something:draw-something nil (get-universal-time))"
+     --eval   "(draw-something:draw-something nil nil (get-universal-time))"

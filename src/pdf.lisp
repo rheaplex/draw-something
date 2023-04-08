@@ -16,42 +16,80 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package "DRAW-SOMETHING")
+(defpackage #:draw-something.pdf
+  (:use #:cl)
+  (:import-from #:pdf
+                #:close-and-fill
+                #:close-and-stroke
+                #:fill-path
+                #:line-to
+                #:move-to
+                #:rectangle
+                #:register-page-reference
+                #:set-line-width
+                #:set-rgb-fill
+                #:set-rgb-stroke
+                #:with-document
+                #:with-outline-level
+                #:with-page
+                #:with-saved-state
+                #:write-document)
+  (:import-from #:draw-something.colour
+                #:hsb-to-rgb)
+  (:import-from #:draw-something.geometry
+                #:x
+                #:y
+                #:width
+                #:height)
+  (:import-from #:draw-something.drawing
+                #:bounds
+                #:figures
+                #:fill-colour
+                #:forms
+                #:ground
+                #:outline
+                #:planes
+                #:points)
+  (:export
+   #:write-pdf
+   #:write-and-show-pdf))
+
+(in-package #:draw-something.pdf)
 
 (defvar *layer-index* 1)
 
 (defun pdf-fill-rgb (col)
   (multiple-value-bind (r g b) (hsb-to-rgb col)
-    (pdf:set-rgb-fill r g b)))
+    (set-rgb-fill r g b)))
 
 (defun pdf-stroke-rgb (col)
   "Write the stroke property."
   (multiple-value-bind (r g b) (hsb-to-rgb col)
-    (pdf:set-rgb-stroke r g b)))
+    (set-rgb-stroke r g b)))
 
 (defun pdf-draw-path (points)
   "Add a path to the page."
-  (pdf:move-to (x (aref points 0))
-               (y (aref points 0)))
+  (move-to (x (aref points 0))
+           (y (aref points 0)))
   (do ((i 1 (+ i 1)))
       ((= i (length points)))
-    (pdf:line-to (x (aref points i))
-                 (y (aref points i)))))
+    (line-to (x (aref points i))
+             (y (aref points i)))))
 
 (defun pdf-rectfill (rect col)
   "Draw a rectangle with the given co-ordinates and dimensions."
-  (pdf:with-saved-state
-      (pdf-fill-rgb col)
-    (pdf:rectangle (x rect) (y rect) (width rect) (height rect))
-    (pdf:close-and-fill)))
+  (with-saved-state
+    (pdf-fill-rgb col)
+    (rectangle (x rect) (y rect) (width rect) (height rect))
+    (close-and-fill)))
 
 (defun pdf-rectstroke (rect col)
   "Draw a rectangle with the given co-ordinates and dimensions."
-  (pdf:with-saved-state
-      (pdf-stroke-rgb col)
-      (pdf:set-line-width 1)
-      (pdf:rectangle (x rect) (y rect) (width rect) (height rect))
-      (pdf:close-and-stroke)))
+  (with-saved-state
+    (pdf-stroke-rgb col)
+    (set-line-width 1)
+    (rectangle (x rect) (y rect) (width rect) (height rect))
+    (close-and-stroke)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Drawing writing
@@ -59,31 +97,31 @@
 
 (defun pdf-form-skeleton (form)
   "Write the skeleton the drawing is made around."
-  (pdf:with-saved-state
-      (pdf-stroke-rgb (make-instance '<colour>
-                                     :hue 0.7
-                                     :saturation 0.4
-                                     :brightness 0.9))
-    (pdf:set-line-width 1)
+  (with-saved-state
+    (pdf-stroke-rgb (make-instance '<colour>
+                                   :hue 0.7
+                                   :saturation 0.4
+                                   :brightness 0.9))
+    (set-line-width 1)
     ;; This will break if we use other shapes in the skeleton.
     (pdf-draw-path (points (aref (skeleton form) 0)))
-    (pdf:stroke)))
+    (stroke)))
 
 (defun pdf-form-fill (form)
   "Write the drawing fill."
   (if (fill-colour form)
-      (pdf:with-saved-state
-          (pdf-fill-rgb (fill-colour form))
+      (with-saved-state
+        (pdf-fill-rgb (fill-colour form))
         (pdf-draw-path (points (outline form)))
-        (pdf:fill-path))))
+        (fill-path))))
 
 (defun pdf-form-stroke (form)
   "Write the drawing outline."
   (if (stroke-colour form)
-      (pdf:with-saved-state
-          (pdf-stroke-rgb (stroke-colour form))
+      (with-saved-state
+        (pdf-stroke-rgb (stroke-colour form))
         (pdf-draw-path (points (outline form)))
-        (pdf:stroke))))
+        (stroke))))
 
 (defun pdf-form (form)
   "Write the form."
@@ -94,20 +132,20 @@
 
 #|
 (defun pdf-write-form (form drawing-bounds filespec)
-  "Write the form"
-  (advisory-message (format nil "Writing form to file ~a .~%" filespec))
-  (ensure-directories-exist *save-directory*)
-  ;;(pdf-ground drawing pdf)
-  ;;(pdf-frame drawing pdf)
-  (pdf-form form)
-  filespec))
+"Write the form"
+(log:info "Writing form to file ~a ." filespec)
+(ensure-directories-exist *save-directory*)
+;;(pdf-ground drawing pdf)
+;;(pdf-frame drawing pdf)
+(pdf-form form)
+filespec))
 
 (defun write-pdf-form (form drawing-bounds &optional (filespec nil))
-  "Write the form as an pdf file."
-  (advisory-message "Saving form as pdf.~%")
-  (pdf-write-form form
-                  drawing-bounds
-                  (if filespec filespec (generate-filename ".pdf"))))
+"Write the form as an pdf file."
+(log:info "Saving form as pdf.")
+(pdf-write-form form
+drawing-bounds
+(if filespec filespec (generate-filename ".pdf"))))
 |#
 
 (defun pdf-figure (figure)
@@ -116,7 +154,7 @@
   ;;(pdf-rectstroke (bounds fig) :to pdf)
   ;;(pdf-stroke :to pdf)
   (loop for fm across (forms figure)
-       do (pdf-form fm)))
+        do (pdf-form fm)))
 
 (defun pdf-ground (drawing)
   "Colour the drawing ground."
@@ -127,39 +165,45 @@
 (defun pdf-frame (drawing)
   "Frame the drawing. Frame is bigger than PDF bounds but should be OK."
   (pdf-rectstroke (inset-rectangle (bounds drawing) -1)
-                    (make-instance '<colour> :brightness 0.0)))
+                  (make-instance '<colour> :brightness 0.0)))
 
 (defun pdf-write-drawing (page-size drawing filespec)
   "Write the drawing"
-  (advisory-message (format nil "Writing drawing to file ~a .~%" filespec))
-  (ensure-directories-exist *save-directory*)
-  (pdf:with-document ()
-    (pdf:with-page (:bounds (vector 0 0 (car page-size) (cdr page-size)))
-      (pdf:with-outline-level ((format nil "draw-something ~a" filespec)
-                               (pdf:register-page-reference))
+  (log:info "Writing drawing to file ~a ." filespec)
+  (with-document ()
+    (with-page (:bounds (vector 0 0 (car page-size) (cdr page-size)))
+      (with-outline-level ((format nil "draw-something ~a" filespec)
+                           (register-page-reference))
         (pdf-ground drawing)
         ;;(pdf-frame drawing)
         (loop for plane across (planes drawing)
               do (loop for fig across (figures plane)
                        do (pdf-figure fig)))))
-    (pdf:write-document filespec))
+    (write-document filespec))
   filespec)
 
 (defun pdf-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
   (let ((command
-         #+(or macos macosx darwin) "/usr/bin/open"
-         #-(or macos macosx darwin) "/usr/bin/xdg-open"))
+          #+(or macos macosx darwin) "/usr/bin/open"
+          #-(or macos macosx darwin) "/usr/bin/xdg-open"))
     #+sbcl (sb-ext:run-program command (list filepath) :wait nil)
     #+openmcl (ccl::os-command (format nil "~a ~a" command filepath)))
   filepath)
 
-(defun write-pdf (page-size drawing &optional (filespec nil))
+(defun write-pdf (page-size drawing directory filename)
   "Write the drawing as an pdf file."
-  (advisory-message "Saving drawing as pdf.~%")
-  (pdf-write-drawing page-size drawing (if filespec filespec (generate-filename ".pdf"))))
+  (log:info "Saving drawing as pdf.")
+  (ensure-directories-exist directory)
+  (pdf-write-drawing page-size
+                     drawing
+                     (merge-pathnames
+                      (make-pathname
+                       :name filename
+                       :type "pdf")
+                      directory)))
 
-(defun write-and-show-pdf (page-size drawing &optional (filespec nil))
+(defun write-and-show-pdf (page-size drawing directory filename)
   "Write and display the drawing as an pdf file."
-  (advisory-message "Viewing drawing as pdf.~%")
-  (pdf-display-drawing (write-pdf page-size drawing filespec)))
+  (log:info "Viewing drawing as pdf.")
+  (pdf-display-drawing (write-pdf page-size drawing directory filename)))

@@ -1,5 +1,6 @@
-;;  draw-something.lisp -  The main lifecycle code for draw-something.
-;;  Copyright (C) 2006, 2016, 2021 Rhea Myers
+;; draw-something.lisp -  The main lifecycle code for draw-something.
+;; Copyright (C) 2006, 2008, 2016, 2021 Rhea Myers.
+;; Copyright (C) 2023 Myers Studio Ltd.
 ;;
 ;; This file is part of draw-something.
 ;;
@@ -16,7 +17,79 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package "DRAW-SOMETHING")
+(defpackage #:draw-something
+  (:use #:cl)
+  (:import-from #:draw-something.choosing
+                #:choose-one-of
+                #:random-init
+                #:random-number
+                #:random-range)
+  (:import-from #:draw-something.colour
+                #:choose-colour-for
+                #:chooser-spec
+                #:make-colour-scheme
+                #:make-colour-scheme-applier)
+  (:import-from #:draw-something.geometry
+                #:<rectangle>)
+  (:import-from #:draw-something.drawing
+                #:<drawing>
+                #:<pen-parameters>
+                #:draw-planes-figures
+                #:figures
+                #:fill-colour
+                #:forms
+                #:ground
+                #:make-composition-points
+                #:make-planes
+                #:make-planes-skeletons
+                #:number-of-planes
+                #:pen-distance
+                #:planes)
+  (:import-from #:draw-something.pdf
+                #:write-pdf)
+  (:export #:draw-something))
+
+(in-package #:draw-something)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Object symbols used in colouring
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *object-symbol-choices*
+  '(leaf vein blade branch flower tendril))
+
+(defparameter *all-object-symbols*
+  (cons 'background *object-symbol-choices*))
+
+(defun object-symbol (obj)
+  (declare (ignore obj))
+  (choose-one-of *object-symbol-choices*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Colouring the objects.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun colour-objects (drawing &optional (symbols *all-object-symbols*))
+  (let* ((scheme (make-colour-scheme symbols 7 7 .3 .6))
+     (sv-spec-list (chooser-spec))
+     (applier (make-colour-scheme-applier scheme sv-spec-list)))
+    (log:info "Colouring forms.")
+    (log:info scheme)
+    (log:info "sv-spec: ~a" sv-spec-list)
+    (setf (ground drawing)
+      (choose-colour-for applier
+                 'background))
+    (loop for plane across (planes drawing)
+      do (loop for figure across (figures plane)
+           do (loop for form across (forms figure)
+                do (setf (fill-colour form)
+                     (choose-colour-for
+                      applier
+                      (object-symbol form))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Let's go!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; 11in x 14in
 (defparameter +page-size+ '(1056 . 1344))
@@ -36,9 +109,19 @@
 
 (defparameter *border-width* (* 2 (pen-distance *pen-params*)))
 
-(defun draw-something (pathspec randseed)
+(defvar *save-directory* "./")
+
+(defun generate-filename ()
+  "Make a unique filename for the drawing, based on the current date & time."
+  (multiple-value-bind (seconds minutes hours date month year)
+      (decode-universal-time (get-universal-time))
+    (format nil
+            "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
+            "drawing" year month date hours minutes seconds)))
+
+(defun draw-something (savedir filename randseed)
   "Make the drawing data structures and create the image."
-  (advisory-message "Starting draw-something.~%")
+  (log:info "Starting draw-something.")
   (random-init randseed)
   (let* ((drawing-bounds (make-instance '<rectangle>
                                         :x +drawing-x+
@@ -51,7 +134,12 @@
     (planes the-drawing)
     (make-planes-skeletons the-drawing)
     (draw-planes-figures the-drawing)
-    (colour-objects the-drawing *all-object-symbols*)
-    (advisory-message "Finished drawing.~%")
-    (write-pdf +page-size+ the-drawing pathspec)
-    (advisory-message "Finished draw-something.~%")))
+    (colour-objects the-drawing)
+    (log:info "Finished drawing.")
+    (write-pdf +page-size+
+               the-drawing
+               (or savedir
+                   (make-pathname :directory '(:relative "drawings")))
+               (or filename
+                   (generate-filename)))
+    (log:info "Finished draw-something.")))
