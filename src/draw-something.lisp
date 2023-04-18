@@ -31,6 +31,7 @@
                 #:<pen-parameters>
                 #:do-drawing-forms
                 #:draw-planes-figures
+                #:figure-generation-methods
                 #:fill-colour
                 #:make-composition-points
                 #:make-planes
@@ -68,6 +69,8 @@
 (defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
 (defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
 
+(defparameter +planes-count+ 4)
+
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
   (multiple-value-bind (seconds minutes hours date month year)
@@ -90,7 +93,7 @@
                                  :bounds drawing-bounds
                                  :ground (funcall choose-colour 'background))))
     (make-composition-points drawing (random-range 8 42))
-    (make-planes drawing)
+    (make-planes drawing (figure-generation-methods +planes-count+))
     (make-planes-skeletons drawing)
     (draw-planes-figures drawing)
     (do-drawing-forms (drawing form)

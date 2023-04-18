@@ -5,7 +5,7 @@
 ;; This file is part of draw-something.
 ;;
 ;; draw-something is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
+;; it under the terms of the GNU Geinneral Public License as published by
 ;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
@@ -80,14 +80,6 @@
   "Clamp a value to 0..2pi"
   (mod value +radian+))
 
-(defun intersects-any (item others)
-  "Returns true if item intersects any of the others"
-  (some (lambda (o) (intersects item o)) others))
-
-(defun intersects-none (item others)
-  "Returns true if item intersects none of the others"
-  (not (intersects-any item others)))
-
 (defun turn-positive-p (a1 a2)
   "Is the shortest turn direction positive (t) or negative (nil)?"
   (> (mod (+ (- a1 a2) +radian+) +radian+) pi))
@@ -133,6 +125,14 @@
 
 (defgeneric intersects (a b)
   (:documentation "Whether and where the objects intersect."))
+
+(defun intersects-any (item others)
+  "Returns true if item intersects any of the others"
+  (some (lambda (o) (intersects item o)) others))
+
+(defun intersects-none (item others)
+  "Returns true if item intersects none of the others"
+  (not (intersects-any item others)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point 2D

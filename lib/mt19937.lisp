@@ -5,6 +5,7 @@
 ;;; Modified for Maxima by Robert Dodier.
 ;;; (1) Construct floating point numbers using portable operations.
 ;;; (2) Construct large integers using all bits of each chunk.
+;;; Trivially rearranged by Rhea Myers to silence SBCL warnings.
 
 (defpackage "MT19937"
   (:use :common-lisp)
@@ -132,7 +133,7 @@
 (defun vec-init-random-state (key &optional state)
   (declare (type (array (unsigned-byte 32) (*)) key))
   (let ((key-len (length key))
-        (state (init-random-state 19650218 state))
+        (state (int-init-random-state 19650218 state))
         (i 1)
         (j 0))
     (loop for k from (max key-len mt19937-n) above 0 do
@@ -266,6 +267,25 @@
       (setf y (logxor y (ash y -18)))
       y)))
 
+;;; %RANDOM-INTEGER  --  Internal
+;;;
+(defun %random-integer (arg state)
+  "Generates an integer greater than or equal to zero and less than Arg.
+  Successive chunks are concatenated without overlap to construct integers
+  larger than a single chunk. The return value has this property:
+  If two integers are generated from the same state with Arg equal to 2^m and 2^n,
+  respectively, then bit k is the same in both integers for 0 <= k < min(m,n).
+  Each call to %RANDOM-INTEGER consumes at least one chunk; bits left over
+  from previous chunks are not re-used."
+  (declare (type (integer 1) arg) (type random-state state))
+    (do*
+      ((nchunks (ceiling (integer-length (1- arg)) random-chunk-length) (1- nchunks))
+        (new-bits 0 (random-chunk state))
+        (bits 0 (logior bits (ash new-bits shift)))
+        (shift 0 (+ shift random-chunk-length)))
+      ((= 0 nchunks)
+        (rem bits arg))))
+
 ;;; %RANDOM-SINGLE-FLOAT, %RANDOM-DOUBLE-FLOAT  --  Interface
 ;;;
 (declaim (inline %random-single-float %random-double-float))
@@ -294,30 +314,11 @@
   this yields a number in [1d0, 2d0). Then 1d0 is subtracted."
   (let*
     ((random-mantissa-bits (%random-integer (expt 2 52) state))
-    (random-unit-double (- (scale-float (float (+ (expt 2 52) random-mantissa-bits) 1d0) -52) 1d0)))
-  (* arg random-unit-double)))
+     (random-unit-double (- (scale-float (float (+ (expt 2 52) random-mantissa-bits) 1d0) -52) 1d0)))
+    (* arg random-unit-double)))
 
-;;;; Random integers:
-
-;;; %RANDOM-INTEGER  --  Internal
+;;; RANDOM  --  Interface
 ;;;
-(defun %random-integer (arg state)
-  "Generates an integer greater than or equal to zero and less than Arg.
-  Successive chunks are concatenated without overlap to construct integers
-  larger than a single chunk. The return value has this property:
-  If two integers are generated from the same state with Arg equal to 2^m and 2^n,
-  respectively, then bit k is the same in both integers for 0 <= k < min(m,n).
-  Each call to %RANDOM-INTEGER consumes at least one chunk; bits left over
-  from previous chunks are not re-used."
-  (declare (type (integer 1) arg) (type random-state state))
-    (do*
-      ((nchunks (ceiling (integer-length (1- arg)) random-chunk-length) (1- nchunks))
-        (new-bits 0 (random-chunk state))
-        (bits 0 (logior bits (ash new-bits shift)))
-        (shift 0 (+ shift random-chunk-length)))
-      ((= 0 nchunks)
-        (rem bits arg))))
-
 (defun random (arg &optional (state *random-state*))
   "Generates a uniformly distributed pseudo-random number greater than or equal to zero
   and less than Arg.  State, if supplied, is the random state to use."

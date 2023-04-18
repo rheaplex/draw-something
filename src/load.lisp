@@ -18,7 +18,7 @@
 
 (in-package #:common-lisp-user)
 
-(load "src/mt19937")
+(load "lib/mt19937")
 (load "src/log")
 (load "src/choosing")
 (load "src/geometry")
