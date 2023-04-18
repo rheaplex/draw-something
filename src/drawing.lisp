@@ -19,20 +19,23 @@
 
 (defpackage #:draw-something.drawing
   (:use :cl)
-  (:import-from #:draw-something.choosing
+  (:nicknames #:drawing)
+  (:import-from #:choosing
                 #:choose-n-of
                 #:choose-n-of-ordered
                 #:choose-one-of
                 #:random-number
                 #:random-range)
-  (:import-from #:draw-something.colour
+  (:import-from #:colour
                 #:<colour>)
-  (:import-from #:draw-something.geometry
+  (:import-from #:geometry
                 #:<point>
                 #:<polyline>
                 #:<rectangle>
                 #:x
                 #:y
+                #:height
+                #:width
                 #:bounds
                 #:append-point
                 #:convex-hull
@@ -40,6 +43,7 @@
                 #:first-point
                 #:highest-leftmost-point
                 #:include-point
+                #:intersects-none
                 #:last-point
                 #:make-polyline-from-points
                 #:point-count
@@ -298,7 +302,6 @@ Note that this is evaluated as two loops"
    (ground :accessor ground
            :type <colour>
            :initarg :ground
-           :initform nil
            :documentation "The flat background colour of the drawing.")
    (composition-points :accessor composition-points
                        :type vector
@@ -422,6 +425,15 @@ Note that this is evaluated as two loops"
   (log:info "Drawing planes figures.")
   (loop for l across (planes the-drawing)
         do (draw-plane-figures l)))
+
+(defmacro do-drawing-forms ((drawing form-variable-name) &body body)
+  "Run code for each form of each figure of a drawing."
+  (let ((plane-var (gensym))
+        (figure-var (gensym)))
+    `(loop for ,plane-var across (planes ,drawing)
+           do (loop for ,figure-var across (figures ,plane-var)
+                    do (loop for ,form-variable-name across (forms ,figure-var)
+                             do (progn ,@body))))))
 
 #|(defmethod make-figure-for-plane ((figure-bounds <rectangle>) (plane integer))
 (let* ((form-width (/ (width figure-bounds) plane))
@@ -553,7 +565,6 @@ do (add-figure the-drawing
    (fill-colour :accessor fill-colour
                 :type <colour>
                 :initarg :colour
-                :initform nil
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
                   :type <colour>
@@ -625,7 +636,7 @@ do (add-figure the-drawing
   (let ((has-timed-out (> (form-point-count the-form)
                           +form-step-limit+)))
     (when has-timed-out
-      (log:debug "ERROR: FORM PATH TIMED OUT ============================"))
+      (log:err "ERROR: FORM PATH TIMED OUT ============================"))
     has-timed-out))
 
 (defun should-finish-form (the-form pen-params)
@@ -648,15 +659,6 @@ do (add-figure the-drawing
                  (append-point the-outline new-location)
                  (include-point form-bounds new-location))))
     (append-point the-outline (form-first-point the-form))))
-
-(defmacro do-drawing-forms ((drawing form-variable-name) &body body)
-  "Run code for each form of each figure of a drawing."
-  (let ((plane-var (gensym))
-        (figure-var (gensym)))
-    `(loop for ,plane-var across (planes ,drawing)
-           do (loop for ,figure-var across (figures ,plane-var)
-                    do (loop for ,form-variable-name across (forms ,figure-var)
-                             do (progn ,@body))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generating the point population for the composition
@@ -809,4 +811,3 @@ do (add-figure the-drawing
 
 (defun figure-generation-methods (count)
   (choose-n-of-ordered count *figure-generation-method-list*))
-
