@@ -19,14 +19,14 @@
 
 (defpackage #:draw-something
   (:use #:cl)
-  (:import-from #:draw-something.choosing
+  (:import-from #:choosing
                 #:random-init
                 #:random-range)
-  (:import-from #:draw-something.colour
+  (:import-from #:colour
                 #:make-colour-scheme-applier-fun)
-  (:import-from #:draw-something.geometry
+  (:import-from #:geometry
                 #:<rectangle>)
-  (:import-from #:draw-something.drawing
+  (:import-from #:drawing
                 #:<drawing>
                 #:<pen-parameters>
                 #:do-drawing-forms
@@ -35,9 +35,8 @@
                 #:make-composition-points
                 #:make-planes
                 #:make-planes-skeletons)
-  (:import-from #:draw-something.pdf
-                #:write-drawing
-                #:write-and-show-drawing)
+  (:import-from #:postscript
+                #:write-drawing)
   (:export #:draw-something))
 
 (in-package #:draw-something)
@@ -77,11 +76,10 @@
             "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
             "drawing" year month date hours minutes seconds)))
 
-(defun draw-something (randseed savedir filename)
+(defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
   "Make the drawing data structures and create the image."
-  (log:config :nopretty :notime :nofile)
   (log:info "Starting draw-something.")
-  (random-init randseed)
+  (random-init (or randseed (get-universal-time)))
   (let* ((choose-colour (make-colour-scheme-applier-fun))
          (drawing-bounds (make-instance '<rectangle>
                                         :x +drawing-x+
@@ -99,11 +97,13 @@
       (setf (fill-colour form)
             (funcall choose-colour form)))
     (log:info "Finished drawing.")
-    (write-and-show-drawing +page-size+
-                            drawing
-                            (or savedir
-                                (make-pathname :directory
-                                               '(:relative "drawings")))
-                            (or filename
-                                (generate-filename)))
+    (let ((filepath (write-drawing +page-size+
+                                   drawing
+                                   (or savedir
+                                       (make-pathname :directory
+                                                      '(:relative "drawings")))
+                                   (or filename
+                                       (generate-filename)))))
+      ;; Make sure this goes to stdout
+      (format t "Wrote file to: ~a~%" filepath))
     (log:info "Finished draw-something.")))

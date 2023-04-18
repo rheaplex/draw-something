@@ -19,6 +19,7 @@
 
 (defpackage #:draw-something.choosing
   (:use #:cl)
+  (:nicknames #:choosing)
   (:import-from #:MT19937
                 #:init-random-state)
   (:shadowing-import-from #:MT19937

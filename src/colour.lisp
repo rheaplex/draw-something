@@ -18,8 +18,9 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (defpackage #:draw-something.colour
-  (:use :cl)
-  (:import-from #:draw-something.choosing
+  (:use #:cl)
+  (:nicknames #:colour)
+  (:import-from #:choosing
                 #:choose-n-of
                 #:choose-one-of
                 #:prefs-list-lambda

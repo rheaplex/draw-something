@@ -1,4 +1,2 @@
-#!/bin/bash
-exec ros --source-registry "$(pwd)" \
-     --system "draw-something" \
-     --eval   "(draw-something:draw-something (get-universal-time) nil nil)"
+#!/bin/sh
+ros --eval '(load "src/run")'
