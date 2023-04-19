@@ -65,7 +65,10 @@
            #:make-planes
            #:make-planes-skeletons
            #:number-of-planes
-           #:pen-distance))
+           #:outline
+           #:pen-distance
+           #:planes
+           #:skeleton))
 
 (in-package #:draw-something.drawing)
 
@@ -344,6 +347,10 @@ Note that this is evaluated as two loops"
    (fill-colour :accessor fill-colour
                 :type <colour>
                 :initarg :colour
+                :initform (make-instance '<colour>
+                                         :hue 0.0
+                                         :saturation 1.0
+                                         :brightness 1.0)
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
                   :type <colour>
