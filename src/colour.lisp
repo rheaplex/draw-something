@@ -30,6 +30,7 @@
                 #:random-range-inclusive)
   (:export #:<colour>
            #:hsb-to-rgb
+           #:hsb-to-rgb-hex
            #:make-colour-scheme-applier-fun))
 
 (in-package #:draw-something.colour)
@@ -92,6 +93,16 @@
           ((3) (values-list (list p q (brightness col)))) ;; Cyan
           ((4) (values-list (list tt p (brightness col)))) ;; Blue
           ((5) (values-list (list (brightness col) p q))))))) ;; Magenta
+
+(defun hsb-to-rgb-hex (col)
+  "Convert the hue/saturation/brightness colour to a string #RRGGBB."
+  (multiple-value-bind (r g b)
+      (hsb-to-rgb col)
+    (format nil
+            "#~2,'0X~2,'0X~2,'0X"
+            (floor (* r 255))
+            (floor (* g 255))
+            (floor (* b 255)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LMH - Low medium and high value ranges from 0.0..1.0
@@ -174,29 +185,69 @@
     do (log:info "~a " h))
   (log:info  ""))
 
+(defun lmh-all-values (lmh)
+  "Get all of the values in the lmh from low to high."
+  (let ((all (make-array (+ (length (low-values lmh))
+                            (length (medium-values lmh))
+                            (length (high-values lmh)))
+                         :fill-pointer 0)))                                
+    (loop for l across (low-values lmh)
+          do (vector-push l all))
+    (loop for m across (medium-values lmh)
+          do (vector-push m all))
+    (loop for h across (high-values lmh)
+          do (vector-push h all))
+    all))
+  
+  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Colour Scheme
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Object symbols used in colouring
+
+(defparameter *object-symbol-choices*
+  '(leaf vein blade branch flower tendril))
+
+(defparameter *all-object-symbols*
+  (cons 'background *object-symbol-choices*))
+
+(defun object-symbol (obj)
+  (declare (ignore obj))
+  (choose-one-of *object-symbol-choices*))
+
 (defclass <colour-scheme> ()
   ((hues :type hash-table
-     :initarg :hues
-     :initform (make-hash-table)
-     :accessor colour-scheme-hues)
+         :initarg :hues
+         :initform (make-hash-table)
+         :accessor colour-scheme-hues)
    (saturations :type lmh-values
-        :initarg :saturations
-        :initform (make-instance '<lmh-values>)
-        :accessor colour-scheme-saturations)
+                :initarg :saturations
+                :initform (make-instance '<lmh-values>)
+                :accessor colour-scheme-saturations)
    (values :type lmh-values
-       :initarg :values
-       :initform (make-instance '<lmh-values>)
-       :accessor colour-scheme-values))
+           :initarg :values
+           :initform (make-instance '<lmh-values>)
+           :accessor colour-scheme-values))
   (:documentation "The values describing a colour scheme."))
 
 (defmethod print-object ((object <colour-scheme>) stream)
   "Make a human readable string describing the colour scheme."
   (print-unreadable-object (object stream :type t :identity t)
     (format stream "(HUES: tbd SATURATIONS: tbd VALUES: tbd)")))
+
+(defun all-colours (scheme)
+  "For the gui to show every possible colour."
+  (loop for hue being the hash-value of (colour-scheme-hues scheme)
+        append (loop for saturation
+                       across (lmh-all-values (colour-scheme-saturations scheme))
+                     append (loop for brightness
+                                    across (lmh-all-values (colour-scheme-values scheme))
+                                  collect (make-instance '<colour>
+                                                         :hue hue 
+                                                         :saturation saturation
+                                                         :brightness brightness)))))
 
 #|(demethod print-colour-scheme (scheme)
   (log:info  "Colour Scheme:")
@@ -394,27 +445,18 @@
                     +maximum-spec-probability+)
         collect spec))
 
-;; Object symbols used in colouring
-
-(defparameter *object-symbol-choices*
-  '(leaf vein blade branch flower tendril))
-
-(defparameter *all-object-symbols*
-  (cons 'background *object-symbol-choices*))
-
-(defun object-symbol (obj)
-  (declare (ignore obj))
-  (choose-one-of *object-symbol-choices*))
+(defun default-colour-scheme  ()
+  (make-colour-scheme *all-object-symbols*
+                      7
+                      7
+                      0.3
+                      0.6))
 
 ;;FIXME: change to apply-colours and pass in the iterator function to pass
 ;;       the lambda to.
-(defun make-colour-scheme-applier-fun ()
+(defun make-colour-scheme-applier-fun (scheme)
   "Make a colour scheme applier."
   (let ((applier (make-instance '<colour-scheme-applier>
-                                :scheme (make-colour-scheme *all-object-symbols*
-                                                            7
-                                                            7
-                                                            0.3
-                                                            0.6)
+                                :scheme scheme
                                 :spec-list (chooser-spec))))
     (lambda (object) (choose-colour-for applier (object-symbol object)))))
