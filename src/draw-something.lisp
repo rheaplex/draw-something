@@ -17,30 +17,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:draw-something
-  (:use #:cl)
-  (:import-from #:choosing
-                #:random-init
-                #:random-range)
-  (:import-from #:colour
-                #:make-colour-scheme-applier-fun)
-  (:import-from #:geometry
-                #:<rectangle>)
-  (:import-from #:drawing
-                #:<drawing>
-                #:<pen-parameters>
-                #:do-drawing-forms
-                #:draw-planes-figures
-                #:figure-generation-methods
-                #:fill-colour
-                #:make-composition-points
-                #:make-planes
-                #:make-planes-skeletons)
-  (:import-from #:postscript
-                #:write-drawing)
-  (:export #:draw-something))
-
-(in-package #:draw-something)
+(in-package :draw-something)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Let's go!
@@ -81,9 +58,9 @@
 
 (defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
   "Make the drawing data structures and create the image."
-  (log:info "Starting draw-something.")
+  (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
-  (let* ((choose-colour (make-colour-scheme-applier-fun))
+  (let* ((choose-colour (make-colour-scheme-applier-fun (default-colour-scheme)))
          (drawing-bounds (make-instance '<rectangle>
                                         :x +drawing-x+
                                         :y +drawing-y+
@@ -99,7 +76,7 @@
     (do-drawing-forms (drawing form)
       (setf (fill-colour form)
             (funcall choose-colour form)))
-    (log:info "Finished drawing.")
+    (log-info "Finished drawing.")
     (let ((filepath (write-drawing +page-size+
                                    drawing
                                    (or savedir
@@ -109,4 +86,4 @@
                                        (generate-filename)))))
       ;; Make sure this goes to stdout
       (format t "Wrote file to: ~a~%" filepath))
-    (log:info "Finished draw-something.")))
+    (log-info "Finished draw-something.")))

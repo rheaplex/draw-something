@@ -1,4 +1,4 @@
-;; choosing.lisp - Choosing elements in various ways.
+;; random.lisp - Choosing elements in various ways.
 ;; Copyright (C) 2006, 2016, 2021 Rhea Myers.
 ;; Copyright (C) 2023 Myers Studio Ltd.
 ;;
@@ -17,44 +17,30 @@
 ;; You should have received a copy of the GctNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:draw-something.choosing
-  (:use #:cl)
-  (:nicknames #:choosing)
-  (:import-from #:MT19937
-                #:init-random-state)
-  (:shadowing-import-from #:MT19937
-                          #:make-random-object
-                          #:random
-                          #:*random-state*)
-  (:export #:choose-n-of
-           #:choose-n-of-ordered
-           #:choose-one-of
-           #:random-init
-           #:random-number
-           #:random-range
-           #:random-range-inclusive
-           #:prefs-list-lambda
-           #:prefs-range))
+(in-package :draw-something)
 
-(in-package #:draw-something.choosing)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Random choice functions.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun random-init (seed)
   "Initialize the random number generator."
-  (setf *random-state*
-        (make-random-object :state (init-random-state seed))))
+  (setf mt19937:*random-state*
+        (mt19937::make-random-object
+         :state (mt19937:init-random-state seed))))
 
 (defun random-number (a)
   "The built-in random doesn't like 0.0 ."
   (if (= a 0)
       a
-    (random a)))
-
+      (mt19937:random a)))
+  
 (defun random-range (a b)
   "Make a random number from a to below b."
   (let ((range (- b a)))
     (if (= range 0)
         a
-        (+ (random range) a))))
+        (+ (mt19937:random range) a))))
 
 (defun random-range-inclusive (a b)
   "Make a random number from a to below b."
@@ -62,28 +48,28 @@
   (let ((range (+ (- b a) 1)))
     (if (= range 0)
         a
-        (+ (random range) a))))
+        (+ (mt19937:random range) a))))
 
 (defgeneric choose-one-of (possibilities)
   (:documentation "Choose an item randomly from within the argument."))
 
 (defmethod choose-one-of ((possibilities list))
   "Choose one or none of the options."
-  (nth (random (length possibilities)) possibilities))
+  (nth (mt19937:random (length possibilities)) possibilities))
 
 (defmethod choose-one-of ((possibilities vector))
   "Choose one or none of the options."
-  (aref possibilities (random (length possibilities))))
+  (aref possibilities (mt19937:random (length possibilities))))
 
 (defun maybe-choose-one-of (possibilities)
   "Choose one or none of the options."
-  (when (< (random 1.0) 0.5)
+  (when (< (mt19937:random 1.0) 0.5)
     (choose-one-of possibilities)))
 
 (defun maybe-choose-some-of (possibilities probability)
   "Choose none or more possibilities when random 1.0 < probability for it."
   (loop for item in possibilities
-     when (< (random 1.0) probability)
+     when (< (mt19937:random 1.0) probability)
      collect item))
 
 (defgeneric choose-n-of (n choices)
@@ -119,7 +105,7 @@
   (loop for i below (length l) do
     (rotatef
      (elt l i)
-     (elt l (random (length l)))))
+     (elt l (mt19937:random (length l)))))
   l)
 
 (defmethod shuffle ((v vector))
@@ -148,7 +134,7 @@
 
 (defun prefs-cond (spec)
   "Make a cond to choose an option. eg (prefs 4 'a 4 'b 2 'c)"
-  `(let ((i (random ,(prefs-range spec))))
+  `(let ((i (mt19937:random ,(prefs-range spec))))
     (cond
       ,@(loop for prob in spec by #'cddr
               for val in (cdr spec) by #'cddr
