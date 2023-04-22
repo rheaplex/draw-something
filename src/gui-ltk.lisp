@@ -1,4 +1,4 @@
-;; gui.lisp - A simple ltk gui for draw-something.
+;; gui-ltk.lisp - A simple ltk gui for draw-something.
 ;; Copyright (C) 2023 Myers Studio Ltd.
 ;;
 ;; This file is part of draw-something.
@@ -16,67 +16,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:draw-something.gui
-  (:use :common-lisp)
-  (:nicknames #:gui)
-  (:import-from #:choosing
-                #:random-init
-                #:random-range)
-  (:import-from #:colour
-                #:hsb-to-rgb-hex
-                #:make-colour-scheme-applier-fun)
-  (:import-from #:geometry
-                #:<point>
-                #:<polyline>
-                #:<rectangle>
-                #:x
-                #:y
-                #:height
-                #:width
-                #:bounds
-                #:append-point
-                #:convex-hull
-                #:distance
-                #:first-point
-                #:highest-leftmost-point
-                #:include-point
-                #:intersects-none
-                #:last-point
-                #:make-polyline-from-points
-                #:point-count
-                #:points
-                #:random-points-at-rectangle-corners
-                #:random-points-in-rectangle
-                #:random-points-on-rectangle)
-  (:import-from #:drawing
-                #:<drawing>
-                #:<pen-parameters>
-                #:composition-points
-                #:do-drawing-forms
-                #:draw-planes-figures
-                #:figures
-                #:figure-generation-methods
-                #:fill-colour
-                #:forms
-                #:ground
-                #:make-composition-points
-                #:make-planes
-                #:make-planes-skeletons
-                #:number-of-planes
-                #:outline
-                #:pen-distance
-                #:planes
-                #:skeleton)
-  (:export #:make-drawing
-           #:show-colour
-           #:show-colour-scheme
-           #:show-drawing
-           #:show-drawing-composition-points
-           #:show-plane
-           #:show-plane-skeletons
-           #:show-planes-skeletons))
+(defpackage #:draw-something.gui-ltk
+  (:use :common-lisp :draw-something)
+  (:nicknames #:ltk-gui)
 
-(in-package #:draw-something.gui)
+(in-package #:draw-something.gui-ltk)
 
 (defparameter +pen-outline-distance+ 5.2)
 (defparameter +pen-outline-distance-tolerance+ 0.7)
@@ -95,19 +39,20 @@
                                 +pen-outline-distance-tolerance+))
 
 ;; 11in x 14in
-(defparameter +page-size+ '(1056 . 1344))
+(defparameter +page-width+ 960)
+(defparameter +page-height+ 540)
 (defparameter +drawing-width+ 900)
-(defparameter +drawing-height+ 900)
-(defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
-(defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
+(defparameter +drawing-height+ 480)
+(defparameter +drawing-x+ (/ (- +page-width+ +drawing-width+) 2.0))
+(defparameter +drawing-y+ (/ (- +page-height+ +drawing-height+) 2.0))
 
 (defparameter +planes-count+ 4)
 
 (defun make-drawing (&key (randseed nil))
   "Make the drawing data structures and create the image."
-  (log:info "Starting draw-something.")
+  (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
-  (let ((choose-colour (make-colour-scheme-applier-fun))
+  (let ((choose-colour (make-colour-scheme-applier-fun (default-colour-scheme)))
         (drawing-bounds (make-instance '<rectangle>
                                        :x +drawing-x+
                                        :y +drawing-y+
@@ -117,28 +62,50 @@
                    :bounds drawing-bounds
                    :ground (funcall choose-colour 'background))))
 
+
+
+(defmacro show-with-canvas-bounds ((canvas-var-name width height title &rest title-format-args) &body body)
+  `(ltk:with-ltk ()
+     (ltk:wm-title ltk:*tk* (format nil ,title ,@title-format-args))
+     (let ((,canvas-var-name (make-instance 'ltk:canvas
+                                            :width ,width
+                                            :height ,height)))
+       ;;(ltk:move-all ,canvas-var-name +drawing-x+
+       ;;              (- (- +drawing-height+ +drawing-y+)))
+       (ltk:scale ,canvas-var-name 1 -1)
+       ,@body
+       (ltk:pack ,canvas-var-name :expand 1 :fill :both))))
+
+(defmacro show-with-canvas ((canvas-var-name title &rest title-format-args) &body body)
+  `(show-with-canvas-bounds (canvas-var-name +drawing-x+ +drawing-y+
+                                             ,title ,@title-format-args)
+     ,@body
+     (let ((bounds (ltk:create-rectangle ,canvas-var-name
+                                         +drawing-x+
+                                         +drawing-y+
+                                         (+ +drawing-x+ +drawing-width+)
+                                         (+ +drawing-y+ +drawing-height+))))
+       (ltk:itemconfigure ,canvas-var-name bounds :fill "")
+       (ltk:itemconfigure ,canvas-var-name bounds :outline "magenta")
+       (ltk:itemconfigure ,canvas-var-name bounds :width 2))
+     (ltk:pack ,canvas-var-name :expand 1 :fill :both)))
+
 (defun show-colour (colour)
-  "Display a sampel of a single <colour>."
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - colour ~a" colour))
-    (let ((c (make-instance 'ltk:canvas
-                            :width 256
-                            :height 256
-                            :background (hsb-to-rgb-hex colour))))
-      (ltk:pack c :expand 1 :fill :both))))
+  "Display a sample of a single <colour>."
+  (show-with-canvas-bounds (c 256 256 "draw-something - colour ~a" colour)
+    (ltk:itemconfigure c
+                       (ltk:create-rectangle c 0 0 256 256)
+                       :fill (hsb-to-rgb-hex colour))))
 
 (defparameter +colours-window-width+ 2048)
 (defparameter +colours-window-height+ 256)
 
 (defun show-colours (colours)
   "Show a palette/list of <colours>."
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - colours ~a" colours))
+  (show-with-canvas-bounds (c +colours-window-width+ +colours-window-height+
+                              "draw-something - colours ~a" colours)
     (let* ((num-colours (length colours))
-           (bar-width (/ +colours-window-width+ num-colours))
-           (c (make-instance 'ltk:canvas
-                             :width +colours-window-width+
-                             :height +colours-window-height+)))
+           (bar-width (/ +colours-window-width+ num-colours)))
       (loop for i from 0 below (length colours)
             for colour in colours
             do (let ((rgb (hsb-to-rgb-hex colour)))
@@ -148,8 +115,7 @@
                                                           0
                                                           (* (+ i 1) bar-width)
                                                           +colours-window-height+)
-                                    :fill rgb)))
-      (ltk:pack c :expand 1 :fill :both))))
+                                    :fill rgb))))))
 
 (defun show-colour-scheme (scheme)
   ;;FIXME batch or row the colours for each symbol/hue
@@ -165,15 +131,9 @@
                             (+ (x point) +point-radius+)
                             (+ (y point) +point-radius+))))
 
-(defun show-points (points width height)
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - points ~a" points))
-    (let ((c (make-instance 'ltk:canvas :width width :height height)))
-      (create-points c points)
-      (ltk:pack c :expand 1 :fill :both))))
-
 (defun show-drawing-composition-points (drawing)
-  (show-points (composition-points drawing) 900 900))
+    (show-with-canvas (c "draw-something - composition points ~a" drawing)
+      (create-points c (composition-points drawing))))
 
 (defparameter +layer-skeleton-colours+ #("red" "orange" "green" "blue" "pink" "purple" "brown"))
 
@@ -191,12 +151,10 @@
 (defun create-polygon-from-polyline (c polyline)
   (ltk:create-polygon c (polyline-to-line-coords polyline)))
 
-(defun show-polyline (polyline width height)
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - polyline ~a" polyline))
-    (let ((c (make-instance 'ltk:canvas :width width :height height)))
-      (create-line-from-polyline c polyline)
-      (ltk:pack c :expand 1 :fill :both))))
+(defun show-polyline (polyline)
+  (show-with-canvas (c "draw-something - polyline ~a" polyline)
+    (create-points c (geometry:points polyline))
+    (create-line-from-polyline c polyline)))
 
 (defun create-form-skeleton-lines (c form colour)
   (loop for polyline across (drawing:skeleton form)
@@ -213,27 +171,23 @@
         do (create-figure-skeletons-lines c figure colour)))
 
 (defun show-plane-skeletons (drawing plane-index)
-  (ltk:with-ltk ()
-    (let ((c (make-instance 'ltk:canvas :width 900 :height 900))
-          (plane (aref (drawing:planes drawing) plane-index))
-          (colour (aref +layer-skeleton-colours+ plane-index)))
-      (ltk:wm-title ltk:*tk* (format nil "draw-something - planes skeletons for ~a ~a #~d" plane drawing plane-index))
-      (create-plane-skeletons-lines c plane colour)
-      (ltk:pack c :expand 1 :fill :both))))
+  (let ((plane (aref (drawing:planes drawing) plane-index))
+        (colour (aref +layer-skeleton-colours+ plane-index)))
+    (show-with-canvas (c "draw-something - planes skeletons for ~a ~a #~d"
+                         plane drawing plane-index)
+      (create-plane-skeletons-lines c plane colour))))
 
 (defun show-planes-skeletons (drawing)
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - planes skeletons for ~a" drawing))
-    (let ((c (make-instance 'ltk:canvas :width 900 :height 900)))
-      (loop for colour across +layer-skeleton-colours+
-            for plane across (drawing:planes drawing)
-            do (loop for figure across (drawing:figures plane)
-                     do (loop for form across (drawing:forms figure)
-                              do (loop for polyline across (drawing:skeleton form)
-                                       do (ltk:itemconfigure c
-                                                             (ltk:create-line c (polyline-to-line-coords polyline))
-                                                             :fill colour)))))
-      (ltk:pack c :expand 1 :fill :both))))
+  (show-with-canvas (c "draw-something - planes skeletons for ~a"
+                        drawing)
+    (loop for colour across +layer-skeleton-colours+
+          for plane across (drawing:planes drawing)
+          do (loop for figure across (drawing:figures plane)
+                   do (loop for form across (drawing:forms figure)
+                            do (loop for polyline across (drawing:skeleton form)
+                                     do (ltk:itemconfigure c
+                                                           (ltk:create-line c (polyline-to-line-coords polyline))
+                                                           :fill colour)))))))
 
 (defun create-form-outline-line (c form colour)
   (ltk:itemconfigure c
@@ -269,78 +223,93 @@
   (create-plane-skeletons-lines c plane colour))
 
 (defun show-plane (drawing plane-index)
-  (ltk:with-ltk ()
-    (let ((c (make-instance 'ltk:canvas :width 900 :height 900))
-          (colour (aref +layer-skeleton-colours+ plane-index))
+  (show-with-canvas (c "draw-something - plane #~d ~a"
+                       plane-index drawing)
+    (let ((colour (aref +layer-skeleton-colours+ plane-index))
           (plane (aref (drawing:planes drawing) plane-index)))
-      (ltk:wm-title ltk:*tk* (format nil "draw-something - planes skeletons for ~a #~d ~a" drawing plane-index))
-      (create-plane c plane colour)
-      (ltk:pack c :expand 1 :fill :both))))
+      (create-plane c plane colour))))
   
 (defun show-drawing (drawing)
-  (ltk:with-ltk ()
-    (ltk:wm-title ltk:*tk* (format nil "draw-something - drawing ~a" drawing))
-    (let ((c (make-instance 'ltk:canvas :width 900 :height 900)))
-      (loop for colour across +layer-skeleton-colours+
-            for plane across (drawing:planes drawing)
-            do (create-plane c plane colour))
-      (create-points c (composition-points drawing))
-      (ltk:pack c :expand 1 :fill :both))))
+  (show-with-canvas (c "draw-something - drawing ~a"
+                       drawing)
+    (loop for colour across +layer-skeleton-colours+
+          for plane across (drawing:planes drawing)
+          do (create-plane c plane colour))
+    (create-points c (composition-points drawing))))
 
 #|
 
-(defvar d (gui:make-drawing))
+(defvar d (ltk-gui:make-drawing))
 
-(gui:show-colour (drawing:ground d))
+(ltk-gui:show-colour (drawing:ground d))
 
 (drawing:make-composition-points d (choosing:random-range 8 42))
-(gui:show-drawing-composition-points d)
+(ltk-gui:show-drawing-composition-points d)
 
-(drawing:make-planes d (drawing:figure-generation-methods gui::+planes-count+))
+(drawing:make-planes d (drawing:figure-generation-methods ltk-gui::+planes-count+))
 (drawing:make-planes-skeletons d)
-(gui:show-plane-skeletons d 1)
-(gui:show-planes-skeletons d)
+(ltk-gui:show-plane-skeletons d 1)
+(ltk-gui:show-planes-skeletons d)
 
 (drawing:draw-planes-figures d)
 
-(gui:show-plane d 1)
+(ltk-gui:show-plane d 1)
 
-(gui:show-drawing d)
+(ltk-gui:show-drawing d)
 
 (defvar colour-scheme (colour::default-colour-scheme))
 (defvar choose-colour (colour::make-colour-scheme-applier-fun colour-scheme))
-(gui:show-colour-scheme colour-scheme)
-
+(ltk-gui:show-colour-scheme colour-scheme)
 
 (drawing:do-drawing-forms (d form)
   (setf (drawing:fill-colour form)
   (funcall choose-colour form)))
 
-(gui:show-drawing d)
+(ltk-gui:show-drawing d)
 
 |#
 
 #|
 
-(defvar d (gui:make-drawing))
+(load "src/load-ltk-gui")
+
+(defvar d (ltk-gui:make-drawing))
 
 (drawing:make-composition-points d (choosing:random-range 8 42))
-(gui:show-drawing-composition-points d)
+(ltk-gui:show-drawing-composition-points d)
 
-(drawing:make-planes d (drawing:figure-generation-methods gui::+planes-count+))
+(drawing:make-planes d (drawing:figure-generation-methods ltk-gui::+planes-count+))
 (drawing:make-planes-skeletons d)
-(gui:show-planes-skeletons d)
+(ltk-gui:show-planes-skeletons d)
 
 (drawing:draw-planes-figures d)
 
 (defvar colour-scheme (colour::default-colour-scheme))
 (defvar choose-colour (colour::make-colour-scheme-applier-fun colour-scheme))
-(gui:show-colour-scheme colour-scheme)
+(ltk-gui:show-colour-scheme colour-scheme)
 
 (drawing:do-drawing-forms (d form)
   (setf (drawing:fill-colour form)
   (funcall choose-colour form)))
 
-(gui:show-drawing d)
+(ltk-gui:show-drawing d)
+
+|#
+
+#|
+
+(setf d (ltk-gui:make-drawing))
+
+(drawing:make-composition-points d (choosing:random-range 32 128))
+(drawing:make-planes d (drawing:figure-generation-methods ltk-gui::+planes-count+))
+(drawing:make-planes-skeletons d)
+(drawing:draw-planes-figures d)
+(defvar colour-scheme (colour::default-colour-scheme))
+(defvar choose-colour (colour::make-colour-scheme-applier-fun colour-scheme))
+(drawing:do-drawing-forms (d form)
+  (setf (drawing:fill-colour form)
+  (funcall choose-colour form)))
+
+(ltk-gui:show-drawing d)
 
 |#

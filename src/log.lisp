@@ -16,23 +16,20 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:draw-something.log
-  (:use #:cl)
-  (:nicknames #:log)
-  (:export #:info
-           #:err))
+(in-package :draw-something)
 
-(in-package :draw-something.log)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Simple logging
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar *log-stream* *error-output*)
 
-(defmacro info (format-string &rest format-args)
+(defmacro log-info (format-string &rest format-args)
   `(progn
-     (format ,*log-stream* ,format-string ,@format-args)
-     (terpri ,*log-stream*)))
+     (format *log-stream* ,format-string ,@format-args)
+     (terpri *log-stream*)))
 
-(defmacro err (format-string &rest format-args)
+(defmacro log-err (format-string &rest format-args)
   `(progn
-     (format ,*log-stream* ,format-string ,@format-args)
-     (terpri ,*log-stream*)))
-
+     (format *log-stream* ,format-string ,@format-args)
+     (terpri *log-stream*)))

@@ -1,2 +1,5 @@
 #!/bin/sh
-ros --eval '(load "src/run")'
+ros \
+    --source-registry ".:./lib/" \
+    --load-system "draw-something" \
+    --eval "(draw-something:draw-something)"

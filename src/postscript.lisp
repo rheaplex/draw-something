@@ -17,36 +17,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:draw-something.postscript
-  (:use #:cl)
-  (:nicknames #:postscript)
-  (:import-from #:colour
-                #:<colour>
-                #:hsb-to-rgb)
-  (:import-from #:geometry
-                #:<rectangle>
-                #:x
-                #:y
-                #:width
-                #:height
-                #:inset-rectangle)
-  (:import-from #:drawing
-                #:<drawing>
-                #:<figure>
-                #:<form>
-                #:bounds
-                #:figures
-                #:fill-colour
-                #:forms
-                #:ground
-                #:outline
-                #:planes
-                #:points
-                #:skeleton)
-  (:export
-   #:write-drawing))
+(in-package :draw-something)
 
-(in-package #:draw-something.postscript)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Writing the drawing as an EPS file.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar *ps-stream* t)
 
@@ -167,7 +142,7 @@
 
 (defmethod write-drawing (page-size (the-drawing <drawing>) directory filename)
   "Write the drawing"
-  ;;(log:info "Writing drawing to file ~a" filename)
+  ;;(log-info "Writing drawing to file ~a" filename)
   (ensure-directories-exist directory)
   (let ((filepath (merge-pathnames (make-pathname
                                     :name filename
