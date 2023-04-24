@@ -43,6 +43,14 @@
       (include-point (bounds poly) pt)
       (setf (bounds poly) (rectangle-from-point pt))))
 
+(defun make-polyline (&key (points nil))
+  "Constructor function."
+  (let ((poly (make-instance '<polyline>)))
+    (when points
+      (loop for point in points
+            do (append-point poly points)))
+    poly))
+
 (defun point-count (poly)
   "Get the number of points in the polyline"
   (length (points poly)))
@@ -58,14 +66,14 @@
 
 (defun make-random-polyline-in-rectangle (rect count)
   "Create a polyline with the given number of points in the given bounds."
-  (let ((poly (make-instance '<polyline>)))
+  (let ((poly (make-polyline)))
     (dotimes (i count)
       (append-point poly (random-point-in-rectangle rect)))
     poly))
 
 (defun make-polyline-from-points (points)
   "Create a polyline with the given points."
-  (let ((poly (make-instance '<polyline>)))
+  (let ((poly (make-polyline)))
     (loop for p across points
       do (append-point poly p))
     poly))
@@ -119,9 +127,8 @@
   (if (> (length (points poly)) 2)
       (let ((pts (points poly))
             (numpts (length (points poly)))
-            (ray-line (make-instance '<line>
-                                     :from p
-                                     :to (translate-point p 10000.0 0.0)))
+            (ray-line (make-line :from p
+                                 :to (translate-point p 10000.0 0.0)))
             (crossings 0))
         (dotimes (i (- numpts 1))
           (let ((j (mod (+ i 1)
@@ -136,28 +143,15 @@
   (:documentation "Convert the geometry to a polyline approximation."))
 
 (defmethod as-polyline ((rect <rectangle>))
-  "Convert a rectangle into a five-point (closed) polyline"
-  (make-instance '<polyline>
-         :bounds rect
-         :points (vector (make-instance '<point>
-                        :x (x rect)
-                        :y (y rect))
-                 (make-instance '<point>
-                        :x (+ (x rect)
-                              (width rect))
-                        :y (y rect))
-                 (make-instance '<point>
-                        :x (+ (x rect)
-                              (width rect))
-                        :y (+ (y rect)
-                              (height rect)))
-                 (make-instance '<point>
-                        :x (x rect)
-                        :y (+ (y rect)
-                              (height rect)))
-                 (make-instance '<point>
-                        :x (x rect)
-                        :y (y rect)))))
+  "Convert a rectangle into a five-point (closed) polyline"\
+  (make-polyline :points (vector (make-point :x (x rect) :y (y rect))
+                                 (make-point :x (+ (x rect) (width rect))
+                                             :y (y rect))
+                                 (make-point :x (+ (x rect) (width rect))
+                                             :y (+ (y rect) (height rect)))
+                                 (make-point :x (x rect)
+                                             :y (+ (y rect) (height rect)))
+                                 (make-point :x (x rect) :y (y rect)))))
 
 (defmacro do-poly-lines ((sym poly) &body body)
   "Apply fun to each line in the polyline, or not if there is only 1 point."
@@ -169,9 +163,8 @@
               (,sym nil))
           (dotimes (,i (- (point-count ,poly) 1))
             (setf ,current-point (aref ,poly-points (+ ,i 1)))
-            (setf ,sym (make-instance '<line>
-                                      :from ,previous-point
-                                      :to ,current-point))
+            (setf ,sym (make-line :from ,previous-point
+                                  :to ,current-point))
             ,@body
             (setf ,previous-point ,current-point)))))))
 
@@ -237,3 +230,18 @@
                (setf result t)
                (break)))
     result))
+
+(defun convex-hull (the-points)
+  "Get the convex hull of an array of points."
+  (let* ((first-point (highest-leftmost-point-in-list the-points))
+         (current-point first-point)
+         (next-point nil)
+         (hull (make-array 1 :adjustable t :fill-pointer 0)))
+    (vector-push-extend first-point hull)
+    (loop until (and (not (eq next-point nil))
+                     (eq next-point first-point))
+          do (setf next-point
+                   (point-with-all-left current-point the-points))
+          (vector-push-extend next-point hull)
+          (setf current-point next-point))
+    (make-polyline :points hull)))

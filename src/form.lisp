@@ -38,30 +38,35 @@
              :documentation "The guide shapes for the outline.")
    (outline :accessor outline
             :type polyline
-            :initform (make-instance '<polyline>)
+            :initform (make-polyline)
             :documentation "The outlines for the skeleton. Will be outline_s_.")
    (bounds :accessor bounds
            :type rectangle
-           :initform (make-instance '<rectangle>)
            :initarg :bounds
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
                 :type <colour>
                 :initarg :colour
-                :initform (make-instance '<colour>
-                                         :hue 0.0
-                                         :saturation 1.0
-                                         :brightness 1.0)
+                :initform (make-colour :hue 0.0
+                                       :saturation 1.0
+                                       :brightness 1.0)
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
                   :type <colour>
                   :initarg :colour
-                  :initform (make-instance '<colour>
-                                           :hue 0.0
-                                           :saturation 0.0
-                                           :brightness 0.0)
+                  :initform (make-colour :hue 0.0
+                                         :saturation 0.0
+                                         :brightness 0.0)
                   :documentation "The outline colour of the form."))
   (:documentation "A form drawn in the drawing."))
+
+
+(defun make-form (&key skeleton fill-colour stroke-colour)
+  "constructor function"
+  (make-instance '<form> :skeleton skeleton
+                         :bounds (bounds skeleton)
+                         :fill-colour fill-colour
+                         :stroke-colour stroke-colour))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
@@ -83,11 +88,9 @@
   (let ((start-point nil))
     (loop for skel across form-skeleton
           do (let* ((hp (highest-leftmost-point skel))
-                    (candidate
-                      (make-instance '<point>
-                                     :x (x hp)
-                                     :y (+ (y hp)
-                                           (pen-distance pen-params)))))
+                    (candidate (make-point :x (x hp)
+                                           :y (+ (y hp)
+                                                 (pen-distance pen-params)))))
                (when (or (not start-point)
                          (> (y candidate) (y start-point))
                          (and (= (y candidate) (y start-point))
@@ -97,20 +100,18 @@
 
 (defun make-form-turtle (the-form pen-params)
   "Make the turtle to draw around the form."
-  (make-instance '<turtle>
-                 :location (make-form-start-point (skeleton the-form)
-                                                  pen-params)
-                 :direction (- (/ pi 2.0))))
+  (make-turtle :location (make-form-start-point (skeleton the-form)
+                                                pen-params)
+               :direction (- (/ pi 2.0))))
 
-(defun make-form-from-points (points)
+#|(defun make-form-from-points (points)
   "Make a form, ready to be started."
   (log-info "Making form points.")
   (let* ((skel (make-polyline-from-points points))
-         (the-form (make-instance '<form>
-                                  :skeleton (vector skel)
-                                  :bounds (bounds skel))))
-    ;;(draw-form the-form) ;; Remove for codelets
-    the-form))
+         (the-form (make-form :skeleton (vector skel)
+                              :bounds (bounds skel)))
+         (draw-form the-form)
+the-form)))|#
 
 (defun path-ready-to-close (the-form pen-params)
   (and (> (form-point-count the-form) 2) ;; Ignore very first point

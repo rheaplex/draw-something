@@ -43,9 +43,16 @@
 ;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-hull-figures (the-points count low-count high-count)
-  "Make count hull figures. They may overlap or touch. Todo: prevent this."
-  (log-info "Making ~d hull figure(s) for plane." count)
+#|
+
+(defun make-hull-figure (the-points fill stroke)
+  "Make a hull figure."
+  (log-info "Making hull figure" count)
+  (add-form (make-figure)
+            (make-hull-form :skeleton the-points
+                            :fill-colour fill-colour
+                            :)
+  (make-figure-
   (map-into (make-array count)
             (lambda ()
               (make-figure-from-points
@@ -103,13 +110,10 @@
 (defun make-line-figure (points)
   "Make a line figure using two of the points."
   (let ((p1p2 (choose-n-of 2 points)))
-    (make-instance '<figure>
-                   :forms
-                   (make-instance '<form>
-                                  :contents
-                                  (make-instance '<line>
-                                                 :from (first p1p2)
-                                                 :to (second p1p2))))))
+    (make-figure :forms
+                 (make-form :contents
+                            (make-line :from (first p1p2)
+                                       :to (second p1p2))))))
 
 (defun make-line-figures (points count)
   "Make count line figures. They may overlap or touch. Todo: ensure they don't."
@@ -158,15 +162,18 @@
                                     (min (length points)
                                          +max-points-per-plane+))))
 
+|#
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *figure-generation-method-list*
   '(make-hull-figures-for-plane
-    make-polygon-figures-for-plane
-    make-line-figures-for-plane
-    make-point-figures-for-plane))
+    ;;make-polygon-figures-for-plane
+    ;;make-line-figures-for-plane
+    ;;make-point-figures-for-plane
+    ))
 
 (defun figure-generation-methods (count)
   (choose-n-of-ordered count *figure-generation-method-list*))

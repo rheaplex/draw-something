@@ -33,6 +33,9 @@
            :initarg :planes
            :initform (make-array 1 :adjustable t :fill-pointer 0)
            :documentation "The planes of the drawing.")
+   (colour-scheme-applier :accessor colour-scheme-applier
+                          :initarg :colour-scheme-applier
+                          :documentation "The colour for the drawing,")
    (ground :accessor ground
            :type <colour>
            :initarg :ground
@@ -44,6 +47,15 @@
                        :documentation "The points for the composition"))
   (:documentation "A drawing in progress."))
 
-(defmethod initialize-instance :after ((drawing <drawing>) &key)
+(defun make-drawing (&key bounds colour-scheme-applier)
   (log-info "Making drawing.")
-  (log-info "Bounds: ~a ." (bounds drawing)))
+  (log-info "Bounds: ~a ." bounds)
+  (make-instance '<drawing>
+                 :bounds bounds
+                 :colour-scheme-applier colour-scheme-applier 
+                 :ground (choose-colour-for colour-scheme-applier
+                                             'background)))
+
+
+(defun choose-colour (drawing symbol)
+  (choose-colour-for (colour-scheme-applier drawing) symbol))

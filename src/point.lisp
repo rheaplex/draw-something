@@ -37,6 +37,10 @@
   (:documentation "A simple cartesian point on the picture plane (or page).
                    y goes up"))
 
+(defun make-point (&key x y)
+  "Constructor function."
+  (make-instance '<point> :x x :y y))
+
 (defun point= (left right)
   "The eql method for points"
   (and (= (x left) (x right))
@@ -65,15 +69,11 @@
   "Make a point placed randomly within the given bounds."
   (multiple-value-bind
         (x-dist y-dist) (random-co-ordinates width height)
-    (make-instance '<point>
-                   :x (+ x x-dist)
-                   :y (+ y y-dist))))
+    (make-point :x (+ x x-dist) :y (+ y y-dist))))
 
 (defun translate-point (p by-x by-y)
   "Make a translated copy of the point."
-  (make-instance '<point>
-                 :x (+ (x p) by-x)
-                 :y (+ (y p) by-y)))
+  (make-point :x (+ (x p) by-x) :y (+ (y p) by-y)))
 
 (defun co-ordinates-at-angle-around-point-co-ordinates (a b r theta)
   "Get the point on the circumference of the circle at theta."
@@ -180,18 +180,3 @@
           when (all-points-leftp p candidate points)
           do (vector-push-extend candidate candidates))
     (furthest-point p candidates)))
-
-(defun convex-hull (the-points)
-  "Get the convex hull of an array of points."
-  (let* ((first-point (highest-leftmost-point-in-list the-points))
-         (current-point first-point)
-         (next-point nil)
-         (hull (make-array 1 :adjustable t :fill-pointer 0)))
-    (vector-push-extend first-point hull)
-    (loop until (and (not (eq next-point nil))
-                     (eq next-point first-point))
-          do (setf next-point
-                   (point-with-all-left current-point the-points))
-          (vector-push-extend next-point hull)
-          (setf current-point next-point))
-    (make-instance '<polyline> :points hull)))

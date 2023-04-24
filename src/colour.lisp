@@ -38,6 +38,12 @@
                :documentation "The brightness of the colour."))
   (:documentation "A colour"))
 
+(defun make-colour (&key hue saturation brightness)
+  "Constuctor function."
+  (make-instance '<colour> :hue hue
+                           :saturation saturation
+                           :brightness brightness))
+
 (defun hsb-to-rgb (col)
   "Convert the hue/saturation/brightness colour to RGB."
   (if (= (saturation col) 0)

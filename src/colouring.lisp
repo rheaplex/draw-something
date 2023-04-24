@@ -60,13 +60,13 @@
      (medium-count (random-range 1 (- count low-count 1)))
      (high-count (- count medium-count low-count)))
     (make-instance '<lmh-values>
-           :lows (make-random-low-values low-count
-                         medium-start)
-           :mediums (make-random-medium-values medium-count
-                               medium-start
-                               high-start)
-           :highs (make-random-high-values high-count
-                           high-start))))
+                   :lows (make-random-low-values low-count
+                                                 medium-start)
+                   :mediums (make-random-medium-values medium-count
+                                                       medium-start
+                                                       high-start)
+                   :highs (make-random-high-values high-count
+                                                   high-start))))
 
 (defun random-low-value (lmh)
   "Randomly choose a value from the list of low values of the lmh."
@@ -158,10 +158,9 @@
                        across (lmh-all-values (colour-scheme-saturations scheme))
                      append (loop for brightness
                                     across (lmh-all-values (colour-scheme-values scheme))
-                                  collect (make-instance '<colour>
-                                                         :hue hue 
-                                                         :saturation saturation
-                                                         :brightness brightness)))))
+                                  collect (make-colour :hue hue 
+                                                       :saturation saturation
+                                                       :brightness brightness)))))
 
 #|(demethod print-colour-scheme (scheme)
   (log-info  "Colour Scheme:")
@@ -205,12 +204,11 @@
   "Choose a colour for the hue id using the sv-spec eg 'lm, 'hh, 'ml."
   (multiple-value-bind
     (saturationspec valuespec) (sv-spec-components sv-spec)
-    (make-instance '<colour>
-           :hue (symbol-colour-scheme-hue scheme hue-id)
-           :saturation (random-colour-scheme-saturation scheme
-                                saturationspec)
-           :brightness (random-colour-scheme-value scheme
-                               valuespec))))
+    (make-colour :hue (symbol-colour-scheme-hue scheme hue-id)
+                 :saturation (random-colour-scheme-saturation scheme
+                                                              saturationspec)
+                 :brightness (random-colour-scheme-value scheme
+                                                         valuespec))))
 
 ;; Generate additive colour range
 
@@ -237,49 +235,50 @@
 
 (defclass <colour-scheme-applier> ()
   ((scheme :type colour-scheme
-       :accessor applier-scheme
-       :initarg :scheme)
+           :accessor applier-scheme
+           :initarg :scheme)
    (count :type integer
-      :initform 1
-      :accessor applier-count
-      :documentation "How many objects this applier has coloured.")
+          :initform 1
+          :accessor applier-count
+          :documentation "How many objects this applier has coloured.")
    (check :type integer
-      :initform 5
-      :initarg :check
-      :accessor applier-when-to-check
-      :documentation "How often to check deviation.")
+          :initform 5
+          :initarg :check
+          :accessor applier-when-to-check
+          :documentation "How often to check deviation.")
    ;; This one is more part of the scheme but is more convenient here
    (sv-chooser :initarg :sv-chooser
-           :initform (lambda () 'll)
-           :accessor applier-sv-chooser
-           :documentation "The function to choose sv values.")
+               :initform (lambda () 'll)
+               :accessor applier-sv-chooser
+               :documentation "The function to choose sv values.")
    (sv-probabilites :type hash-table
-            :initform (make-hash-table)
-            :accessor applier-probabilities
-            :documentation "The probabilities of the chooser sv specs")
+                    :initform (make-hash-table)
+                    :accessor applier-probabilities
+                    :documentation "The probabilities of the chooser sv specs")
    (sv-occurrences :type hash-table
-           :initform (make-hash-table)
-           :accessor applier-occurences
-           :documentation "How often each sv spec has been chosen."))
+                   :initform (make-hash-table)
+                   :accessor applier-occurences
+                   :documentation "How often each sv spec has been chosen."))
   (:documentation
    "The data used in applying a colour scheme to an image."))
 
-(defmethod initialize-instance :after ((object <colour-scheme-applier>)
-                                       &key (spec-list nil))
+(defmethod make-colour-scheme-applier (&key scheme (spec-list nil))
   "Fill out the chooser properties from the spec-list, if provided."
-  (when spec-list
-    ;; Make and set the chooser function for sv specs from the list.
-    (setf (applier-sv-chooser object) (prefs-list-lambda spec-list))
-    ;; Set probabilites from list of num/specs, and set occurences to zero.
-    (let ((total-prob (float (prefs-range spec-list))))
-      (loop for prob in spec-list by #'cddr
-            for spec in (cdr spec-list) by #'cddr
-            do (setf (gethash (dequote spec)
-                              (applier-probabilities object))
-                     (/ prob total-prob))
-            do (setf (gethash (dequote spec)
-                              (applier-occurences object))
-                     0)))))
+  (let ((object (make-instance '<colour-scheme-applier> :scheme scheme)))
+    (when spec-list
+      ;; Make and set the chooser function for sv specs from the list.
+      (setf (applier-sv-chooser object) (prefs-list-lambda spec-list))
+      ;; Set probabilites from list of num/specs, and set occurences to zero.
+      (let ((total-prob (float (prefs-range spec-list))))
+        (loop for prob in spec-list by #'cddr
+              for spec in (cdr spec-list) by #'cddr
+              do (setf (gethash (dequote spec)
+                                (applier-probabilities object))
+                       (/ prob total-prob))
+              do (setf (gethash (dequote spec)
+                                (applier-occurences object))
+                       0))))
+    object))
 
 (defun spec-probability-difference (applier spec)
   "Get the difference between the intended and actual occurence of a spec."
@@ -365,12 +364,3 @@
                       7
                       0.3
                       0.6))
-
-;;FIXME: change to apply-colours and pass in the iterator function to pass
-;;       the lambda to.
-(defun make-colour-scheme-applier-fun (scheme)
-  "Make a colour scheme applier."
-  (let ((applier (make-instance '<colour-scheme-applier>
-                                :scheme scheme
-                                :spec-list (chooser-spec))))
-    (lambda (object) (choose-colour-for applier (object-symbol object)))))

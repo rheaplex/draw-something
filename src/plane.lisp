@@ -47,6 +47,12 @@
         :documentation "The pen properties for the plane."))
   (:documentation "A plane of the drawing."))
 
+(defun make-plane (&key figure-policy figure-count (pen nil))
+  "Constuctor function."
+  (make-instance '<plane> :figure-policy figure-policy
+                          :figure-count figure-count
+                          :pen pen))
+
 (defconstant +plane-pen-distance-minimum+ 0.1)
 (defconstant +plane-pen-distance-maximum+ 5.0)
 (defconstant +plane-pen-tolerance-minimum+ (/ +plane-pen-distance-minimum+ 2.0))
@@ -57,8 +63,7 @@
   (declare (ignore plane-index num-planes))
   #|(let ((plane-factor (* (/ 1.0 (- num-planes 1))
   plane-index)))
-  (make-instance '<pen>
-  :distance (+ +plane-pen-distance-minimum+
+  (make-pen :distance (+ +plane-pen-distance-minimum+
   (* plane-factor
   (- +plane-pen-distance-maximum+
   +plane-pen-distance-minimum+)))
@@ -99,11 +104,10 @@
           for i from 0 below count
           do (log-info "Making plane ~d ." (+ i 1))
           do (vector-push-extend
-              (make-instance '<plane>
-                             :figure-count (number-of-figures-for-plane i)
-                             :figure-policy point-method
-                             :pen nil ;;(make-plane-pen i count)
-                             )
+              (make-plane :figure-count (number-of-figures-for-plane i)
+                          :figure-policy point-method
+                          :pen nil ;;(make-plane-pen i count)
+                          )
               (planes the-drawing)))))
 
 (defun make-plane-skeletons (the-plane the-drawing)
@@ -119,7 +123,7 @@
   (loop for l across (planes the-drawing)
         do (make-plane-skeletons l the-drawing)))
 
-(defun draw-plane-figures (the-plane)
+#|(defun draw-plane-figures (the-plane)
   "Draw around the skeletons of the figures of the plane."
   (log-info "Drawing plane figure(s).")
   (loop for fig across (figures the-plane)
@@ -129,7 +133,7 @@
   "Draw around the skeletons of the figures of each plane."
   (log-info "Drawing planes figures.")
   (loop for l across (planes the-drawing)
-        do (draw-plane-figures l)))
+        do (draw-plane-figures l)))|#
 
 (defmacro do-drawing-forms ((drawing form-variable-name) &body body)
   "Run code for each form of each figure of a drawing."
@@ -163,9 +167,10 @@ do (add-figure the-drawing
   ;;       Next try form skeletons.
   ;;       Finally try form outlines.
   ;;  (assert (contains (bounds d) required-size))
-  (let ((candidate (make-instance '<rectangle> :x 0 :y 0
-                                               :width (width required-size-rect)
-                                               :height (height required-size-rect)))
+  (let ((candidate (make-rectangle :x 0
+                                   :y 0
+                                   :width (width required-size-rect)
+                                   :height (height required-size-rect)))
         (plane-rects (plane-forms-bounds the-plane))
         ;; The resulting rect must fit in within the drawing bounds
         (width-to-search (- (width (bounds the-drawing))
@@ -184,8 +189,8 @@ do (add-figure the-drawing
                                   (return-from outside-the-loops)))))
     result))
 
-(defun find-space-on-plane-range (the-drawing the-plane min-size-rect
-                                  max-size-rect steps)
+(defun find-space-on-plane-range (the-drawing the-plane
+                                  min-size-rect max-size-rect steps)
   "Find empty space on the plane larger than min-size up to max-size, or nil"
   (let ((width-step-size (/ (- (width max-size-rect) (width min-size-rect))
                             steps))
@@ -193,13 +198,14 @@ do (add-figure the-drawing
                              steps))
         (result nil))
     (dotimes (step steps)
-      (let* ((required-size (make-instance '<rectangle> :x 0 :y 0
-                                                        :width (- (width max-size-rect)
-                                                                  (* width-step-size
-                                                                     step))
-                                                        :height (- (height max-size-rect)
-                                                                   (* height-step-size
-                                                                      step))))
+      (let* ((required-size (make-rectangle :x 0
+                                            :y 0
+                                            :width (- (width max-size-rect)
+                                                      (* width-step-size
+                                                         step))
+                                            :height (- (height max-size-rect)
+                                                       (* height-step-size
+                                                          step))))
              (candidate (find-space-on-plane the-drawing
                                              the-plane
                                              required-size)))
