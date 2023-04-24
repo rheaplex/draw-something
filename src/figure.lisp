@@ -38,10 +38,20 @@
            :documentation "The bounds of the figure."))
   (:documentation "A figure drawn in the drawing."))
 
-(defun make-figure-from-points (points)
+(defun make-figure ()
+  "Constructor function."
+  (make-instance '<figure>))
+
+(defun add-form-to-figure (form figure)
+  (append form (forms figure))
+  (setf (bounds figure)
+        (include-rectangle (bounds figure)
+                           (bounds form))))
+
+#|(defun make-figure-from-points (points)
   "Make a figure with a single polyline from the provided points."
   (log-info "Making figure.")
-  (let ((fig (make-instance '<figure>)))
+  (let ((fig (make-figure>)))
     (vector-push-extend (make-form-from-points points)
                         (forms fig))
     fig))
@@ -51,3 +61,4 @@
   (loop for form across (forms fig)
         do (log-info "Drawing figure.")
         do (draw-form form (choose-one-of *plane-pen-parameters*))))
+|#

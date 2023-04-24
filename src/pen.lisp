@@ -46,71 +46,75 @@
                        :documentation "The +/- pen wobble range."))
   (:documentation "A set of parameters for a pen to use."))
 
+(defun make-pen-parameters (&key turn-step move-step
+                              distance distance-tolerance
+                              drift-probability drift-range)
+  "Constuctor function."
+  (make-instance '<pen-parameters> :turn-step turn-step
+                                   :move-step move-step
+                                   :distance distance
+                                   :distance-tolerance distance-tolerance
+                                   :drift-probability drift-probability
+                                   :drift-range drift-range))
+
 ;; Start with fixed values for tuning
 ;; Move to random ranges for production
 
 (defparameter *plane-1-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          4.0
-                 :distance           20.0
-                 :distance-tolerance 5.0
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          4.0
+                       :distance           20.0
+                       :distance-tolerance 5.0
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-2-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          2.0
-                 :distance           10.0
-                 :distance-tolerance 3.3
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          2.0
+                       :distance           10.0
+                       :distance-tolerance 3.3
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-3-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          2.0
-                 :distance           7.0
-                 :distance-tolerance 2.0
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          2.0
+                       :distance           7.0
+                       :distance-tolerance 2.0
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-4-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          2.0
-                 :distance           5.0
-                 :distance-tolerance 2.0
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          2.0
+                       :distance           5.0
+                       :distance-tolerance 2.0
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-5-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          2.0
-                 :distance           3.0
-                 :distance-tolerance 1.0
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          2.0
+                       :distance           3.0
+                       :distance-tolerance 1.0
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-6-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          2.0
-                 :distance           2.0
-                 :distance-tolerance 1.0
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          2.0
+                       :distance           2.0
+                       :distance-tolerance 1.0
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-7-pen*
-  (make-instance '<pen-parameters>
-                 :move-step          1.0
-                 :distance           1.0
-                 :distance-tolerance 0.2
-                 :turn-step          0.1
-                 :drift-probability  0.0
-                 :drift-range        0.1))
+  (make-pen-parameters :move-step          1.0
+                       :distance           1.0
+                       :distance-tolerance 0.2
+                       :turn-step          0.1
+                       :drift-probability  0.0
+                       :drift-range        0.1))
 
 (defparameter *plane-pen-parameters* (vector *plane-1-pen* *plane-2-pen*
                                              *plane-3-pen* *plane-4-pen*

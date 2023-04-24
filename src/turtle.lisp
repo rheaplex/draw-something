@@ -25,7 +25,7 @@
 
 (defclass <turtle> ()
   ((location :accessor location
-             :initform (make-instance '<point>)
+             :initform (make-point :x 0 :y 0)
              :initarg :location
              :documentation "The turtle's current location.")
    (direction :accessor direction
@@ -33,6 +33,10 @@
               :initarg :direction
               :documentation "The heading, in radians anticlockwise."))
   (:documentation "A classic computer graphics turtle plus randomness ."))
+
+(defun make-turtle (&key location direction)
+  "Constructor function."
+  (make-instance '<turtle> :location location :direction direction))
 
 (defun turn (the-turtle amount)
   "Turn the turtle by the given amount in degrees,"
@@ -59,9 +63,8 @@
 
 (defun next-point (the-turtle amount)
   "The next point the turtle would move forward to."
-  (make-instance '<point>
-                 :x (next-point-x the-turtle amount)
-                 :y (next-point-y the-turtle amount)))
+  (make-point :x (next-point-x the-turtle amount)
+              :y (next-point-y the-turtle amount)))
 
 (defun forward (the-turtle amount)
   "Move the turtle forward the given distance at the turtle's current angle."

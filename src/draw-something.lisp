@@ -27,13 +27,12 @@
 (defparameter +pen-outline-distance-tolerance+ 0.7)
 ;; defconstant isn't happy here o_O
 (defparameter *pen-params*
-  (make-instance '<pen-parameters>
-                 :move-step          1.3 ;;1.0
-                 :distance           +pen-outline-distance+
-                 :distance-tolerance +pen-outline-distance-tolerance+
-                 :turn-step          0.01 ;;0.1
-                 :drift-probability  0.0
-                 :drift-range        0.0)) ;;0.1
+  (make-pen-parameters  :move-step          1.3 ;;1.0
+                        :distance           +pen-outline-distance+
+                        :distance-tolerance +pen-outline-distance-tolerance+
+                        :turn-step          0.01 ;;0.1          
+                        :drift-probability  0.0  
+                        :drift-range        0.0))  ;;0.1
 
 ;;TODO work this in to the drawing but not the ground
 (defparameter *border-width* (+ +pen-outline-distance+
@@ -60,19 +59,21 @@
   "Make the drawing data structures and create the image."
   (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
-  (let* ((choose-colour (make-colour-scheme-applier-fun (default-colour-scheme)))
-         (drawing-bounds (make-instance '<rectangle>
-                                        :x +drawing-x+
-                                        :y +drawing-y+
-                                        :width +drawing-width+
-                                        :height +drawing-height+))
-         (drawing (make-instance '<drawing>
-                                 :bounds drawing-bounds
-                                 :ground (funcall choose-colour 'background))))
+  (let* ((drawing (make-drawing :bounds
+                                (make-rectangle :x +drawing-x+
+                                                :y +drawing-y+
+                                                :width +drawing-width+
+                                                :height +drawing-height+)
+                                :colour-scheme-applier
+                                (make-colour-scheme-applier :scheme (default-colour-scheme)
+                                                            :spec-list (chooser-spec)))))
     (make-composition-points drawing (random-range 8 42))
+
+    ;; Proceed plane by plane, figure by figure.
+
+#|    
     (make-planes drawing (figure-generation-methods +planes-count+))
     (make-planes-skeletons drawing)
-    (draw-planes-figures drawing)
     (do-drawing-forms (drawing form)
       (setf (fill-colour form)
             (funcall choose-colour form)))
@@ -85,5 +86,6 @@
                                    (or filename
                                        (generate-filename)))))
       ;; Make sure this goes to stdout
-      (format t "Wrote file to: ~a~%" filepath))
-    (log-info "Finished draw-something.")))
+      (format t "Wrote file to: ~a~%" filepath))|#
+    (log-info "Finished draw-something.")
+    drawing))

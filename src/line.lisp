@@ -36,6 +36,10 @@
        :documentation "The end of the line."))
    (:documentation "A simple line (segment) between two points."))
 
+(defun make-line (&key from to)
+  "Constructor function."
+  (make-instance '<line> :from from :to to))
+
 ;;        nearest_point_on_line
 ;;        From "Crashing Into the New Year",
 ;;        Jeff Lander, GD Magazine, Jan 1999.
@@ -62,15 +66,14 @@
              (* (- yp ylb) (- yla ylb)))))
       ;;(format t "~F%~%" dot-tb)
       (if (<= dot-tb 0.0)
-          (make-instance '<point> :x xlb :y ylb)
+          (make-point :x xlb :y ylb)
           ;; else
-          (make-instance '<point>
-                 :x (+ xla
-                   (/ (* (- xlb xla) dot-ta)
-                  (+ dot-ta dot-tb)))
-                 :y (+ yla
-                   (/ (* (- ylb yla) dot-ta)
-                      (+ dot-ta dot-tb)))))))))
+          (make-point :x (+ xla
+                            (/ (* (- xlb xla) dot-ta)
+                               (+ dot-ta dot-tb)))
+                      :y (+ yla
+                            (/ (* (- ylb yla) dot-ta)
+                               (+ dot-ta dot-tb)))))))))
 
 (defun nearest-point-on-line-points (p la lb)
   (nearest-point-on-line-coordinates (x p) (y p) (x la) (y la) (x lb) (y lb)))
@@ -134,13 +137,12 @@
 
 (defun line-at-t (l time)
   "Evaluate the line at t where 0<=t<=1 ."
-  (make-instance '<point>
-         :x (+ (x (from l))
-               (* time (- (x (to l))
-                  (x (from l)))))
-         :y (+ (y (from l))
-               (* time (- (y (to l))
-                  (y (from l)))))))
+  (make-point :x (+ (x (from l))
+                    (* time (- (x (to l))
+                               (x (from l)))))
+              :y (+ (y (from l))
+                    (* time (- (y (to l))
+                               (y (from l)))))))
 
 (defun random-point-on-line (l)
   "Generate a random point on a line"
