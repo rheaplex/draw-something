@@ -50,3 +50,24 @@ Note that this is evaluated as two loops"
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
      ,@body))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tagged objects
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass <tagged> ()
+  ((tags :accessor tags
+         :type vector
+         :initform (make-array 1 :adjustable t :fill-pointer 0)
+         :documentation "Symbol tags for the item."))
+  (:documentation "An object that can be tagged with symbols."))
+
+(defgeneric tags (tagged)
+   (:documentation "The tags for the object and any contained objects."))
+
+(defgeneric add-tag (tagged tag)
+   (:documentation "Add the tag to the tagged object."))
+
+(defgeneric add-tags (tagged tags)
+   (:documentation "Add the tag to the tagged object."))

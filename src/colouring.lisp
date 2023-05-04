@@ -105,7 +105,7 @@
   (let ((all (make-array (+ (length (low-values lmh))
                             (length (medium-values lmh))
                             (length (high-values lmh)))
-                         :fill-pointer 0)))                                
+                         :fill-pointer 0)))
     (loop for l across (low-values lmh)
           do (vector-push l all))
     (loop for m across (medium-values lmh)

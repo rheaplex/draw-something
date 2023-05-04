@@ -67,9 +67,9 @@
 ;; The geometry base class
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass <geometry> ()
+(defclass <geometry> (<tagged>)
   ()
-  (:documentation "The abstract base class for geometric(ish) objects."))
+  (:documentation "The base class for geometric(ish) objects."))
 
 (defgeneric bounds (o)
   (:documentation "The object's bounds, if any."))

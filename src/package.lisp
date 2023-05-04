@@ -20,6 +20,7 @@
 (in-package :common-lisp-user)
 
 (defpackage draw-something
+  (:nicknames :ds)
   (:documentation
    "The draw-something package.")
   (:use :common-lisp)
