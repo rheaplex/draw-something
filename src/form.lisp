@@ -30,36 +30,33 @@
 
 (defconstant +pen-width+ 1.0)
 
-(defclass <form> ()
+(defclass <form> (<tagged> <polychrome>)
   ((skeleton :accessor skeleton
              :type vector
              :initarg :skeleton
              :initform (make-array 1 :adjustable t :fill-pointer 0)
              :documentation "The guide shapes for the outline.")
    (outline :accessor outline
-            :type polyline
+            :type <polyline>
             :initform (make-polyline)
-            :documentation "The outlines for the skeleton. Will be outline_s_.")
+            :documentation "The outlines for the skeleton.")
    (bounds :accessor bounds
-           :type rectangle
+           :type <rectangle>
            :initarg :bounds
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
-                :type <colour>
-                :initarg :colour
-                :initform (make-colour :hue 0.0
-                                       :saturation 1.0
-                                       :brightness 1.0)
+                :initarg :fill-colour
+                :initform nil
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
-                  :type <colour>
-                  :initarg :colour
-                  :initform (make-colour :hue 0.0
-                                         :saturation 0.0
-                                         :brightness 0.0)
-                  :documentation "The outline colour of the form."))
+                  :initarg :stroke-colour
+                  :initform nil
+                  :documentation "The outline colour of the form.")
+   (stroke-width :accessor stroke-colour
+                 :initarg :stroke-width
+                 :initform 2.0 ;;FIXME
+                 :documentation "The outline colour of the form."))
   (:documentation "A form drawn in the drawing."))
-
 
 (defun make-form (&key skeleton fill-colour stroke-colour)
   "constructor function"
@@ -67,6 +64,15 @@
                          :bounds (bounds skeleton)
                          :fill-colour fill-colour
                          :stroke-colour stroke-colour))
+
+(defmethod colours ((form <form>))
+  "Return a list of any colours applied to the form."
+  (let ((form-colours '()))
+    (when (fill-colour form)
+      (push (fill-colour form) colours))
+    (when (stroke-colour form)
+      (push (stroke-colour form) colours)))
+  colours)
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently

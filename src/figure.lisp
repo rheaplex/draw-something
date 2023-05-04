@@ -26,12 +26,16 @@
 (defconstant +min-forms+ 5)
 (defconstant +max-forms+ 10)
 
-(defclass <figure> ()
+(defclass <figure> (<tagged>)
   ((forms :accessor forms
           :type vector
           :initform (make-array 1 :adjustable t :fill-pointer 0)
           :initarg :forms
           :documentation "The forms of the figure.")
+   (composition-bounds :accessor composition-bounds
+                       :type <rectangle>
+                       :initarg composition-bounds
+                       :documentation "The assigned region for the form.")
    (bounds :accessor bounds
            :type rectangle
            :initarg :bounds
