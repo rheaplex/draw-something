@@ -78,8 +78,10 @@
                      (ltk:create-rectangle (canvas gui)
                                            (ds::x rect)
                                            (ds::y rect)
-                                           (ds::width rect)
-                                           (ds::height rect))
+                                           (+ (ds::x rect)
+                                              (ds::width rect))
+                                           (+ (ds::y rect)
+                                              (ds::height rect)))
                      :fill (ds::hsb-to-rgb-hex colour)))
 
 
@@ -88,11 +90,19 @@
   (let ((bounds (ltk:create-rectangle (canvas gui)
                                       (ds::x rect)
                                       (ds::y rect)
-                                      (ds::width rect)
-                                      (ds::height rect))))
-    (ltk:itemconfigure (canvas gui) bounds :fill "")
-    (ltk:itemconfigure (canvas gui) bounds :outline (ds::hsb-to-rgb-hex colour))
-    (ltk:itemconfigure (canvas gui) bounds :width width)))
+                                      (+ (ds::x rect)
+                                         (ds::width rect))
+                                      (+ (ds::y rect)
+                                         (ds::height rect)))))
+    (ltk:itemconfigure (canvas gui)
+                       bounds
+                       :fill "")
+    (ltk:itemconfigure (canvas gui)
+                       bounds
+                       :outline (ds::hsb-to-rgb-hex colour))
+    (ltk:itemconfigure (canvas gui)
+                       bounds
+                       :width width)))
 
 (defmethod create-rect-fill ((gui <gui-ltk>) rect colour)
   (ltk:itemconfigure (canvas gui)
@@ -194,8 +204,8 @@
 
 #|
 
-(setf d (gui-ltk:create-drawing))
-(setf *gui* (gui-ltk:make-gui))
+(setf d (gui-base:create-drawing))
+(setf *gui* (gui-glut:make-gui))
 (ds::make-composition-points d 36)
 (gui-ltk:show-drawing-composition-points *gui* d)
 

@@ -55,7 +55,7 @@
             "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
             "drawing" year month date hours minutes seconds)))
 
-(defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
+(defun draw-something (&key (randseed nil))
   "Make the drawing data structures and create the image."
   (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))

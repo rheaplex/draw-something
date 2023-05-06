@@ -26,12 +26,13 @@
 (defun make-composition-points (the-drawing count)
   "Generate the points on the image plane that the composition will use."
   (log-info "Making ~d composition points." count)
+  ;;FIXME
   (let* ((b (bounds the-drawing))
          (corner-count (random-number 4))
-         (interior-count (random-number (- count corner-count)))
-         ;;(edge-count (- count
-         ;;               interior-count
-         ;;               corner-count))
+         (interior-count (- count corner-count))
+         (edge-count (- count
+                        interior-count
+                        corner-count))
          )
     (setf (composition-points the-drawing)
           (concatenate 'vector

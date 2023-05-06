@@ -51,9 +51,9 @@
 (defgeneric create-polyline-stroke (gui polyline colour width))
 (defgeneric create-polyline-fill (gui polyline colour))
 
-(defconstant +black+ (ds::make-colour :hue 0
-                                      :saturation 0
-                                      :brightness 0))
+(defparameter +black+ (ds::make-colour :hue 0
+                                       :saturation 0
+                                       :brightness 0))
 
 (defparameter +pen-outline-distance+ 5.2)
 (defparameter +pen-outline-distance-tolerance+ 0.7)
@@ -263,7 +263,7 @@
                   (create-points gui
                                  (ds::composition-points drawing)
                                  +black+
-                                  +point-radius+)
+                                 +point-radius+)
                   (create-rect-stroke gui
                                       (ds::bounds drawing)
                                       +black+
@@ -291,5 +291,8 @@
                 (format nil "draw-something - drawing ~a"
                         drawing)
                 (lambda (gui)
+                  (create-rect-fill gui
+                                    (ds::bounds drawing)
+                                    (ds::ground drawing))
                   (loop for plane across (ds::planes drawing)
                         do (render-plane gui plane)))))

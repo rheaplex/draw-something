@@ -67,12 +67,12 @@
 
 (defmethod colours ((form <form>))
   "Return a list of any colours applied to the form."
-  (let ((form-colours '()))
+  (let ((colour-list '()))
     (when (fill-colour form)
-      (push (fill-colour form) colours))
+      (push (fill-colour form) colour-list))
     (when (stroke-colour form)
-      (push (stroke-colour form) colours)))
-  colours)
+      (push (stroke-colour form) colour-list))
+    colour-list))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
