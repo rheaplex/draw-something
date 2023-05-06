@@ -143,7 +143,7 @@
   (:documentation "Convert the geometry to a polyline approximation."))
 
 (defmethod as-polyline ((rect <rectangle>))
-  "Convert a rectangle into a five-point (closed) polyline"\
+  "Convert a rectangle into a five-point (closed) polyline"
   (make-polyline :points (vector (make-point :x (x rect) :y (y rect))
                                  (make-point :x (+ (x rect) (width rect))
                                              :y (y rect))

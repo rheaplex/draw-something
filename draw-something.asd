@@ -48,7 +48,8 @@
    (:file "colouring")
    (:file "postscript")
    (:file "draw-something"))
-  :in-order-to ((test-op (test-op draw-something/test))))
+  ;;:in-order-to ((test-op (test-op draw-something/test)))
+  )
 
 (defsystem "draw-something/gui-base"
   :description "Base package for a  GUI for developing draw-something."
@@ -59,6 +60,19 @@
   :pathname "src"
   :serial t
   :components ((:file "gui-base")))
+
+(defsystem "draw-something/gui-cl-vectors"
+  :description "Rasterization for a GUI for developing draw-something."
+  :version "2023.1"
+  :author "Rhea Myers"
+  :licence "GNU General Public License v3.0 or later"
+  :depends-on (#:draw-something/gui-base
+               #:cl-aa
+               #:cl-aa-misc
+               #:cl-vectors)
+  :pathname "src"
+  :serial t
+  :components ((:file "gui-cl-vectors")))
 
 (defsystem "draw-something/gui-ltk"
   :description "An ltk GUI for developing draw-something."
@@ -79,8 +93,9 @@
   :licence "GNU General Public License v3.0 or later"
   :depends-on (#:draw-something
                #:draw-something/gui-base
+               #:draw-something/gui-cl-vectors
                #:cl-opengl
-               #:cl-vectors
+               #:cl-glut
                #:trivial-main-thread)
   :pathname "src"
   :serial t

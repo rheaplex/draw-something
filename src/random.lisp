@@ -34,7 +34,7 @@
   (if (= a 0)
       a
       (mt19937:random a)))
-  
+
 (defun random-range (a b)
   "Make a random number from a to below b."
   (let ((range (- b a)))
