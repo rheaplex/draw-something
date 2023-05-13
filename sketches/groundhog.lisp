@@ -111,7 +111,6 @@
 (defmethod grow-rectangle ((rect <growable-rectangle>))
   (let ((new-rect (ds::copy-rectangle rect))
         (which-way (ds::choose-one-of (directions rect))))
-    ;; Randomly choose direction that has not been set to nil.
     (case which-way
       ;; Try to grow in direction.
       (up
@@ -130,7 +129,6 @@
       (setf new-rect nil)
       (setf (directions rect)
             (remove which-way (directions rect))))
-    ;; This is inefficient as we always copy at least 2 values we don't need to
     (when new-rect
       (case which-way
         (up
