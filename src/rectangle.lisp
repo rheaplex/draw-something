@@ -129,20 +129,27 @@
   "Find whether the rectangle contains the point."
   (contains-point-co-ordinates rect (x p) (y p)))
 
+(defmethod contains ((container <rectangle>) (r <rectangle>))
+  "Find whether container contains r (r."
+  (and (<= (x container) (x r))
+       (<= (y container) (y r))
+       (>= (+ (x container) (width container)) (+ (x r) (width r)))
+       (>= (+ (y container) (height container)) (+ (y r) (height r)))))
+
 (defun points-in-rectangle (rect points)
   "Get the vector of points within the rectangle"
   (let ((contained (make-array 0 :adjustable t :fill-pointer 0)))
     (loop for p across points
-      when (contains rect p)
-      do (vector-push-extend p contained))
+          when (contains rect p)
+            do (vector-push-extend p contained))
     contained))
 
 (defmethod intersects ((rect1 <rectangle>) (rect2 <rectangle>))
   "Find whether the rectangles intersect."
-  (and (< (x rect1) (+ (x rect2) (width rect2)))
-       (< (y rect1) (+ (y rect2) (height rect2)))
-       (> (+ (x rect1) (width rect1)) (x rect2))
-       (> (+ (y rect1) (height rect1)) (y rect2))))
+  (and (<= (x rect1) (+ (x rect2) (width rect2)))
+       (<= (y rect1) (+ (y rect2) (height rect2)))
+       (>= (+ (x rect1) (width rect1)) (x rect2))
+       (>= (+ (y rect1) (height rect1)) (y rect2))))
 
 (defun include-point (rect p)
   "Destructively expand the rectangle to include the point."
