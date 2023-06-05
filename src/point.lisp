@@ -92,18 +92,30 @@
    Doesn't check limits of arc."
   (co-ordinates-at-angle-around-point-co-ordinates x y radius theta))
 
-;; Angle between two points, in radians
-
 (defun angle-between-two-points-co-ordinates (x0 y0 x1 y1)
-  (let ((angle (- (atan y1 x1)
-                  (atan y0 x0))))
-    (if (< angle 0)
-        (+ angle +radian+)
-        angle)))
+  "Angle ccw from 3 o'clock in radians."
+  (let ((theta (atan (- y1 y0) (- x1 x0))))
+    (if (>= theta 0)
+        theta
+        (+ +radian+ theta))))
 
 (defun angle-between-two-points (p1 p2)
   "Calculate the angle of the second point around the first."
   (angle-between-two-points-co-ordinates (x p1) (y p1) (x p2) (y p2)))
+
+(defun least-clockwise-point (p pts)
+  (let ((max-angle 0)
+        (least nil))
+    (dolist (p2 pts)
+      ;; Convert the angle to 12 o'clock == 0
+      ;;FIXME:  Simplify
+      (let ((angle (mod (- (angle-between-two-points p p2)
+                           +half-pi+)
+                        +radian+)))
+        (when (> angle max-angle)
+          (setf max-angle angle)
+          (setf least p2))))
+    least))
 
 (defun highest-leftmost-of (p1 p2)
   "Compare and return the highest leftmost point."
@@ -111,7 +123,7 @@
           (and (= (y p1) (y p2))
                (< (x p1) (x p2))))
       p1
-    p2))
+      p2))
 
 (defun highest-leftmost-point-in-list (the-points)
   "The highest point, or highest and leftmost point (if several are highest)."
@@ -187,3 +199,15 @@
           when (all-points-leftp p candidate points)
           do (vector-push-extend candidate candidates))
     (furthest-point p candidates)))
+
+;; These should be in a "vector.lisp" file.
+
+(defun normalize-vector (v)
+  (let ((dist (sqrt (+ (* (x v) (x v)) (* (y v) (y v))))))
+    (make-point :x (/ (x v) dist) :y (/ (y v) dist))))
+
+(defun scale-vector (v scale)
+  (make-point :x (* (x v) scale) :y (* (y v) scale)))
+
+(defun add-vector-to-point (p v)
+  (make-point :x (+ (x p) (x v)) :y (+ (y p) (y v))))

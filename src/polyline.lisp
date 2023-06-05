@@ -48,7 +48,7 @@
   (let ((poly (make-instance '<polyline>)))
     (when points
       (loop for point in points
-            do (append-point poly points)))
+            do (append-point poly point)))
     poly))
 
 (defun point-count (poly)
@@ -153,30 +153,47 @@
                                              :y (+ (y rect) (height rect)))
                                  (make-point :x (x rect) :y (y rect)))))
 
-(defmacro do-poly-lines ((sym poly) &body body)
-  "Apply fun to each line in the polyline, or not if there is only 1 point."
+(defun poly-line-aref (poly index)
+  "Read the nth line segment of the polyline as a line."
+  (let ((pts (points poly)))
+    (make-line :from (aref pts index)
+               :to (aref pts (+ index 1)))))
+
+(defmacro do-poly-lines ((poly sym &optional (index (gensym))) &body body)
+  "Apply fun to each line in poly, or not if there is only 1 point."
   (with-gensyms (poly-points previous-point current-point i)
-   `(let ((,poly-points (points ,poly)))
-      (when (> (point-count ,poly) 1)
-        (let ((,previous-point (first-point ,poly))
-              (,current-point nil)
-              (,sym nil))
-          (dotimes (,i (- (point-count ,poly) 1))
-            (setf ,current-point (aref ,poly-points (+ ,i 1)))
-            (setf ,sym (make-line :from ,previous-point
-                                  :to ,current-point))
-            ,@body
-            (setf ,previous-point ,current-point)))))))
+    `(let ((,poly-points (points ,poly)))
+       (when (> (point-count ,poly) 1)
+         (let ((,previous-point (first-point ,poly))
+               (,current-point nil)
+               (,sym nil)
+               (,index 0))
+           (dotimes (,i (- (point-count ,poly) 1))
+             (setf ,current-point (aref ,poly-points (+ ,i 1)))
+             (setf ,sym (make-line :from ,previous-point
+                                   :to ,current-point))
+             ,@body
+             (incf ,index)
+             (setf ,previous-point ,current-point)))))))
 
 (defmethod intersects ((l <line>) (poly <polyline>))
   "Find whether the line intersects or is contained by the polyline."
   ;; Currently only intersects
   (let ((result nil))
-    (do-poly-lines (l2 poly)
+    (do-poly-lines (poly l2)
       (when (intersects l l2)
         (setf result t)
         (return)))
     result))
+
+(defmethod intersections ((l <line>) (poly <polyline>))
+  "Get all intersections between l and poly, if any."
+  (let ((result nil))
+    (do-poly-lines (poly l2)
+      (let ((intersection-t (intersects l l2)))
+        (when intersection-t
+          (push (line-at-t l intersection-t) result))))
+    (reverse result)))
 
 (defun polyline-contains-points (poly1 poly2)
   "Find whether poly1 contians any points of poly2"
@@ -189,8 +206,8 @@
   "Find whether any lines of the polylines intersect"
   (let ((result nil))
     (block outside-loops
-      (do-poly-lines (l1 poly1)
-    (do-poly-lines (l2 poly2)
+      (do-poly-lines (poly1 l1)
+    (do-poly-lines (poly2 l2)
       (when (intersects l1 l2)
         (setf result t)
         (return-from outside-loops)))))
@@ -225,7 +242,7 @@
                           :from (last-point poly)
                           :to p))
         (result nil))
-    (do-poly-lines (ll poly)
+    (do-poly-lines (poly ll)
              (when (intersects l ll)
                (setf result t)
                (break)))
@@ -245,3 +262,56 @@
           (vector-push-extend next-point hull)
           (setf current-point next-point))
     (make-polyline :points hull)))
+
+;; Actually for polygons! We only want the sign for determining cw/ccw.
+(defun polyline-signed-area (polyline)
+  (let ((area 0.0)
+        (ps (points polyline))
+        (num-ps (length (points polyline))))
+    (dotimes (i num-ps)
+      (let ((p1 (aref ps i))
+            (p2 (aref ps (mod (+ i 1) num-ps))))
+      (incf area
+          (* (- (x p2) (x p1))
+             (+ (y p2) (y p1)))))    
+    (/ area 2.0))))
+
+(defun polyline-clockwise-p (polyline)
+  (< 0.0 (polyline-signed-area polyline)))
+
+(defun ensure-polyline-clockwise (polyline)
+  "Destructively ensure that the polyline's segmants are in clockwise order."
+  (unless (polyline-clockwise-p polyline)
+    (setf (points polyline)
+          (nreverse (points polyline))))
+  polyline)
+
+(defun loop-polyline (polyline)
+  "Make a polyline a closed loop without changing its appearance."
+  (append (points polyline)
+          (reverse (points polyline))))
+
+;; A naive brute-force algorithm
+
+(defun divide-polyline-segments (polyline)
+  "Divide a polyline into shorter line segments where it self-intersects."
+  (let ((newpoints (list (from (first (points polyline))))))
+    ;; For each polyline
+    (do-poly-lines (polyline l1)
+      (let ((intersections nil))
+        ;; If it is intersected by any other lines
+        (do-poly-lines (polyline l2)
+          (unless (point= l1 l2)
+            (let ((intersects-at (intersects l1 l2)))
+              (when intersects-at
+                ;; Add it to the points describing new line segments.
+                (push intersections intersects-at)))))
+        ;; Destructively order any new points by distance from the start of
+        ;; the line segment.
+        (sort ps
+              (lambda (p1 p2) (< (distance p1 (from l1))
+                                 (distance p2 (from l1)))))
+        ;; Add any intersection points and the point at the end of this segment
+        ;; to the new polyline points.
+        (setq newpoints (append newpoints ps (list (to l1))))))
+    newpoints))

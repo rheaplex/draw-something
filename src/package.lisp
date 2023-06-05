@@ -17,13 +17,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :common-lisp-user)
+(in-package :cl-user)
 
-(defpackage draw-something
+(defpackage "DRAW-SOMETHING"
+  (:use :cl)
   (:nicknames :ds)
-  (:documentation
-   "The draw-something package.")
-  (:use :common-lisp)
   (:export
    #:generate-drawing
    #:draw-something))
