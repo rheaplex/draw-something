@@ -26,12 +26,10 @@
 (defclass <line> (<geometry>)
   ((from :accessor from
      :type point
-     :initform (make-instance '<point>)
      :initarg :from
      :documentation "The start of the line.")
    (to :accessor to
        :type point
-       :initform (make-instance '<point>)
        :initarg :to
        :documentation "The end of the line."))
    (:documentation "A simple line (segment) between two points."))
@@ -124,7 +122,7 @@
 (defun lines-intersects-points (l1p1 l1p2 l2p1 l2p2)
   "Find whether the two lines, expressed as 4 points intersect."
   (lines-intersects-co-ordinates (x l1p1) (y l1p1) (x l1p2) (y l1p2)
-                 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
+                                 (x l2p1) (y l2p1) (x l2p2) (y l2p2)))
 
 
 (defun line-intersects-line-points (l1 l2p1 l2p2)
@@ -152,3 +150,32 @@
   "Generate count points on line. These will not be in order."
   (loop for i below count
     collect (random-point-on-line l)))
+
+;; https://math.stackexchange.com/a/2813704
+
+(defun point-line-clockwise-p (p l)
+  "Determine whether l is clockwise relative to p."
+  (let ((p2 (from l))
+        (p3 (to l)))
+    ;; Positive = ccw, negative = cw
+    (< 0.0
+       (- (+ (* (x p) (y p2))
+             (* (x p2) (y p3))
+             (* (x p3) (y p1)))
+          (* (x p2) (y p))
+          (* (x p3) (y p2))
+          (* (x p1) (y p3))))))
+
+(defun line-normal-left (l)
+  "Get the left normal vector/9 o'clock vector."
+  (let ((dx (- (x (to l)) (x (from l))))
+        (dy (- (y (to l)) (y (from l)))))
+    (normalize-vector (make-point :x (- dy)
+                                  :y dx))))
+
+(defun line-normal-right (l)
+  "Get the right normal vector/3 o'clock vector."
+  (let ((dx (- (x (to l)) (x (from l))))
+        (dy (- (y (to l)) (y (from l)))))
+    (normalize-vector (make-point :x dy
+                                  :y (- dx)))))

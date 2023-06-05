@@ -23,6 +23,9 @@
 ;; Geometric(ish) values and functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defconstant +half-pi+ (/ pi 2.0)
+  "Half of pi.")
+
 (defconstant +radian+ (* pi 2.0)
   "One radian.")
 
