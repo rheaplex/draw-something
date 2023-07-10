@@ -125,7 +125,7 @@
       p1
       p2))
 
-(defun highest-leftmost-point-in-list (the-points)
+(defun highest-leftmost-point-in-array (the-points)
   "The highest point, or highest and leftmost point (if several are highest)."
   (let ((highest (aref the-points 0)))
     (dotimes (i (length the-points))

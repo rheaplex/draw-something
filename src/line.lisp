@@ -38,6 +38,16 @@
   "Constructor function."
   (make-instance '<line> :from from :to to))
 
+(defmethod bounds ((line <line>))
+  (let* ((xmin (min (x (from line)) (x (to line))))
+         (ymin (min (y (from line)) (y (to line))))
+         (xmax (max (x (from line)) (x (to line))))
+         (ymax (max (y (from line)) (y (to line)))))
+    (make-rectangle :x xmin
+                    :y ymin
+                    :width (- xmax xmin)
+                    :height (- ymax ymin))))
+
 ;;        nearest_point_on_line
 ;;        From "Crashing Into the New Year",
 ;;        Jeff Lander, GD Magazine, Jan 1999.
@@ -55,23 +65,23 @@
   "Get the nearest point on a line"
   ;; Optimised to avoid point accessors
   (let ((dot-ta (+ (* (- xp xla) (- xlb xla))
-         (* (- yp yla) (- ylb yla)))))
+                   (* (- yp yla) (- ylb yla)))))
     ;;(format t "~F%~%" dot-ta)
     (if (<= dot-ta 0.0)
-    (make-instance '<point> :x xla :y yla)
-    ;; else
-    (let ((dot-tb (+ (* (- xp xlb) (- xla xlb))
-             (* (- yp ylb) (- yla ylb)))))
-      ;;(format t "~F%~%" dot-tb)
-      (if (<= dot-tb 0.0)
-          (make-point :x xlb :y ylb)
-          ;; else
-          (make-point :x (+ xla
-                            (/ (* (- xlb xla) dot-ta)
-                               (+ dot-ta dot-tb)))
-                      :y (+ yla
-                            (/ (* (- ylb yla) dot-ta)
-                               (+ dot-ta dot-tb)))))))))
+        (make-instance '<point> :x xla :y yla)
+        ;; else
+        (let ((dot-tb (+ (* (- xp xlb) (- xla xlb))
+                         (* (- yp ylb) (- yla ylb)))))
+          ;;(format t "~F%~%" dot-tb)
+          (if (<= dot-tb 0.0)
+              (make-point :x xlb :y ylb)
+              ;; else
+              (make-point :x (+ xla
+                                (/ (* (- xlb xla) dot-ta)
+                                   (+ dot-ta dot-tb)))
+                          :y (+ yla
+                                (/ (* (- ylb yla) dot-ta)
+                                   (+ dot-ta dot-tb)))))))))
 
 (defun nearest-point-on-line-points (p la lb)
   (nearest-point-on-line-coordinates (x p) (y p) (x la) (y la) (x lb) (y lb)))

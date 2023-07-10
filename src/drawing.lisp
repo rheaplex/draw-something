@@ -23,7 +23,7 @@
 ;; The top-level drawing object.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass <drawing> (<tagged>)
+(defclass <drawing> ()
   ((substrate-bounds :accessor substrate-bounds
                      :type <rectangle>
                      :initarg :substrate-bounds
@@ -44,6 +44,9 @@
            :type <colour>
            :initarg :ground
            :documentation "The flat background colour of the drawing.")
+   (minimum-separation :accessor min-sep
+                       :initarg :min-sep
+                       :documentation "The minimum point/line seperation required for drawing")
    (composition-points :accessor composition-points
                        :type vector
                        :initarg :composition-points
@@ -52,12 +55,13 @@
                        :documentation "The points for the composition"))
   (:documentation "A drawing in progress."))
 
-(defun make-drawing (&key substrate-bounds bounds colour-scheme-applier)
+(defun make-drawing (&key substrate-bounds min-sep bounds colour-scheme-applier)
   (log-info "Making drawing.")
   (log-info "Bounds: ~a ." bounds)
   (make-instance '<drawing>
                  :substrate-bounds substrate-bounds
                  :bounds bounds
+                 :min-sep min-sep
                  :colour-scheme-applier colour-scheme-applier 
                  :ground (choose-colour-for colour-scheme-applier
                                             'background)))
@@ -74,32 +78,3 @@
                     do (loop for ,form-variable-name
                                across (forms ,figure-var)
                              do (progn ,@body))))))
-
-
-;; Do these all the way down, drawing to geometric..
-
-;;(defgeneric recent-tags ((subject <tagged>)))
-;;(defgeneric recent-colours ((subject <polychrome>) &key count))
-#|(defgeneric intersects-tags (bounds tagged))
-(defgeneric intersects-colours (bounds polychrome))
-
-(defmethod recent-colours ((drawing <drawing>))
-  "Get every colour used to fill or stroke a form recently."
-  (let ((colours '()))
-    (do-drawing-forms (drawing form)
-      (when (fill-colour form)
-        (push (fill-colour form) colours))
-      (when (stroke-colour form)
-        (push (stroke-colour form) colours)))
-    (reverse colours)))
-
-(defmethod recent-tags ((drawing <drawing>))
-  "Get every tag applied recently."
-  (let ((tags '()))
-    (do-drawing-forms (drawing form)
-      (when (fill-colour form)
-        (push (fill-colour form) colours))
-      (when (stroke-colour form)
-        (push (stroke-colour form) colours)))
-    (reverse tags)))
-|#

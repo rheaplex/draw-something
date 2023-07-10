@@ -32,7 +32,7 @@
   (format to "/L {lineto} bind def~%/M {moveto} bind def~%"))
 
 (defmethod write-eps-footer (&key (to *ps-stream*))
-  "Write the standard (but optional PostScript footer"
+  "Write the standard (but optional) PostScript footer"
   (format to "%%EOF~%"))
 
 (defmethod write-rgb (r g b &key (to *ps-stream*))
@@ -102,7 +102,7 @@
 
 (defmethod write-form-fill ((f <form>) ps)
   "Write the drawing outline."
-  (write-colour (fill-colour f) :to ps)
+;;  (write-colour (fill-colour f) :to ps)
   (write-new-path :to ps)
   (write-subpath (points (outline f)) :to ps)
   (write-fill :to ps))
@@ -119,8 +119,7 @@
   "Write the form."
   (write-form-fill f ps)
   ;;(write-figure-skeleton fig ps)
-  ;;(write-form-stroke f ps)
-  )
+  (write-form-stroke f ps))
 
 (defmethod write-figure ((fig <figure>) ps)
   "Write the figure for early multi-figure versions of draw-something."
@@ -128,7 +127,7 @@
   ;;(write-rectstroke (bounds fig) :to ps)
   ;;(write-stroke :to ps)
   (loop for fm across (forms fig)
-       do (write-form fm ps)))
+        do (write-form fm ps)))
 
 (defmethod write-ground ((the-drawing <drawing>) ps)
   "Colour the drawing ground."

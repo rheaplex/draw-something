@@ -23,14 +23,9 @@
 ;; A form in a figure.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant +min-form-points+ 1)
-(defconstant +max-form-points+ 12)
-
 (defconstant +form-step-limit+ 10000)
 
-(defconstant +pen-width+ 1.0)
-
-(defclass <form> (<tagged> <polychrome>)
+(defclass <form> ()
   ((skeleton :accessor skeleton
              :type vector
              :initarg :skeleton
@@ -58,21 +53,20 @@
                  :documentation "The outline colour of the form."))
   (:documentation "A form drawn in the drawing."))
 
-(defun make-form (&key skeleton fill-colour stroke-colour)
-  "constructor function"
-  (make-instance '<form> :skeleton skeleton
-                         :bounds (bounds skeleton)
-                         :fill-colour fill-colour
-                         :stroke-colour stroke-colour))
+(defun make-form (&key skeleton)
+  "Constructor for single-shape skeleton."
+  (let ((fm (make-instance '<form> :skeleton (vector skeleton))))
+    (setf (bounds fm) (bounds skeleton))
+    fm))
 
-(defmethod colours ((form <form>))
-  "Return a list of any colours applied to the form."
-  (let ((colour-list '()))
-    (when (fill-colour form)
-      (push (fill-colour form) colour-list))
-    (when (stroke-colour form)
-      (push (stroke-colour form) colour-list))
-    colour-list))
+(defun make-form-from-points (points)
+  "Make a form, ready to be started."
+  (log-info "Making form.~%")
+  (let* ((skel (make-polyline-from-points points))
+         (the-form (make-instance '<form>
+                                  :skeleton (vector skel)
+                                  :bounds (bounds skel))))
+    the-form))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
@@ -109,15 +103,6 @@
   (make-turtle :location (make-form-start-point (skeleton the-form)
                                                 pen-params)
                :direction (- (/ pi 2.0))))
-
-#|(defun make-form-from-points (points)
-  "Make a form, ready to be started."
-  (log-info "Making form points.")
-  (let* ((skel (make-polyline-from-points points))
-         (the-form (make-form :skeleton (vector skel)
-                              :bounds (bounds skel)))
-         (draw-form the-form)
-the-form)))|#
 
 (defun path-ready-to-close (the-form pen-params)
   (and (> (form-point-count the-form) 2) ;; Ignore very first point
