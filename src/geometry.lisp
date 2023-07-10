@@ -70,7 +70,7 @@
 ;; The geometry base class
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass <geometry> (<tagged>)
+(defclass <geometry> ()
   ()
   (:documentation "The base class for geometric(ish) objects."))
 

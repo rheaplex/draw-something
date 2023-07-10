@@ -23,22 +23,19 @@
 ;; A picture plane
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass <plane> (<tagged> <polychrome>)
+(defclass <plane> ()
   ((figures :accessor figures
             :initform (make-array 1 :adjustable t :fill-pointer 0)
             :initarg :figures
             :documentation "The figures of the plane.")
-   ;;TODO: Strategies.
-   ;;TODO: HSB elements.
-   (pen :accessor plane-pen
-        ;;:type pen
-        :initarg :pen
-        :documentation "The pen properties for the plane."))
+   (pen-params :accessor pen-params
+               :initarg :pen-params
+               :documentation "The pen configuration for the plane."))
   (:documentation "A plane of the drawing."))
 
-(defun make-plane (&key (pen nil))
+(defun make-plane (&key pen-params)
   "Constuctor function."
-  (make-instance '<plane> :pen pen))
+  (make-instance '<plane> :pen-params pen-params))
 
 (defun plane-forms-bounds (the-plane)
   "Get the bounding rectangles for every form of every figure on the plane"
@@ -47,11 +44,6 @@
           do (loop for form across (forms figure)
                    do (vector-push-extend (bounds form) results)))
     results))
-
-(defmethod colours ((plane <plane>))
-  "All the colours from all the figures on the plane."
-  (reverse (loop for figure across (figures plane)
-                 collect (reverse (colours figure)))))
 
 (defun find-space-on-plane (the-drawing the-plane required-size-rect)
   "Find empty space on the plane of given size, or nil if fail"

@@ -47,7 +47,7 @@
   "Constructor function."
   (let ((poly (make-instance '<polyline>)))
     (when points
-      (loop for point in points
+      (loop for point across points
             do (append-point poly point)))
     poly))
 
@@ -71,11 +71,39 @@
       (append-point poly (random-point-in-rectangle rect)))
     poly))
 
+(defun new-segment-far-enough-p (p poly sep)
+  "Check that adding the segment from the end of poly to p won't break
+   its separation of points/lines."
+  (let ((q (last-point poly))
+        (ok t))
+    (dotimes (i (- (point-count poly) 1))
+      (when (< (distance-point-line (aref (points poly) i) p q)
+               sep)
+        (setf ok nil)
+        (return)))
+    ok))
+
+(defun make-random-polyline-in-rectangle-sep (rect count sep)
+  "Create a polyline with the given number of points in the given bounds,
+   with each point separated from the others and their lines by at least
+   sep. This is to avoid the pen getting trapped by small gaps between
+   points or between points and lines."
+  (assert (> count 2))
+  (let ((poly (make-polyline)))
+    (append-point poly (random-point-in-rectangle rect))
+    (append-point poly (random-point-in-rectangle rect))
+    (loop while (< (point-count poly) count)
+          do (let ((p (random-point-in-rectangle rect)))
+               (when (>= (distance p poly) sep)
+                 (when (new-segment-far-enough-p p poly sep)
+                   (append-point poly p)))))
+    poly))
+
 (defun make-polyline-from-points (points)
   "Create a polyline with the given points."
   (let ((poly (make-polyline)))
     (loop for p across points
-      do (append-point poly p))
+          do (append-point poly p))
     poly))
 
 (defmethod distance ((p <point>) (poly <polyline>))
@@ -99,11 +127,11 @@
 
 (defmethod highest-leftmost-point ((poly <polyline>))
   "The highest point, or highest and leftmost point (if several are highest)."
-  (highest-leftmost-point-in-list (points poly)))
+  (highest-leftmost-point-in-array (points poly)))
 
 (defmethod area ((poly <polyline>))
   "Get the area of the POLYGON"
-  ;; Cleanme!
+  ;;Cleanme!
   (if (< (length (points poly)) 3)
       0.0
       (let ((pts (points poly))
@@ -250,7 +278,7 @@
 
 (defun convex-hull (the-points)
   "Get the convex hull of an array of points."
-  (let* ((first-point (highest-leftmost-point-in-list the-points))
+  (let* ((first-point (highest-leftmost-point-in-array the-points))
          (current-point first-point)
          (next-point nil)
          (hull (make-array 1 :adjustable t :fill-pointer 0)))

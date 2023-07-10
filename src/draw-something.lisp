@@ -25,7 +25,6 @@
 
 (defparameter +pen-outline-distance+ 5.2)
 (defparameter +pen-outline-distance-tolerance+ 0.7)
-;; defconstant isn't happy here o_O
 (defparameter *pen-params*
   (make-pen-parameters  :move-step          1.3 ;;1.0
                         :distance           +pen-outline-distance+
@@ -55,7 +54,7 @@
             "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
             "drawing" year month date hours minutes seconds)))
 
-(defun draw-something (&key (randseed nil))
+(defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
   "Make the drawing data structures and create the image."
   (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
@@ -64,19 +63,22 @@
                                                 :y +drawing-y+
                                                 :width +drawing-width+
                                                 :height +drawing-height+)
+                                :min-sep
+                                (* +pen-outline-distance+ 2)
                                 :colour-scheme-applier
                                 (make-colour-scheme-applier :scheme (default-colour-scheme)
                                                             :spec-list (chooser-spec)))))
-    (make-composition-points drawing (random-range 8 42))
-
     ;; Proceed plane by plane, figure by figure.
-
-#|    
-    (make-planes drawing (figure-generation-methods +planes-count+))
-    (make-planes-skeletons drawing)
-    (do-drawing-forms (drawing form)
-      (setf (fill-colour form)
-            (funcall choose-colour form)))
+    (dotimes (i (length *figure-generation-method-list*))
+      (let ((plane (make-plane :pen-params *pen-params*)))
+        (vector-push-extend plane (planes drawing))
+        (dotimes (j 8)
+          (funcall (nth i *figure-generation-method-list*)
+                   drawing
+                   plane))))
+    ;; (do-drawing-forms (drawing form)
+    ;;   (setf (fill-colour form)
+    ;;         (funcall choose-colour form)))
     (log-info "Finished drawing.")
     (let ((filepath (write-drawing +page-size+
                                    drawing
@@ -86,6 +88,6 @@
                                    (or filename
                                        (generate-filename)))))
       ;; Make sure this goes to stdout
-      (format t "Wrote file to: ~a~%" filepath))|#
+      (format t "Wrote file to: ~a~%" filepath))
     (log-info "Finished draw-something.")
     drawing))

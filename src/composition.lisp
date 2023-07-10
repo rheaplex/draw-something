@@ -40,144 +40,74 @@
                        ;;(random-points-on-rectangle b edge-count)
                        (random-points-in-rectangle b interior-count)))))
 
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|
-
-(defun make-hull-figure (the-points fill stroke)
+(defun make-hull-figure (drawing plane)
   "Make a hull figure."
-  (log-info "Making hull figure" count)
-  (add-form (make-figure)
-            (make-hull-form :skeleton the-points
-                            :fill-colour fill-colour
-                            :)
-  (make-figure-
-  (map-into (make-array count)
-            (lambda ()
-              (make-figure-from-points
-               (points (convex-hull
-                        (choose-n-of (random-range low-count
-                                                   (min high-count
-                                                        (length the-points)))
-                                     the-points)))))))
-
-(defconstant +min-hulls-per-plane+ 1)
-(defconstant +max-hulls-per-plane+ 4)
-(defconstant +min-hull-points+ 3)
-(defconstant +max-hull-points+ 12)
-
-(defun make-hull-figures-for-plane (points)
-  "The plane population policy using hulls. "
-  (make-hull-figures points
-                     (random-range +min-hulls-per-plane+
-                                   +max-hulls-per-plane+)
-                     +min-hull-points+
-                     (min (length points) +max-hull-points+)))
+  ;;FIXME: get random from plane?
+  (let* ((count 12)
+         (pts (points (convex-hull (random-points-in-rectangle (bounds drawing)
+                                                               count))))
+         ;; We ignore min-sep because the convex hull doesn't need it.
+         (fig (make-figure-from-points pts)))
+    (vector-push-extend fig (figures plane))
+    (draw-figure fig (pen-params plane))
+    fig))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Polygons
+;; Polygon
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-polygon-figures (points count low-count high-count)
-  "Make count polygon figures. They may overlap or touch. Todo: prevent this."
-  (log-info "Making ~d polygon figure(s) for plane." count)
-  (let ((polygons (make-array count)))
-    (map-into
-     polygons
-     (lambda ()
-       (make-figure-from-points (choose-n-of (random-range low-count
-                                                           high-count)
-                                             points))))))
-
-(defconstant +min-polygons-per-plane+ 1)
-(defconstant +max-polygons-per-plane+ 5)
-(defconstant +min-polygon-points+ 3)
-(defconstant +max-polygon-points+ 12)
-
-(defun make-polygon-figures-for-plane (points)
-  "The plane population policy using polygons. "
-  (make-polygon-figures points
-                        (random-range +min-polygons-per-plane+
-                                      +max-polygons-per-plane+)
-                        +min-polygon-points+
-                        (min (length points) +max-polygon-points+)))
+(defun make-polygon-figure (drawing plane)
+  ;;FIXME: get random from plane?
+  (let* ((count 12)
+         (skel (make-random-polyline-in-rectangle-sep (bounds drawing)
+                                                      count
+                                                      (min-sep drawing)))
+         ;;FIXME: this is a pointless copy
+         (fig (make-figure-from-points (points skel))))
+    (vector-push-extend fig (figures plane))
+    (draw-figure fig (pen-params plane))
+    fig))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Lines
+;; Line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-line-figure (points)
+(defun make-line-figure (drawing plane)
   "Make a line figure using two of the points."
-  (let ((p1p2 (choose-n-of 2 points)))
-    (make-figure :forms
-                 (make-form :contents
-                            (make-line :from (first p1p2)
-                                       :to (second p1p2))))))
-
-(defun make-line-figures (points count)
-  "Make count line figures. They may overlap or touch. Todo: ensure they don't."
-  (log-info "Making ~d line figure(s) for plane." count)
-  (let ((lines (make-array count)))
-    (map-into lines
-              (lambda () (make-figure-from-points (choose-n-of 2 points))))))
-
-(defconstant +min-lines-per-plane+ 1)
-(defconstant +max-lines-per-plane+ 8)
-
-(defun make-line-figures-for-plane (points)
-  "The plane population policy using liness. "
-  (make-line-figures points
-                     (random-range +min-lines-per-plane+
-                                   (min (floor (/ (length points) 2.0))
-                                        +max-lines-per-plane+))))
+  (let* ((p1 (random-point-in-rectangle (bounds drawing)))
+         (p2 (random-point-in-rectangle (bounds drawing)))
+         ;;FIXME: Should be a line.
+         (fig (make-figure-from-points (vector p1 p2))))
+    (vector-push-extend fig (figures plane))
+    (draw-figure fig (pen-params plane))
+    fig))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Points
+;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-point-figure (point)
+(defun make-point-figure (drawing plane)
   "Make a point figure."
-  (make-instance '<figure>
-                 :forms (make-instance '<form>
-                                       :contents point)))
-
-(defun make-point-figures (points count)
-  "Make count point figures."
-  (log-info "Making ~d point figure(s) for plane." count)
-  (let ((source-points (choose-n-of count points))
-        (point-figures (make-array count :fill-pointer 0)))
-    (loop for p across source-points
-          do (vector-push-extend (make-figure-from-points (vector p))
-                                 point-figures))
-    point-figures))
-
-(defconstant +min-points-per-plane+ 1)
-(defconstant +max-points-per-plane+ 12)
-
-(defun make-point-figures-for-plane (points)
-  "The plane population policy using points. "
-  (make-point-figures points
-                      (random-range +min-points-per-plane+
-                                    (min (length points)
-                                         +max-points-per-plane+))))
-
-|#
+  (let* ((p (random-point-in-rectangle (bounds drawing)))
+         ;;FIXME: should be a point.
+         (fig (make-figure-from-points (vector p))))
+    (vector-push-extend fig (figures plane))
+    (draw-figure fig (pen-params plane))
+    fig))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *figure-generation-method-list*
-  '(make-hull-figures-for-plane
-    ;;make-polygon-figures-for-plane
-    ;;make-line-figures-for-plane
-    ;;make-point-figures-for-plane
-    ))
+  '(make-hull-figure
+    make-polygon-figure
+    make-line-figure
+    make-point-figure))
 
 (defun figure-generation-methods (count)
   (choose-n-of-ordered count *figure-generation-method-list*))

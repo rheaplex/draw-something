@@ -130,14 +130,14 @@
   (contains-point-co-ordinates rect (x p) (y p)))
 
 (defmethod contains ((container <rectangle>) (r <rectangle>))
-  "Find whether container contains r (r."
+  "Find whether container contains r."
   (and (<= (x container) (x r))
        (<= (y container) (y r))
        (>= (+ (x container) (width container)) (+ (x r) (width r)))
        (>= (+ (y container) (height container)) (+ (y r) (height r)))))
 
 (defun points-in-rectangle (rect points)
-  "Get the vector of points within the rectangle"
+  "Get the vector of points within the rectangle."
   (let ((contained (make-array 0 :adjustable t :fill-pointer 0)))
     (loop for p across points
           when (contains rect p)
@@ -237,3 +237,116 @@
                                    :y (+ (y r) (height r) -1))
                        (make-point :x (+ (x r) (width r) -1)
                                    :y (y r)))))
+
+(defclass <grow-rectangle> (ds::<rectangle>)
+  ((directions :initform '(left right up down)
+               :accessor directions)
+   (min :initarg :min
+        :accessor min-rect)
+   (max :initarg :max
+        :accessor max-rect)
+   (xstep :initarg :xstep
+          :initform 1.0
+          :accessor xstep)
+   (ystep :initarg :ystep
+          :initform 1.0
+          :accessor ystep)
+   (within :initarg :within
+           :accessor within-rect)
+   (avoid :initarg :avoid
+          :accessor avoid-rects))
+  (:documentation "A rectangle that grows with constraints."))
+
+(defmethod initialize-instance :after ((o <grow-rectangle>)
+                                       &key
+                                         initial-x
+                                         initial-y)
+  (setf (x o) initial-x)
+  (setf (y o) initial-y)
+  (setf (width o) 1)
+  (setf (height o) 1))
+
+(defun can-grow-rectangle-p (rect)
+  (not (null (directions rect))))
+
+(defun found-rectangle-p (rect)
+  (and (>= (width rect) (width (min-rect rect)))
+       (>= (height rect) (height (min-rect rect)))))
+
+(defun search-finished-p (rect)
+  (or (found-rectangle-p rect)
+      (not (can-grow-rectangle-p rect))))
+
+(defun grow-rect (rect new-rect which-way)
+  (case which-way
+      ;; Try to grow in direction.
+      (up
+       (incf (height new-rect)) (ystep rect))
+      (down
+       (incf (height new-rect) (ystep rect))
+       (decf (y new-rect)) (ystep rect))
+      (left
+       (decf (x new-rect) (xstep rect))
+       (incf (width new-rect)) (xstep rect))
+      (right
+       (incf (width new-rect)) (xstep rect))))
+
+(defun stop-growing-direction-max (rect)
+  ;; If the rect has reached its maximum width,
+  ;; don't grow any further to the left or right
+  (when (= (width rect) (width (max-rect rect)))
+    (setf (directions rect)
+          (remove-if #'(lambda (x) (member x '(left right)))
+                     (directions rect))))
+  ;; If the rect has reached its maximum height,
+  ;; don't grow any further at the top or bottom.
+  (when (= (height rect) (height (max-rect rect)))
+    (setf (directions rect)
+          (remove-if #'(lambda (x) (member x '(up down)))
+                     (directions rect)))))
+
+(defun set-grown-size (rect new-rect which-way)
+  (case which-way
+    (up
+     (setf (height rect) (height new-rect)))
+    (down
+     (setf (height rect) (height new-rect)
+           (y rect) (y new-rect)))
+    (left
+     (setf (x rect) (x new-rect)
+           (width rect) (width new-rect)))
+    (right
+     (setf (width rect) (width new-rect)))))
+
+(defun grow-rectangle-step (rect)
+  (let ((new-rect (copy-rectangle rect))
+        (which-way (choose-one-of (directions rect))))
+    ;; Grow in a random direction.
+    (grow-rect rect new-rect which-way)
+    ;; If we collided or spilled over, stop growing in that direction.
+    (when (or (intersects-any new-rect (avoid-rects rect))
+              (not (contains (within-rect rect) new-rect)))
+      (setf new-rect nil)
+      (setf (directions rect)
+            (remove which-way (directions rect))))
+    (when new-rect
+      ;; Copy our new dimensions in.
+      (set-grown-size rect new-rect which-way)
+      ;; If we reach max size in any direction, stop growing that way.
+      (stop-growing-direction-max rect)))
+  rect)
+
+(defun grow-rectangle (min max
+                       initial-x initial-y
+                       within avoid
+                       &optional (xstep 1) (ystep 1))
+  (let ((grow (make-instance '<grow-rectangle>
+                             :min min :max max
+                             :initial-x initial-x :initial-y initial-y
+                             :xstep xstep :ystep ystep
+                             :within within :avoid avoid)))
+    (loop while (not (search-finished-p grow))
+          do (grow-rectangle-step grow))
+    (if (found-rectangle-p grow)
+        (copy-rectangle grow)
+     nil)))

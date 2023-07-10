@@ -80,14 +80,3 @@
   "Convert hsb to #(r g b)."
   (multiple-value-bind (r g b) (hsb-to-rgb col)
     (vector r g b)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; An object with colours.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defclass <polychrome> ()
-  ()
-  (:documentation "An object with colours or not."))
-
-(defgeneric colours (polychrome)
- (:documentation  "Get the colours from an object and any it contains."))

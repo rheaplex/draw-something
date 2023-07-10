@@ -23,10 +23,7 @@
 ;; A figure on a plane.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant +min-forms+ 5)
-(defconstant +max-forms+ 10)
-
-(defclass <figure> (<tagged>)
+(defclass <figure> ()
   ((forms :accessor forms
           :type vector
           :initform (make-array 1 :adjustable t :fill-pointer 0)
@@ -42,9 +39,13 @@
            :documentation "The bounds of the figure."))
   (:documentation "A figure drawn in the drawing."))
 
-(defun make-figure ()
+(defun make-figure (&key (form nil))
   "Constructor function."
-  (make-instance '<figure>))
+  (let ((fig (make-instance '<figure>)))
+    (when form
+      (vector-push-extend form (forms fig))
+      (setf (bounds fig) (bounds form)))
+    fig))
 
 (defun add-form-to-figure (form figure)
   (append form (forms figure))
@@ -52,17 +53,16 @@
         (include-rectangle (bounds figure)
                            (bounds form))))
 
-#|(defun make-figure-from-points (points)
+(defun make-figure-from-points (points)
   "Make a figure with a single polyline from the provided points."
   (log-info "Making figure.")
-  (let ((fig (make-figure>)))
+  (let ((fig (make-figure)))
     (vector-push-extend (make-form-from-points points)
                         (forms fig))
     fig))
 
-(defun draw-figure (fig)
+(defun draw-figure (fig pen-params)
   "Draw the forms of a figure."
   (loop for form across (forms fig)
         do (log-info "Drawing figure.")
-        do (draw-form form (choose-one-of *plane-pen-parameters*))))
-|#
+        do (draw-form form pen-params)))
