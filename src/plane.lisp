@@ -45,6 +45,14 @@
                    do (vector-push-extend (bounds form) results)))
     results))
 
+(defmacro do-plane-forms ((plane form-variable-name) &body body)
+  "Run code for each form of each figure of a plane."
+  (let ((figure-var (gensym)))
+    `(loop for ,figure-var across (figures plane)
+           do (loop for ,form-variable-name
+                     across (forms ,figure-var)
+                    do (progn ,@body)))))
+
 (defun find-space-on-plane (the-drawing the-plane required-size-rect)
   "Find empty space on the plane of given size, or nil if fail"
   ;; Efficiency decreases with number of figures. Cells would be constant.
@@ -65,15 +73,14 @@
         (height-to-search (- (height (bounds the-drawing))
                              (height required-size-rect)))
         (result nil))
-    (block outside-the-loops
-      ;; Use dotimesloop to ensure we don't find the top left space each time
-      (dotimesloop (v 0 (random-range 0 height-to-search) height-to-search)
-                   (setf (y candidate) v)
-                   (dotimesloop (h 0 (random-range 0 width-to-search) width-to-search)
-                                (setf (x candidate) h)
-                                (when (intersects-none candidate plane-rects)
-                                  (setf result candidate)
-                                  (return-from outside-the-loops)))))
+    (dotimes (i 1000000)
+      (setf (x candidate) (+ (x (bounds the-drawing))
+                             (random-range 0 width-to-search)))
+      (setf (y candidate) (+ (y (bounds the-drawing))
+                             (random-range 0 height-to-search)))
+      (when (intersects-none candidate plane-rects)
+        (setf result candidate)
+        (return)))
     result))
 
 (defun find-space-on-plane-range (the-drawing the-plane

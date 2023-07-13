@@ -32,8 +32,7 @@
          (interior-count (- count corner-count))
          (edge-count (- count
                         interior-count
-                        corner-count))
-         )
+                        corner-count)))
     (setf (composition-points the-drawing)
           (concatenate 'vector
                        ;;(random-points-at-rectangle-corners b corner-count)
@@ -44,60 +43,84 @@
 ;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-hull-figure (drawing plane)
+(defun make-hull-figure (drawing plane size)
   "Make a hull figure."
   ;;FIXME: get random from plane?
-  (let* ((count 12)
-         (pts (points (convex-hull (random-points-in-rectangle (bounds drawing)
-                                                               count))))
-         ;; We ignore min-sep because the convex hull doesn't need it.
-         (fig (make-figure-from-points pts)))
-    (vector-push-extend fig (figures plane))
-    (draw-figure fig (pen-params plane))
-    fig))
+  (let ((count 12)
+        (space (find-space-on-plane drawing
+                                    plane
+                                    (make-rectangle :x 0
+                                                    :y 0
+                                                    :width size
+                                                    :height size))))
+    (when space
+      ;; We ignore min-sep because the convex hull doesn't need it.
+      (let ((fig (make-figure-from-points (points (convex-hull (random-points-in-rectangle space
+                                                                                           count))))))
+            (vector-push-extend fig (figures plane))
+            (draw-figure fig (pen-params plane))
+            fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygon
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-polygon-figure (drawing plane)
-  ;;FIXME: get random from plane?
+(defun make-polygon-figure (drawing plane size)
   (let* ((count 12)
-         (skel (make-random-polyline-in-rectangle-sep (bounds drawing)
-                                                      count
-                                                      (min-sep drawing)))
-         ;;FIXME: this is a pointless copy
-         (fig (make-figure-from-points (points skel))))
-    (vector-push-extend fig (figures plane))
-    (draw-figure fig (pen-params plane))
-    fig))
+         (space (find-space-on-plane drawing
+                                     plane
+                                     (make-rectangle :x 0
+                                                     :y 0
+                                                     :width size
+                                                     :height size))))
+    (when space
+      (let ((fig (make-figure-from-points (points (make-random-polyline-in-rectangle-sep space
+                                                                                         count
+                                                                                         (min-sep drawing))))))
+        (vector-push-extend fig (figures plane))
+        (draw-figure fig (pen-params plane))
+        fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-line-figure (drawing plane)
+(defun make-line-figure (drawing plane size)
   "Make a line figure using two of the points."
-  (let* ((p1 (random-point-in-rectangle (bounds drawing)))
-         (p2 (random-point-in-rectangle (bounds drawing)))
-         ;;FIXME: Should be a line.
-         (fig (make-figure-from-points (vector p1 p2))))
-    (vector-push-extend fig (figures plane))
-    (draw-figure fig (pen-params plane))
-    fig))
+  (let ((space (find-space-on-plane drawing
+                                    plane
+                                    (make-rectangle :x 0
+                                                    :y 0
+                                                    :width size
+                                                    :height size))))
+    (when space
+      (let* ((p1 (random-point-in-rectangle space))
+             (p2 (random-point-in-rectangle space))
+             ;;FIXME: Should be a line.
+             (fig (make-figure-from-points (vector p1 p2))))
+      (vector-push-extend fig (figures plane))
+      (draw-figure fig (pen-params plane))
+      fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-point-figure (drawing plane)
+(defun make-point-figure (drawing plane size)
   "Make a point figure."
-  (let* ((p (random-point-in-rectangle (bounds drawing)))
-         ;;FIXME: should be a point.
-         (fig (make-figure-from-points (vector p))))
-    (vector-push-extend fig (figures plane))
-    (draw-figure fig (pen-params plane))
-    fig))
+  (let* ((space (find-space-on-plane drawing
+                                     plane
+                                     (make-rectangle :x 0
+                                                     :y 0
+                                                     :width size
+                                                     :height size))))
+    (when space
+      (let* ((p (random-point-in-rectangle space))
+             ;;FIXME: should be a point.
+             (fig (make-figure-from-points (vector p))))
+        (vector-push-extend fig (figures plane))
+        (draw-figure fig (pen-params plane))
+        fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection

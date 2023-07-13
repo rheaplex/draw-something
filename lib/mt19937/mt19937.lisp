@@ -9,20 +9,20 @@
 
 (defpackage "MT19937"
   (:use :common-lisp)
-  (:shadow #:random-state
-       #:random-state-p
-       #:random
-       #:*random-state*
-       #:make-random-state)
   (:export #:random-state
-       #:random-state-p
-       #:random
-       #:*random-state*
-       #:make-random-state
-       #:%random-single-float
-       #:%random-double-float
-       #:random-chunk
-       #:init-random-state))
+           #:random-state-p
+           #:random
+           #:*random-state*
+           #:make-random-state
+           #:%random-single-float
+           #:%random-double-float
+           #:random-chunk
+           #:init-random-state)
+  (:shadow #:random-state
+           #:random-state-p
+           #:random
+           #:*random-state*
+           #:make-random-state))
 
 ;;; Begin MT19937 implementation.
 ;;; **********************************************************************
