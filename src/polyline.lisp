@@ -91,11 +91,11 @@
   (assert (> count 2))
   (let ((poly (make-polyline)))
     (append-point poly (random-point-in-rectangle rect))
-    (append-point poly (random-point-in-rectangle rect))
     (loop while (< (point-count poly) count)
           do (let ((p (random-point-in-rectangle rect)))
                (when (>= (distance p poly) sep)
-                 (when (new-segment-far-enough-p p poly sep)
+                 (when (or (< (point-count poly) 2)
+                           (new-segment-far-enough-p p poly sep))
                    (append-point poly p)))))
     poly))
 

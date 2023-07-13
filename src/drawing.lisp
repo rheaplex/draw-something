@@ -43,6 +43,7 @@
    (ground :accessor ground
            :type <colour>
            :initarg :ground
+           :initform (make-colour :hue 0 :saturation 0 :brightness 1)
            :documentation "The flat background colour of the drawing.")
    (minimum-separation :accessor min-sep
                        :initarg :min-sep
@@ -56,15 +57,14 @@
   (:documentation "A drawing in progress."))
 
 (defun make-drawing (&key substrate-bounds min-sep bounds colour-scheme-applier)
-  (log-info "Making drawing.")
-  (log-info "Bounds: ~a ." bounds)
+  (log-info "Making drawing: bounds: ~a ." bounds)
   (make-instance '<drawing>
                  :substrate-bounds substrate-bounds
                  :bounds bounds
                  :min-sep min-sep
                  :colour-scheme-applier colour-scheme-applier 
-                 :ground (choose-colour-for colour-scheme-applier
-                                            'background)))
+                 :ground
+                 (choose-colour-for colour-scheme-applier 'background)))
 
 (defun choose-colour (drawing symbol)
   (choose-colour-for (colour-scheme-applier drawing) symbol))

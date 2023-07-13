@@ -146,10 +146,17 @@
 
 (defmethod intersects ((rect1 <rectangle>) (rect2 <rectangle>))
   "Find whether the rectangles intersect."
-  (and (<= (x rect1) (+ (x rect2) (width rect2)))
-       (<= (y rect1) (+ (y rect2) (height rect2)))
-       (>= (+ (x rect1) (width rect1)) (x rect2))
-       (>= (+ (y rect1) (height rect1)) (y rect2))))
+  (cond
+    ;; One rectangle is to the left side of the other
+    ((or (> (x rect1) (+ (x rect2) (width rect2)))
+         (> (x rect2) (+ (x rect1) (width rect1))))
+     nil)
+    ;; One rectangle is above the other
+    ((or (> (y rect2) (+ (y rect1) (height rect1)))
+         (> (y rect1) (+ (y rect2) (height rect2))))
+     nil)
+    ;; Otherwise, they overlap
+    (t t)))
 
 (defun include-point (rect p)
   "Destructively expand the rectangle to include the point."

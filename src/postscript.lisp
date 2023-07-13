@@ -102,14 +102,15 @@
 
 (defmethod write-form-fill ((f <form>) ps)
   "Write the drawing outline."
-;;  (write-colour (fill-colour f) :to ps)
+  (write-colour (fill-colour f) :to ps)
   (write-new-path :to ps)
   (write-subpath (points (outline f)) :to ps)
   (write-fill :to ps))
 
 (defmethod write-form-stroke ((f <form>) ps)
   "Write the drawing outline."
-  (write-rgb 0.0 0.0 0.0 :to ps)
+  ;;(write-rgb 0.0 0.0 0.0 :to ps)
+  (write-colour (stroke-colour f) :to ps)
   ;;(write-rectstroke (bounds f) :to ps)
   (write-new-path :to ps)
   (write-subpath (points (outline f)) :to ps)
@@ -139,7 +140,7 @@
   (write-rectstroke (inset-rectangle (bounds the-drawing) -1)
                     :to ps))
 
-(defmethod write-drawing (page-size (the-drawing <drawing>) directory filename)
+(defmethod write-drawing ((the-drawing <drawing>) directory filename)
   "Write the drawing"
   ;;(log-info "Writing drawing to file ~a" filename)
   (ensure-directories-exist directory)
@@ -150,8 +151,8 @@
   (with-open-file (ps filepath
                       :direction :output
                       :if-exists :supersede)
-    (write-eps-header (car page-size)
-                      (cdr page-size)
+    (write-eps-header (width (substrate-bounds the-drawing))
+                      (height (substrate-bounds the-drawing))
                       :to ps)
     (write-ground the-drawing ps)
     ;;(write-frame the-drawing ps)

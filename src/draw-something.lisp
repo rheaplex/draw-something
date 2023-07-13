@@ -46,6 +46,9 @@
 
 (defparameter +planes-count+ 4)
 
+(defparameter +planes-figures-max+ #(8 16 24 16))
+(defparameter +planes-sizes+ #(3 3 3 64))
+
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
   (multiple-value-bind (seconds minutes hours date month year)
@@ -63,25 +66,35 @@
                                                 :y +drawing-y+
                                                 :width +drawing-width+
                                                 :height +drawing-height+)
+                                :substrate-bounds
+                                (make-rectangle :x 0
+                                                :y 0
+                                                :width (car +page-size+)
+                                                :height (cdr +page-size+))
                                 :min-sep
-                                (* +pen-outline-distance+ 2)
+                                (* +pen-outline-distance+ 3)
                                 :colour-scheme-applier
                                 (make-colour-scheme-applier :scheme (default-colour-scheme)
                                                             :spec-list (chooser-spec)))))
     ;; Proceed plane by plane, figure by figure.
     (dotimes (i (length *figure-generation-method-list*))
+      (log-info "~%Plane: ~d~%" i)
       (let ((plane (make-plane :pen-params *pen-params*)))
         (vector-push-extend plane (planes drawing))
-        (dotimes (j 8)
+        (dotimes (j (aref +planes-figures-max+ i))
+          (log-info "Trying to produce figure ~d of plane ~d" j i)
           (funcall (nth i *figure-generation-method-list*)
                    drawing
-                   plane))))
-    ;; (do-drawing-forms (drawing form)
-    ;;   (setf (fill-colour form)
-    ;;         (funcall choose-colour form)))
+                   plane
+                   (floor (min +drawing-width+ +drawing-height+)
+                          (aref +planes-sizes+ i))))
+        (log-info "Colouring forms.")
+        (do-plane-forms (plane form)
+          (setf (fill-colour form)
+                (choose-colour-for (colour-scheme-applier drawing)
+                                   (nth i *object-symbol-choices*))))))
     (log-info "Finished drawing.")
-    (let ((filepath (write-drawing +page-size+
-                                   drawing
+    (let ((filepath (write-drawing drawing
                                    (or savedir
                                        (make-pathname :directory
                                                       '(:relative "drawings")))

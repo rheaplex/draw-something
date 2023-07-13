@@ -41,13 +41,13 @@
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
                 :initarg :fill-colour
-                :initform nil
+                :initform (make-colour :hue 0 :saturation 0 :brightness 1)
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
                   :initarg :stroke-colour
-                  :initform nil
+                  :initform (make-colour :hue 0 :saturation 1 :brightness 0)
                   :documentation "The outline colour of the form.")
-   (stroke-width :accessor stroke-colour
+   (stroke-width :accessor stroke-width
                  :initarg :stroke-width
                  :initform 2.0 ;;FIXME
                  :documentation "The outline colour of the form."))
@@ -61,11 +61,9 @@
 
 (defun make-form-from-points (points)
   "Make a form, ready to be started."
-  (log-info "Making form.~%")
+  (log-info "Making form.")
   (let* ((skel (make-polyline-from-points points))
-         (the-form (make-instance '<form>
-                                  :skeleton (vector skel)
-                                  :bounds (bounds skel))))
+         (the-form (make-form :skeleton skel)))
     the-form))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
