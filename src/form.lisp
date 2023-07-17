@@ -41,11 +41,11 @@
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
                 :initarg :fill-colour
-                :initform (make-colour :hue 0 :saturation 0 :brightness 1)
+                :initform nil
                 :documentation "The flat body colour of the form.")
    (stroke-colour :accessor stroke-colour
                   :initarg :stroke-colour
-                  :initform (make-colour :hue 0 :saturation 1 :brightness 0)
+                  :initform nil
                   :documentation "The outline colour of the form.")
    (stroke-width :accessor stroke-width
                  :initarg :stroke-width

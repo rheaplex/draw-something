@@ -20,7 +20,7 @@
 (in-package :draw-something)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Colour as hsb (and rgb conversion).
+;; Colour as hsl (and rgb conversion).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass <colour> ()
@@ -32,59 +32,73 @@
                :initform 1.0
                :initarg :saturation
                :documentation "The saturation of the colour.")
-   (brightness :accessor brightness
+   (lightness :accessor lightness
                :initform 1.0
-               :initarg :brightness
-               :documentation "The brightness of the colour."))
+               :initarg :lightness
+               :documentation "The lightness of the colour."))
   (:documentation "A colour"))
 
 (defmethod print-object ((object <colour>) stream)
   "Make a human readable string describing the rectangle."
   (print-unreadable-object (object stream :type t :identity t)
-    (format stream "(HUE: ~,2f SATURATION: ~,2f BRIGHTNESS: ~,2f)"
+    (format stream "(HUE: ~,2f SATURATION: ~,2f LIGHTNESS: ~,2f)"
           (hue object)
           (saturation object)
-          (brightness object))))
+          (lightness object))))
 
-(defun make-colour (&key hue saturation brightness)
+(defun make-colour (&key hue saturation lightness)
   "Constuctor function."
   (make-instance '<colour> :hue hue
                            :saturation saturation
-                           :brightness brightness))
+                           :lightness lightness))
 
-(defun hsb-to-rgb (col)
-  "Convert the hue/saturation/brightness colour to RGB."
-  (if (= (saturation col) 0)
-      (values-list (list (brightness col) (brightness col) (brightness col)))
-      (let* ((p (* (brightness col)
-                   (- 1.0
-                      (saturation col))))
-             (q (* (brightness col)
-                   (- 1.0
-                      (* (saturation col) (hue col)))))
-             (tt (* (brightness col)
-                    (- 1.0
-                       (* (saturation col)
-                          (- 1.0 (hue col)))))))
-        (case (floor (* (hue col) 5.0))
-          ((0) (values-list (list (brightness col) tt p))) ;; Red
-          ((1) (values-list (list q (brightness col) p))) ;; Yellow
-          ((2) (values-list (list p (brightness col) tt))) ;; Green
-          ((3) (values-list (list p q (brightness col)))) ;; Cyan
-          ((4) (values-list (list tt p (brightness col)))) ;; Blue
-          ((5) (values-list (list (brightness col) p q))))))) ;; Magenta
+;; https://stackoverflow.com/a/29316972
 
-(defun hsb-to-rgb-hex (col)
-  "Convert the hue/saturation/brightness colour to a string #RRGGBB."
+(defun hue-to-rgb (p q a)
+  (if (< a 0.0)
+      (incf a 1.0))
+  (if (> a 1.0)
+      (decf a 1.0))
+  (cond
+    ((< a (/ 1.0 6.0))
+     (+ p (* (- q p) 6.0 a)))
+    ((< a (/ 1.0 2.0))
+     q)
+    ((< a (/ 2.0 3.0))
+     (+ p (- q p) (* (- (/ 2.0 3.0) a) 6.0)))
+    (t
+     p)))
+
+(defun colour-to-rgb (col)
+  "Convert the hue/saturation/lightness colour to RGB."
+  (let ((h (/ (hue col) 360.0))
+        (s (saturation col))
+        (l (lightness col)))
+    (cond
+      ;; Grey
+      ((zerop s)
+       (values l l l))
+      ;; Black
+      ((zerop l)
+       (values 0.0 0.0 0.0))
+      (t
+       (let* ((q (if (< l 0.5) (* l (1+ s)) (- (+ l s) (* l s))))
+              (p (-  (* 2.0 l) q)))
+         (values (hue-to-rgb p q (+ h (/ 1.0 3.0)))
+                 (hue-to-rgb p q h)
+                 (hue-to-rgb p q (- h (/ 1.0 3.0)))))))))
+
+(defun colour-to-rgb-hex (col)
+  "Convert the hue/saturation/lightness colour to a string #RRGGBB."
   (multiple-value-bind (r g b)
-      (hsb-to-rgb col)
+      (colour-to-rgb col)
     (format nil
             "#~2,'0X~2,'0X~2,'0X"
             (floor (* r 255))
             (floor (* g 255))
             (floor (* b 255)))))
 
-(defun hsb-to-rgb-vector (col)
+(defun colour-to-rgb-vector (col)
   "Convert hsb to #(r g b)."
-  (multiple-value-bind (r g b) (hsb-to-rgb col)
+  (multiple-value-bind (r g b) (colour-to-rgb col)
     (vector r g b)))
