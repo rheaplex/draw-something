@@ -40,7 +40,7 @@
   (format to "~F ~F ~F setrgbcolor~%" r g b))
 
 (defmethod write-colour ((col <colour>) &key (to *ps-stream*))
-  (multiple-value-bind (r g b) (hsb-to-rgb col)
+  (multiple-value-bind (r g b) (colour-to-rgb col)
     (write-rgb r g b :to to)))
 
 (defmethod write-close-path (&key (to *ps-stream*))
@@ -118,9 +118,11 @@
 
 (defmethod write-form ((f <form>) ps)
   "Write the form."
-  (write-form-fill f ps)
+  (when (fill-colour f)
+    (write-form-fill f ps))
   ;;(write-figure-skeleton fig ps)
-  (write-form-stroke f ps))
+  (when (stroke-colour f)
+    (write-form-stroke f ps)))
 
 (defmethod write-figure ((fig <figure>) ps)
   "Write the figure for early multi-figure versions of draw-something."

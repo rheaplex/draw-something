@@ -20,16 +20,16 @@
 (in-package :draw-something)
 
 (defun hs-combined (colour)
-  (- (brightness colour)
+  (- (lightness colour)
      (saturation colour)))
 
-(defun sort-colours-increasing-brightness (colours)
-  (sort colours #'(lambda (a b) (< (brightness a)
-                                   (brightness b)))))
+(defun sort-colours-increasing-lightness (colours)
+  (sort colours #'(lambda (a b) (< (lightness a)
+                                   (lightness b)))))
 
-(defun sort-colours-decreasing-brightness (colours)
-  (sort colours #'(lambda (a b) (> (brightness a)
-                                   (brightness b)))))
+(defun sort-colours-decreasing-lightness (colours)
+  (sort colours #'(lambda (a b) (> (lightness a)
+                                   (lightness b)))))
 
 (defun sort-colours-increasing-saturation (colours)
   (sort colours #'(lambda (a b) (< (saturation a)
@@ -49,8 +49,8 @@
 
 (defparameter +colour-plane-strategies+
   #(
-    ;;sort-colours-increasing-brightness
-    ;;sort-colours-decreasing-brightness
+    ;;sort-colours-increasing-lightness
+    ;;sort-colours-decreasing-lightness
     ;;sort-colours-increasing-saturation
     ;;sort-colours-decreasing-saturation
     sort-colours-increasing-hue-and-saturation
@@ -64,16 +64,16 @@
                    (make-vector 1)))
     buckets))
 
-(defun make-saturations-and-brightnesses (count)
+(defun make-saturations-and-lightnesses (count)
   (loop for i from 0 to count
         collect (make-instance '<colour>
-                               :saturation (random-range 0.2 1.0)
-                               :brightness (random-range 0.5 0.95))))
+                               :saturation (random-range 0 1.0)
+                               :lightness (random-range 0 1.0))))
 
 (defun make-hues (count)
   (let ((hues (make-array count)))
     (loop for i from 0 below count
-          do (setf (aref hues i) (random-number 1.0)))
+          do (setf (aref hues i) (random-number 360.0)))
     hues))
 
 (defun sort-colours-to-buckets (colours strategy bucket-count)
@@ -87,7 +87,7 @@
 
 (defun create-colours (bucket-count colour-count)
   (let* ((hues (make-hues bucket-count))
-         (colours (make-saturations-and-brightnesses colour-count))
+         (colours (make-saturations-and-lightnesses colour-count))
          (strategy (choose-one-of +colour-plane-strategies+))
          (buckets (sort-colours-to-buckets colours
                                            strategy

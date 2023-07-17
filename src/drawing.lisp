@@ -40,7 +40,6 @@
    (ground :accessor ground
            :type <colour>
            :initarg :ground
-           :initform (make-colour :hue 0 :saturation 0 :brightness 1)
            :documentation "The flat background colour of the drawing.")
    (minimum-separation :accessor min-sep
                        :initarg :min-sep
