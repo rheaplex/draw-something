@@ -47,7 +47,7 @@
 (defparameter +planes-count+ 4)
 
 (defparameter +planes-figures-max+ #(8 16 24 16))
-(defparameter +planes-sizes+ #(3 3 3 64))
+(defparameter +planes-sizes+ #(2 3 3 32))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -61,21 +61,23 @@
   "Make the drawing data structures and create the image."
   (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
-  (let* ((drawing (make-drawing :bounds
-                                (make-rectangle :x +drawing-x+
-                                                :y +drawing-y+
-                                                :width +drawing-width+
-                                                :height +drawing-height+)
-                                :substrate-bounds
-                                (make-rectangle :x 0
-                                                :y 0
-                                                :width (car +page-size+)
-                                                :height (cdr +page-size+))
-                                :min-sep
-                                (* +pen-outline-distance+ 3)
-                                :colour-scheme-applier
-                                (make-colour-scheme-applier :scheme (default-colour-scheme)
-                                                            :spec-list (chooser-spec)))))
+  (let ((drawing (make-drawing :bounds
+                               (make-rectangle :x +drawing-x+
+                                               :y +drawing-y+
+                                               :width +drawing-width+
+                                               :height +drawing-height+)
+                               :substrate-bounds
+                               (make-rectangle :x 0
+                                               :y 0
+                                               :width (car +page-size+)
+                                               :height (cdr +page-size+))
+                               :min-sep
+                               (* +pen-outline-distance+ 3)))
+        (colours (create-colours (+ (length *figure-generation-method-list*)
+                                    1)
+                                 20)))
+    (format t "Colour buckets: ~a~%" colours)
+    (setf (ground drawing) (choose-colour-for colours 0))
     ;; Proceed plane by plane, figure by figure.
     (dotimes (i (length *figure-generation-method-list*))
       (log-info "~%Plane: ~d~%" i)
@@ -87,12 +89,12 @@
                    drawing
                    plane
                    (floor (min +drawing-width+ +drawing-height+)
+                          ;; Avoid the background colour
                           (aref +planes-sizes+ i))))
         (log-info "Colouring forms.")
         (do-plane-forms (plane form)
           (setf (fill-colour form)
-                (choose-colour-for (colour-scheme-applier drawing)
-                                   (nth i *object-symbol-choices*))))))
+                (choose-colour-for colours (+ i 1))))))
     (log-info "Finished drawing.")
     (let ((filepath (write-drawing drawing
                                    (or savedir

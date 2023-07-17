@@ -38,6 +38,14 @@
                :documentation "The brightness of the colour."))
   (:documentation "A colour"))
 
+(defmethod print-object ((object <colour>) stream)
+  "Make a human readable string describing the rectangle."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(HUE: ~,2f SATURATION: ~,2f BRIGHTNESS: ~,2f)"
+          (hue object)
+          (saturation object)
+          (brightness object))))
+
 (defun make-colour (&key hue saturation brightness)
   "Constuctor function."
   (make-instance '<colour> :hue hue
