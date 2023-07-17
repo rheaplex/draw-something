@@ -19,348 +19,84 @@
 
 (in-package :draw-something)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; LMH - Low medium and high value ranges from 0.0..1.0
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun hs-combined (colour)
+  (- (brightness colour)
+     (saturation colour)))
 
-(defclass <lmh-values> ()
-  ((lows :type vector
-     :initform (make-array 7)
-     :initarg :lows
-     :accessor low-values)
-   (mediums :type vector
-        :initform (make-array 7)
-        :initarg :mediums
-        :accessor medium-values)
-   (highs :type vector
-      :initform (make-array 7)
-      :initarg :highs
-      :accessor high-values))
-  (:documentation
-    "A range of values divided into low, medium and high values."))
+(defun sort-colours-increasing-brightness (colours)
+  (sort colours #'(lambda (a b) (< (brightness a)
+                                   (brightness b)))))
 
-(defun make-random-low-values (count medium-start)
-  "Generate count random low values."
-  (map-into (make-array count)
-        (lambda () (random-range 0.0 medium-start))))
+(defun sort-colours-decreasing-brightness (colours)
+  (sort colours #'(lambda (a b) (> (brightness a)
+                                   (brightness b)))))
 
-(defun make-random-medium-values (count medium-start high-start)
-  "Generate count random medium values."
-  (map-into (make-array count)
-        (lambda () (random-range medium-start high-start))))
+(defun sort-colours-increasing-saturation (colours)
+  (sort colours #'(lambda (a b) (< (saturation a)
+                                   (saturation b)))))
 
-(defun make-random-high-values (count high-start)
-  "Generate count random high values."
-  (map-into (make-array count)
-        (lambda () (random-range high-start 1.0))))
+(defun sort-colours-decreasing-saturation (colours)
+  (sort colours #'(lambda (a b) (> (saturation a)
+                                   (saturation b)))))
 
-(defun make-lmh (count medium-start high-start)
-  "Make an lmh."
-  (let* ((low-count (random-range 1 (- count 2)))
-     (medium-count (random-range 1 (- count low-count 1)))
-     (high-count (- count medium-count low-count)))
-    (make-instance '<lmh-values>
-                   :lows (make-random-low-values low-count
-                                                 medium-start)
-                   :mediums (make-random-medium-values medium-count
-                                                       medium-start
-                                                       high-start)
-                   :highs (make-random-high-values high-count
-                                                   high-start))))
+(defun sort-colours-increasing-hue-and-saturation (colours)
+  (sort colours #'(lambda (a b) (< (hs-combined a)
+                                   (hs-combined b)))))
 
-(defun random-low-value (lmh)
-  "Randomly choose a value from the list of low values of the lmh."
-  (choose-one-of (low-values lmh)))
+(defun sort-colours-decreasing-hue-and-saturation (colours)
+  (sort colours #'(lambda (a b) (> (hs-combined a)
+                                   (hs-combined b)))))
 
-(defun random-medium-value (lmh)
-  "Randomly choose a value from the list of medium values of the lmh."
-  (choose-one-of (medium-values lmh)))
+(defparameter +colour-plane-strategies+
+  #(
+    ;;sort-colours-increasing-brightness
+    ;;sort-colours-decreasing-brightness
+    ;;sort-colours-increasing-saturation
+    ;;sort-colours-decreasing-saturation
+    sort-colours-increasing-hue-and-saturation
+    sort-colours-decreasing-hue-and-saturation
+    ))
 
-(defun random-high-value (lmh)
-  "Randomly choose a value from the list of medium values of the lmh."
-  (choose-one-of (high-values lmh)))
+(defun make-buckets (bucket-count)
+  (let ((buckets (make-array bucket-count)))
+    (loop for i from 0 below bucket-count
+          do (setf (aref buckets i)
+                   (make-vector 1)))
+    buckets))
 
-(defun random-lmh-value (lmh which)
-  "Return a random low ('l), medium ('m) or high ('h) value based on which."
-  (case which
-    (l (random-low-value lmh))
-    (m (random-medium-value lmh))
-    (h (random-high-value lmh))))
+(defun make-saturations-and-brightnesses (count)
+  (loop for i from 0 to count
+        collect (make-instance '<colour>
+                               :saturation (random-range 0.2 1.0)
+                               :brightness (random-range 0.5 0.95))))
 
-;;FIXME
-(defun print-lmh (lmh)
-  (log-info "low: ")
-  (loop for l across (low-values lmh)
-    do (log-info "~a " l))
-  (log-info  "medium: ")
-  (loop for m across (medium-values lmh)
-    do (log-info "~a " m))
-  (log-info  "high: ")
-  (loop for h across (high-values lmh)
-    do (log-info "~a " h))
-  (log-info  ""))
+(defun make-hues (count)
+  (let ((hues (make-array count)))
+    (loop for i from 0 below count
+          do (setf (aref hues i) (random-number 1.0)))
+    hues))
 
-(defun lmh-all-values (lmh)
-  "Get all of the values in the lmh from low to high."
-  (let ((all (make-array (+ (length (low-values lmh))
-                            (length (medium-values lmh))
-                            (length (high-values lmh)))
-                         :fill-pointer 0)))
-    (loop for l across (low-values lmh)
-          do (vector-push l all))
-    (loop for m across (medium-values lmh)
-          do (vector-push m all))
-    (loop for h across (high-values lmh)
-          do (vector-push h all))
-    all))
+(defun sort-colours-to-buckets (colours strategy bucket-count)
+  (let ((buckets (make-buckets bucket-count))
+        (sorted (funcall strategy colours)))
+    (loop for colour in sorted
+          for i from 0 to (length sorted)
+          do (vector-push-extend colour (aref buckets
+                                              (round i bucket-count))))
+    buckets))
 
+(defun create-colours (bucket-count colour-count)
+  (let* ((hues (make-hues bucket-count))
+         (colours (make-saturations-and-brightnesses colour-count))
+         (strategy (choose-one-of +colour-plane-strategies+))
+         (buckets (sort-colours-to-buckets colours
+                                           strategy
+                                           bucket-count)))
+    (format t "Colour strategy: ~a~%" strategy)
+    (dotimes (i bucket-count)
+      (loop for colour across (aref buckets i)
+            do (setf (hue colour) (aref hues i))))
+    buckets))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Colour Scheme
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Object symbols used in colouring
-
-(defparameter *object-symbol-choices*
-  '(leaf vein blade branch flower tendril))
-
-(defparameter *all-object-symbols*
-  (cons 'background *object-symbol-choices*))
-
-(defun object-symbol (obj)
-  (declare (ignore obj))
-  (choose-one-of *object-symbol-choices*))
-
-(defclass <colour-scheme> ()
-  ((hues :type hash-table
-         :initarg :hues
-         :initform (make-hash-table)
-         :accessor colour-scheme-hues)
-   (saturations :type lmh-values
-                :initarg :saturations
-                :initform (make-instance '<lmh-values>)
-                :accessor colour-scheme-saturations)
-   (values :type lmh-values
-           :initarg :values
-           :initform (make-instance '<lmh-values>)
-           :accessor colour-scheme-values))
-  (:documentation "The values describing a colour scheme."))
-
-(defmethod print-object ((object <colour-scheme>) stream)
-  "Make a human readable string describing the colour scheme."
-  (print-unreadable-object (object stream :type t :identity t)
-    (format stream "(HUES: tbd SATURATIONS: tbd VALUES: tbd)")))
-
-(defun all-colours (scheme)
-  "For the gui to show every possible colour."
-  (loop for hue being the hash-value of (colour-scheme-hues scheme)
-        append (loop for saturation
-                       across (lmh-all-values (colour-scheme-saturations scheme))
-                     append (loop for brightness
-                                    across (lmh-all-values (colour-scheme-values scheme))
-                                  collect (make-colour :hue hue 
-                                                       :saturation saturation
-                                                       :brightness brightness)))))
-
-#|(demethod print-colour-scheme (scheme)
-  (log-info  "Colour Scheme:")
-  (log-info  "hues:")
-  (maphash (lambda (key value)
-        (log-info (format nil "~a ~a " key value)))
-       (colour-scheme-hues scheme))
-  (log-info  "saturations:")
-  (print-lmh (colour-scheme-saturations scheme))
-  (log-info  "values:")
-  (print-lmh (colour-scheme-values scheme)))|#
-
-(defun symbol-colour-scheme-hue (scheme hue-id)
-  "Get the hue value from the scheme for a given id, eg :stem, :stalk."
-  (gethash hue-id (colour-scheme-hues scheme)))
-
-(defun random-colour-scheme-saturation (scheme spec)
-  "Choose a saturation from the range specified by spec."
-  (random-lmh-value (colour-scheme-saturations scheme)
-            spec))
-
-(defun random-colour-scheme-value (scheme spec)
-  "Choose a value from the range specified by spec."
-  (random-lmh-value (colour-scheme-values scheme)
-            spec))
-
-(defun sv-spec-components (spec)
-  "Return each half of the symbol specifying how to choose saturation & value."
-  (case spec
-    (ll (values 'l 'l))
-    (lm (values 'l 'm))
-    (lh (values 'l 'h))
-    (ml (values 'm 'l))
-    (mm (values 'm 'm))
-    (mh (values 'm 'h))
-    (hl (values 'h 'l))
-    (hm (values 'h 'm))
-    (hh (values 'h 'h))))
-
-(defun make-colour-by-sv-spec (scheme hue-id sv-spec)
-  "Choose a colour for the hue id using the sv-spec eg 'lm, 'hh, 'ml."
-  (multiple-value-bind
-    (saturationspec valuespec) (sv-spec-components sv-spec)
-    (make-colour :hue (symbol-colour-scheme-hue scheme hue-id)
-                 :saturation (random-colour-scheme-saturation scheme
-                                                              saturationspec)
-                 :brightness (random-colour-scheme-value scheme
-                                                         valuespec))))
-
-;; Generate additive colour range
-
-(defun make-hue-additive-series (hue-list)
-  (let ((series (make-hash-table))
-    (hue-value (random-number 1.0)))
-    (dolist (hue-symbol hue-list)
-      (setf hue-value (mod (+ hue-value (random-number 0.3))
-               1.0))
-      (setf (gethash hue-symbol series)
-        hue-value))
-    series))
-
-(defun make-colour-scheme (hue-list saturations values medium high)
-  "Make a colour scheme for the saturation symbol list."
-  (make-instance '<colour-scheme>
-         :hues (make-hue-additive-series hue-list)
-         :saturations (make-lmh saturations medium high)
-         :values (make-lmh values medium high)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Applying colour schemes
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defclass <colour-scheme-applier> ()
-  ((scheme :type colour-scheme
-           :accessor applier-scheme
-           :initarg :scheme)
-   (count :type integer
-          :initform 1
-          :accessor applier-count
-          :documentation "How many objects this applier has coloured.")
-   (check :type integer
-          :initform 5
-          :initarg :check
-          :accessor applier-when-to-check
-          :documentation "How often to check deviation.")
-   ;; This one is more part of the scheme but is more convenient here
-   (sv-chooser :initarg :sv-chooser
-               :initform (lambda () 'll)
-               :accessor applier-sv-chooser
-               :documentation "The function to choose sv values.")
-   (sv-probabilites :type hash-table
-                    :initform (make-hash-table)
-                    :accessor applier-probabilities
-                    :documentation "The probabilities of the chooser sv specs")
-   (sv-occurrences :type hash-table
-                   :initform (make-hash-table)
-                   :accessor applier-occurences
-                   :documentation "How often each sv spec has been chosen."))
-  (:documentation
-   "The data used in applying a colour scheme to an image."))
-
-(defmethod make-colour-scheme-applier (&key scheme (spec-list nil))
-  "Fill out the chooser properties from the spec-list, if provided."
-  (let ((object (make-instance '<colour-scheme-applier> :scheme scheme)))
-    (when spec-list
-      ;; Make and set the chooser function for sv specs from the list.
-      (setf (applier-sv-chooser object) (prefs-list-lambda spec-list))
-      ;; Set probabilites from list of num/specs, and set occurences to zero.
-      (let ((total-prob (float (prefs-range spec-list))))
-        (loop for prob in spec-list by #'cddr
-              for spec in (cdr spec-list) by #'cddr
-              do (setf (gethash (dequote spec)
-                                (applier-probabilities object))
-                       (/ prob total-prob))
-              do (setf (gethash (dequote spec)
-                                (applier-occurences object))
-                       0))))
-    object))
-
-(defun spec-probability-difference (applier spec)
-  "Get the difference between the intended and actual occurence of a spec."
-  (let* ((generation-count (float (applier-count applier)))
-     (spec-count (gethash spec (applier-occurences applier)))
-     (target (float (gethash spec (applier-probabilities applier))))
-     (current (/ spec-count generation-count))
-     (difference (- target current)))
-    (log-info "  ~a ~a ~,3F ~,3F ~,3F"
-              spec spec-count target current difference)
-    difference))
-
-(defun most-deviant-spec (applier)
-  "Find the spec that is being called the least compared to its probability."
-  (let ((highest 0.0)
-    (result nil))
-    (maphash #'(lambda (key val)
-         (declare (ignore val))
-         (let ((difference (spec-probability-difference applier key)))
-           (when (> difference highest)
-             (setf highest difference)
-             (setf result key))))
-         (applier-probabilities applier))
-    (log-info "~a" result)
-    result))
-
-(defun increase-spec-count (applier spec)
-  "Update the number of times a spec has been used."
-  (incf (gethash spec (applier-occurences applier))))
-
-(defun increase-applier-count (applier)
-  "Increase the applier's count of objects it has been called for by 1."
-  (incf (applier-count applier)))
-
-(defun update-applier-state (applier spec)
-  "Call when you've applied colour to an object & are ready for the next one."
-  (increase-spec-count applier spec)
-  (increase-applier-count applier))
-
-(defun applier-should-correct (applier)
-  "Decide whether the applier should correct the spec probability error."
-  (eq (mod (applier-count applier)
-       (applier-when-to-check applier))
-      0))
-
-(defun applier-spec-choice (applier hue-id)
-  "Choose the spec to be used."
-  (declare (ignore hue-id))
-  (if (applier-should-correct applier)
-      (most-deviant-spec applier)
-    (funcall (applier-sv-chooser applier))))
-
-(defun choose-colour-for (applier hue-id)
-  "Choose a colour from the scheme for the hue-id."
-  (let* ((spec (applier-spec-choice applier hue-id))
-     (choice (make-colour-by-sv-spec (applier-scheme applier)
-                     hue-id spec)))
-    (update-applier-state applier spec)
-    choice))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; How to make and apply a colour scheme
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defconstant +minimum-spec-probability+ 3)
-(defconstant +maximum-spec-probability+ 9)
-(defconstant +minimum-spec-count+ 2)
-(defconstant +maximum-spec-count+ 3)
-(defparameter *sv-spec-options* '('ll 'lm 'lh 'ml 'mm 'mh 'hl 'hm 'hh))
-
-(defun chooser-spec ()
-  "Construct a list describing a random spec pref, eg (6 'll 3 'hm 2 'lh)."
-  (loop for spec in (choose-n-of (random-range-inclusive +minimum-spec-count+
-                                                         +maximum-spec-count+)
-                 *sv-spec-options*)
-    collect (random-range-inclusive +minimum-spec-probability+
-                    +maximum-spec-probability+)
-        collect spec))
-
-(defun default-colour-scheme  ()
-  (make-colour-scheme *all-object-symbols*
-                      7
-                      7
-                      0.3
-                      0.6))
+(defun choose-colour-for (colours bucket-index)
+  (choose-one-of (aref colours bucket-index)))

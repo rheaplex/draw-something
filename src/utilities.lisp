@@ -46,6 +46,12 @@ Note that this is evaluated as two loops"
       (setf (gethash (car ,current-pair)) (cdr ,current-pair)))
        ,hash)))
 
+(defmethod make-vector (initial-size)
+  "Make a stretchy vector."
+  (make-array initial-size
+              :adjustable t
+              :fill-pointer 0))
+
 (defmacro with-gensyms ((&rest names) &body body)
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
