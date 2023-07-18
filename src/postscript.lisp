@@ -25,10 +25,10 @@
 
 (defvar *ps-stream* t)
 
-(defmethod write-eps-header (width height &key (to *ps-stream*))
+(defmethod write-eps-header (x y width height &key (to *ps-stream*))
   "Write the standard raw PostScript header."
   (format to "%!PS-Adobe-3.0 EPSF-3.0~%")
-  (format to "%%BoundingBox: 0 0 ~a ~a~%" width height)
+  (format to "%%BoundingBox: 0 0 ~a ~a~%" x y width height)
   (format to "/L {lineto} bind def~%/M {moveto} bind def~%"))
 
 (defmethod write-eps-footer (&key (to *ps-stream*))
@@ -95,47 +95,59 @@
 
 (defmethod write-form-skeleton ((f <form>) ps)
   "Write the skeleton the drawing is made around."
-  (write-rgb 0.4 0.4 1.0 :to ps)
-  (write-new-path :to ps)
-  (write-subpath (points (skeleton f)) :to ps)
-  (write-stroke :to ps))
+  (format ps "% START: skeleton~%")
+  (loop for skel across (skeleton f)
+        do (format ps "% ")
+           (write-subpath (points skel) :to ps)
+           (format ps "~%"))
+  (format ps "% END: skeleton~%"))
 
 (defmethod write-form-fill ((f <form>) ps)
   "Write the drawing outline."
+  (format ps "% START: fill~%")
   (write-colour (fill-colour f) :to ps)
   (write-new-path :to ps)
   (write-subpath (points (outline f)) :to ps)
-  (write-fill :to ps))
+  (write-fill :to ps)
+  (format ps "% END: fill~%"))
 
 (defmethod write-form-stroke ((f <form>) ps)
   "Write the drawing outline."
+  (format ps "% START: stroke~%")
   ;;(write-rgb 0.0 0.0 0.0 :to ps)
   (write-colour (stroke-colour f) :to ps)
   ;;(write-rectstroke (bounds f) :to ps)
   (write-new-path :to ps)
   (write-subpath (points (outline f)) :to ps)
-  (write-stroke :to ps))
+  (write-stroke :to ps)
+  (format ps "% END: stroke~%"))
 
 (defmethod write-form ((f <form>) ps)
   "Write the form."
+  (format ps "% START: form~%")
+  (write-form-skeleton f ps)
   (when (fill-colour f)
     (write-form-fill f ps))
-  ;;(write-figure-skeleton fig ps)
   (when (stroke-colour f)
-    (write-form-stroke f ps)))
+    (write-form-stroke f ps))
+  (format ps "% END: form~%"))
 
 (defmethod write-figure ((fig <figure>) ps)
   "Write the figure for early multi-figure versions of draw-something."
   ;;(write-rgb 0.0 0.0 0.0 :to ps)
   ;;(write-rectstroke (bounds fig) :to ps)
   ;;(write-stroke :to ps)
+  (format ps "% START: figure~%")
   (loop for fm across (forms fig)
-        do (write-form fm ps)))
+        do (write-form fm ps))
+  (format ps "% END: figure~%"))
 
 (defmethod write-ground ((the-drawing <drawing>) ps)
   "Colour the drawing ground."
+  (format ps "% START: ground~%")
   (write-colour (ground the-drawing) :to ps)
-  (write-rectfill (bounds the-drawing) :to ps))
+  (write-rectfill (bounds the-drawing) :to ps)
+  (format ps "% END: ground~%"))
 
 (defmethod write-frame ((the-drawing <drawing>) ps)
   "Frame the drawing. Frame is bigger than PS bounds but should be OK."
@@ -153,9 +165,17 @@
   (with-open-file (ps filepath
                       :direction :output
                       :if-exists :supersede)
-    (write-eps-header (width (substrate-bounds the-drawing))
-                      (height (substrate-bounds the-drawing))
+    (write-eps-header (x (bounds the-drawing))
+                      (y (bounds the-drawing))
+                      (width (bounds the-drawing))
+                      (height (bounds the-drawing))
                       :to ps)
+    (format ps
+            "% SUBSTRATE SIZE: ~d ~d ~d ~d~%"
+            (x (substrate-bounds the-drawing))
+            (y (substrate-bounds the-drawing))
+            (width (substrate-bounds the-drawing))
+            (height (substrate-bounds the-drawing)))
     (write-ground the-drawing ps)
     ;;(write-frame the-drawing ps)
     (loop for plane across (planes the-drawing)
