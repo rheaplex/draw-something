@@ -19,9 +19,10 @@
 
 (in-package :draw-something)
 
+;;FIXME: factor in hue
 (defun hs-combined (colour)
-  (- (lightness colour)
-     (saturation colour)))
+  (+ (lightness colour)
+     (- 1.0 (saturation colour))))
 
 (defun sort-colours-increasing-lightness (colours)
   (sort colours #'(lambda (a b) (< (lightness a)
@@ -48,14 +49,12 @@
                                    (hs-combined b)))))
 
 (defparameter +colour-plane-strategies+
-  #(
-    ;;sort-colours-increasing-lightness
-    ;;sort-colours-decreasing-lightness
-    ;;sort-colours-increasing-saturation
-    ;;sort-colours-decreasing-saturation
+  #(sort-colours-increasing-lightness
+    sort-colours-decreasing-lightness
+    sort-colours-increasing-saturation
+    sort-colours-decreasing-saturation
     sort-colours-increasing-hue-and-saturation
-    sort-colours-decreasing-hue-and-saturation
-    ))
+    sort-colours-decreasing-hue-and-saturation))
 
 (defun make-buckets (bucket-count)
   (let ((buckets (make-array bucket-count)))
