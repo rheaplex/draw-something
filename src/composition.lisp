@@ -20,59 +20,47 @@
 (in-package :draw-something)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Generating the point population for the composition
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun make-composition-points (the-drawing count)
-  "Generate the points on the image plane that the composition will use."
-  (log-info "Making ~d composition points." count)
-  ;;FIXME
-  (let* ((b (bounds the-drawing))
-         (corner-count (random-number 4))
-         (interior-count (- count corner-count))
-         (edge-count (- count
-                        interior-count
-                        corner-count)))
-    (setf (composition-points the-drawing)
-          (concatenate 'vector
-                       ;;(random-points-at-rectangle-corners b corner-count)
-                       ;;(random-points-on-rectangle b edge-count)
-                       (random-points-in-rectangle b interior-count)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-hull-figure (drawing plane size)
+(defun make-hull-figure (drawing plane size-min size-max)
   "Make a hull figure."
   ;;FIXME: get random from plane?
   (let ((count 12)
-        (space (find-space-on-plane drawing
-                                    plane
-                                    (make-rectangle :x 0
-                                                    :y 0
-                                                    :width size
-                                                    :height size))))
+        (space (find-space-on-plane-range drawing
+                                          plane
+                                          (make-rectangle :x 0
+                                                          :y 0
+                                                          :width size-min
+                                                          :height size-min)
+                                          (make-rectangle :x 0
+                                                          :y 0
+                                                          :width size-max
+                                                          :height size-max))))
     (when space
       ;; We ignore min-sep because the convex hull doesn't need it.
       (let ((fig (make-figure-from-points (points (convex-hull (random-points-in-rectangle space
                                                                                            count))))))
-            (vector-push-extend fig (figures plane))
-            (draw-figure fig (pen-params plane))
-            fig))))
+        (vector-push-extend fig (figures plane))
+        (draw-figure fig (pen-params plane))
+        fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygon
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-polygon-figure (drawing plane size)
+(defun make-polygon-figure (drawing plane size-min size-max)
   (let* ((count 12)
-         (space (find-space-on-plane drawing
-                                     plane
-                                     (make-rectangle :x 0
-                                                     :y 0
-                                                     :width size
-                                                     :height size))))
+         (space (find-space-on-plane-range drawing
+                                           plane
+                                           (make-rectangle :x 0
+                                                           :y 0
+                                                           :width size-min
+                                                           :height size-min)
+                                           (make-rectangle :x 0
+                                                           :y 0
+                                                           :width size-max
+                                                           :height size-max))))
     (when space
       (let ((fig (make-figure-from-points (points (make-random-polyline-in-rectangle-sep space
                                                                                          count
@@ -85,35 +73,39 @@
 ;; Line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-line-figure (drawing plane size)
+(defun make-line-figure (drawing plane size-min size-max)
   "Make a line figure using two of the points."
-  (let ((space (find-space-on-plane drawing
-                                    plane
-                                    (make-rectangle :x 0
-                                                    :y 0
-                                                    :width size
-                                                    :height size))))
+  (let ((space (find-space-on-plane-range drawing
+                                          plane
+                                          (make-rectangle :x 0
+                                                          :y 0
+                                                          :width size-min
+                                                          :height size-min)
+                                          (make-rectangle :x 0
+                                                          :y 0
+                                                          :width size-max
+                                                          :height size-max))))
     (when space
       (let* ((p1 (random-point-in-rectangle space))
              (p2 (random-point-in-rectangle space))
              ;;FIXME: Should be a line.
              (fig (make-figure-from-points (vector p1 p2))))
-      (vector-push-extend fig (figures plane))
-      (draw-figure fig (pen-params plane))
-      fig))))
+        (vector-push-extend fig (figures plane))
+        (draw-figure fig (pen-params plane))
+        fig))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-point-figure (drawing plane size)
+(defun make-point-figure (drawing plane size-min size-max)
   "Make a point figure."
   (let* ((space (find-space-on-plane drawing
                                      plane
                                      (make-rectangle :x 0
                                                      :y 0
-                                                     :width size
-                                                     :height size))))
+                                                     :width 1
+                                                     :height 1))))
     (when space
       (let* ((p (random-point-in-rectangle space))
              ;;FIXME: should be a point.

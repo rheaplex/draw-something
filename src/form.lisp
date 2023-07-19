@@ -66,6 +66,17 @@
          (the-form (make-form :skeleton skel)))
     the-form))
 
+(defmethod print-object ((object <form>) stream)
+  "Make a human readable string describing the form."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(BOUNDS: ~a FILL: ~a STROKE: ~a STROKE-WIDTH ~a SKELETON: ~a OUTLINE: ~a)"
+          (bounds object)
+          (fill-colour object)
+          (stroke-colour object)
+          (stroke-width object)
+          (skeleton object)
+          (outline object))))
+
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
 

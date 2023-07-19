@@ -31,11 +31,13 @@
           :documentation "The forms of the figure.")
    (composition-bounds :accessor composition-bounds
                        :type <rectangle>
+                       :initform nil
                        :initarg composition-bounds
                        :documentation "The assigned region for the form.")
    (bounds :accessor bounds
            :type rectangle
            :initarg :bounds
+           :initform nil
            :documentation "The bounds of the figure."))
   (:documentation "A figure drawn in the drawing."))
 
@@ -43,12 +45,20 @@
   "Constructor function."
   (let ((fig (make-instance '<figure>)))
     (when form
-      (vector-push-extend form (forms fig))
-      (setf (bounds fig) (bounds form)))
+      (add-form-to-figure form fig))
     fig))
 
+(defmethod print-object ((object <figure>) stream)
+  "Make a human readable string describing the figure."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(BOUNDS: ~a)" ;;  COMPOSITION-BOUNDS: ~a FORMS: ~a
+          (bounds object)
+          ;;(composition-bounds object)
+          ;;(forms object)
+          )))
+
 (defun add-form-to-figure (form figure)
-  (append form (forms figure))
+  (vector-push-extend form (forms figure))
   (setf (bounds figure)
         (include-rectangle (bounds figure)
                            (bounds form))))
@@ -56,10 +66,7 @@
 (defun make-figure-from-points (points)
   "Make a figure with a single polyline from the provided points."
   (log-info "Making figure.")
-  (let ((fig (make-figure)))
-    (vector-push-extend (make-form-from-points points)
-                        (forms fig))
-    fig))
+  (make-figure :form (make-form-from-points points)))
 
 (defun draw-figure (fig pen-params)
   "Draw the forms of a figure."
