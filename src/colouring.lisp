@@ -20,7 +20,7 @@
 (in-package :draw-something)
 
 ;;FIXME: factor in hue
-(defun hs-combined (colour)
+(defun ls-combined (colour)
   (+ (lightness colour)
      (- 1.0 (saturation colour))))
 
@@ -40,21 +40,21 @@
   (sort colours #'(lambda (a b) (> (saturation a)
                                    (saturation b)))))
 
-(defun sort-colours-increasing-hue-and-saturation (colours)
-  (sort colours #'(lambda (a b) (< (hs-combined a)
-                                   (hs-combined b)))))
+(defun sort-colours-increasing-lightness-and-saturation (colours)
+  (sort colours #'(lambda (a b) (< (ls-combined a)
+                                   (ls-combined b)))))
 
-(defun sort-colours-decreasing-hue-and-saturation (colours)
-  (sort colours #'(lambda (a b) (> (hs-combined a)
-                                   (hs-combined b)))))
+(defun sort-colours-decreasing-lightness-and-saturation (colours)
+  (sort colours #'(lambda (a b) (> (ls-combined a)
+                                   (ls-combined b)))))
 
 (defparameter +colour-plane-strategies+
-  #(sort-colours-increasing-lightness
-    sort-colours-decreasing-lightness
-    sort-colours-increasing-saturation
-    sort-colours-decreasing-saturation
-    sort-colours-increasing-hue-and-saturation
-    sort-colours-decreasing-hue-and-saturation))
+  #(;;sort-colours-increasing-lightness
+    ;;sort-colours-decreasing-lightness
+    ;;sort-colours-increasing-saturation
+    ;;sort-colours-decreasing-saturation
+    sort-colours-increasing-lightness-and-saturation
+    sort-colours-decreasing-lightness-and-saturation))
 
 (defun make-buckets (bucket-count)
   (let ((buckets (make-array bucket-count)))

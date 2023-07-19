@@ -39,25 +39,35 @@
            :documentation "The planes of the drawing.")
    (ground :accessor ground
            :type <colour>
+           :initform nil
            :initarg :ground
            :documentation "The flat background colour of the drawing.")
    (minimum-separation :accessor min-sep
                        :initarg :min-sep
                        :documentation "The minimum point/line seperation required for drawing")
-   (composition-points :accessor composition-points
-                       :type vector
-                       :initarg :composition-points
-                       :initform (make-array 1 :adjustable t
-                                               :fill-pointer 0)
-                       :documentation "The points for the composition"))
+   (points :accessor points
+           :type vector
+           :initarg :composition-points
+           :initform (make-array 1 :adjustable t
+                                   :fill-pointer 0)
+           :documentation "The points for the drawing"))
   (:documentation "A drawing in progress."))
 
 (defun make-drawing (&key substrate-bounds min-sep bounds)
-  (log-info "Making drawing: bounds: ~a ." bounds)
   (make-instance '<drawing>
                  :substrate-bounds substrate-bounds
                  :bounds bounds
                  :min-sep min-sep))
+
+(defmethod print-object ((object <drawing>) stream)
+  "Make a human readable string describing the drawing."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(SUBSTRATE-BOUNDS: ~a BOUNDS: ~a MIN-SEP: ~a GROUND: ~a PLANES:~%~a)"
+          (substrate-bounds object)
+          (bounds object)
+          (min-sep object)
+          (ground object)
+          (planes object))))
 
 (defmacro do-drawing-forms ((drawing form-variable-name) &body body)
   "Run code for each form of each figure of a drawing."

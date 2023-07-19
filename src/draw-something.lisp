@@ -29,8 +29,8 @@
   (make-pen-parameters  :move-step          1.3 ;;1.0
                         :distance           +pen-outline-distance+
                         :distance-tolerance +pen-outline-distance-tolerance+
-                        :turn-step          0.01 ;;0.1          
-                        :drift-probability  0.0  
+                        :turn-step          0.01 ;;0.1
+                        :drift-probability  0.0
                         :drift-range        0.0))  ;;0.1
 
 ;;TODO work this in to the drawing but not the ground
@@ -46,8 +46,9 @@
 
 (defparameter +planes-count+ 4)
 
-(defparameter +planes-figures-max+ #(8 16 24 16))
-(defparameter +planes-sizes+ #(2 3 3 32))
+(defparameter +planes-figures-max+ #(8 16 32 32))
+(defparameter +planes-sizes-min+ #(3 4 5 32))
+(defparameter +planes-sizes-max+ #(1 3 1 32))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -76,6 +77,8 @@
         (colours (create-colours (+ (length *figure-generation-method-list*)
                                     1)
                                  20)))
+
+    (log-info "Drawing created: ~a." drawing)
     (format t "Colour buckets: ~a~%" colours)
     (setf (ground drawing) (choose-colour-for colours 0))
     ;; Proceed plane by plane, figure by figure.
@@ -89,13 +92,14 @@
                    drawing
                    plane
                    (floor (min +drawing-width+ +drawing-height+)
-                          ;; Avoid the background colour
-                          (aref +planes-sizes+ i))))
+                          (aref +planes-sizes-min+ i))
+                   (floor (min +drawing-width+ +drawing-height+)
+                          (aref +planes-sizes-max+ i))))
         (log-info "Colouring forms.")
         (do-plane-forms (plane form)
           (setf (fill-colour form)
                 (choose-colour-for colours (+ i 1))))))
-    (log-info "Finished drawing.")
+    (log-info "Finished drawing: ~a" drawing)
     (let ((filepath (write-drawing drawing
                                    (or savedir
                                        (make-pathname :directory

@@ -158,35 +158,47 @@
     ;; Otherwise, they overlap
     (t t)))
 
+(defmethod intersects ((p <point>) (r <rectangle>))
+  "Find whether p is inside r."
+  (and
+   (>= (x p) (x r))
+   (< (x p) (+ (x r) (width r)))
+   (>= (y p) (y r))
+   (< (y p) (+ (y r) (height r)))))
+
 (defun include-point (rect p)
   "Destructively expand the rectangle to include the point."
   (let ((right (+ (x rect) (width rect)))
-    (top (+ (y rect) (height rect))))
+        (top (+ (y rect) (height rect))))
     (cond
       ((< (x p) (x rect))
        (setf (width rect)
-         (+ (width rect) (- (x rect) (x p))))
+             (+ (width rect) (- (x rect) (x p))))
        (setf (x rect) (x p)))
       ((> (x p) right)
        (setf (width rect)
-         (+ (width rect) (- (x p) right))))
+             (+ (width rect) (- (x p) right))))
       ((< (y p) (y rect))
        (setf (height rect)
-         (+ (height rect) (- (y rect) (y p))))
+             (+ (height rect) (- (y rect) (y p))))
        (setf (y rect) (y p)))
       ((> (y p) top)
        (setf (height rect)
-         (+ (height rect) (- (y p) top)))))))
+             (+ (height rect) (- (y p) top)))))))
 
 (defun include-rectangle (rect include)
-  "Expand the first rectangle to include the second."
-  (include-point rect (make-point :x (x include) :y (y include)))
-  (include-point rect (make-point :x (x include)
-                                  :y (+ (y include) (height include))))
-  (include-point rect (make-point  :x (+ (x include) (width include))
-                                   :y (+ (y include) (height include))))
-  (include-point rect (make-point :x (+ (x include) (width include))
-                                  :y (y include))))
+  "Make a copy of the first rectangle (which may be nil)
+   and expand it to include the second."
+  (let ((new-rect (copy-rectangle (or rect include))))
+    (when rect
+      (include-point new-rect (make-point :x (x include) :y (y include)))
+      (include-point new-rect (make-point :x (x include)
+                                          :y (+ (y include) (height include))))
+      (include-point new-rect (make-point  :x (+ (x include) (width include))
+                                           :y (+ (y include) (height include))))
+      (include-point new-rect (make-point :x (+ (x include) (width include))
+                                          :y (y include))))
+    new-rect))
 
 (defun rectangle-from-point (p)
   "Make a zero-size rectangle for a point."
@@ -245,7 +257,7 @@
                        (make-point :x (+ (x r) (width r) -1)
                                    :y (y r)))))
 
-(defclass <grow-rectangle> (ds::<rectangle>)
+(defclass <grow-rectangle> (<rectangle>)
   ((directions :initform '(left right up down)
                :accessor directions)
    (min :initarg :min

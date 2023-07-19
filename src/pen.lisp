@@ -57,6 +57,17 @@
                                    :drift-probability drift-probability
                                    :drift-range drift-range))
 
+(defmethod print-object ((object <pen-parameters>) stream)
+  "Make a human readable string describing the params."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(TURN-STEP: ~,2f MOVE-STEP: ~,2f DISTANCE: ~,2f DIST-TOLERANCE: ~,2f DRIFT-PROB: ~,2f DRIFT-RANGE: ~,2f)"
+          (turn-step object)
+          (move-step object)
+          (distance object)
+          (distance-tolerance object)
+          (drift-probability object)
+          (drift-range object))))
+
 ;; Start with fixed values for tuning
 ;; Move to random ranges for production
 

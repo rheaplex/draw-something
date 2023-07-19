@@ -28,7 +28,7 @@
 (defmethod write-eps-header (x y width height &key (to *ps-stream*))
   "Write the standard raw PostScript header."
   (format to "%!PS-Adobe-3.0 EPSF-3.0~%")
-  (format to "%%BoundingBox: 0 0 ~a ~a~%" x y width height)
+  (format to "%%BoundingBox: ~d ~d ~d ~d~%" x y width height)
   (format to "/L {lineto} bind def~%/M {moveto} bind def~%"))
 
 (defmethod write-eps-footer (&key (to *ps-stream*))
@@ -45,15 +45,15 @@
 
 (defmethod write-close-path (&key (to *ps-stream*))
   "Close the current PostScript path by drawing a line between its endpoints."
-  (format to "closepath~%"))
+  (format to "~%closepath~%"))
 
 (defmethod write-stroke (&key (to *ps-stream*))
   "Stroke the current PostScript path."
-  (format to "stroke~%"))
+  (format to "~%stroke~%"))
 
 (defmethod write-fill (&key (to *ps-stream*))
   "Fill the current PostScript path."
-  (format to "fill~%"))
+  (format to "~%fill~%"))
 
 (defmethod write-new-path (&key (to *ps-stream*))
   "Start a new PostScript path."
@@ -134,6 +134,7 @@
 
 (defmethod write-figure ((fig <figure>) ps)
   "Write the figure for early multi-figure versions of draw-something."
+  (log-info "Writing figure - bounds: ~a." (bounds fig))
   ;;(write-rgb 0.0 0.0 0.0 :to ps)
   ;;(write-rectstroke (bounds fig) :to ps)
   ;;(write-stroke :to ps)
@@ -167,19 +168,26 @@
                       :if-exists :supersede)
     (write-eps-header (x (bounds the-drawing))
                       (y (bounds the-drawing))
-                      (width (bounds the-drawing))
-                      (height (bounds the-drawing))
+                      (+ (x (bounds the-drawing))
+                         (width (bounds the-drawing)))
+                      (+ (y (bounds the-drawing))
+                         (height (bounds the-drawing)))
                       :to ps)
     (format ps
             "% SUBSTRATE SIZE: ~d ~d ~d ~d~%"
             (x (substrate-bounds the-drawing))
             (y (substrate-bounds the-drawing))
-            (width (substrate-bounds the-drawing))
-            (height (substrate-bounds the-drawing)))
+            (+ (x (substrate-bounds the-drawing))
+               (width (substrate-bounds the-drawing)))
+            (+ (y (substrate-bounds the-drawing))
+               (height (substrate-bounds the-drawing))))
     (write-ground the-drawing ps)
     ;;(write-frame the-drawing ps)
     (loop for plane across (planes the-drawing)
-          do (loop for fig across (figures plane)
-                   do (write-figure fig ps)))
+          do (log-info "WRITING PLANE - ~d FIGURES." (length (figures plane)))
+             (format ps "% START: plane~%")
+             (loop for fig across (figures plane)
+                   do (write-figure fig ps))
+             (format ps "% END: plane~%"))
     (write-eps-footer :to ps)
     (pathname ps))))

@@ -33,6 +33,13 @@
                :documentation "The pen configuration for the plane."))
   (:documentation "A plane of the drawing."))
 
+(defmethod print-object ((object <plane>) stream)
+  "Make a human readable string describing the plane."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(FIGURES: ~a)" ;; PEN-PARAMS: ~a
+            ;;(pen-params object)
+            (figures object))))
+
 (defun make-plane (&key pen-params)
   "Constuctor function."
   (make-instance '<plane> :pen-params pen-params))
@@ -53,57 +60,93 @@
                      across (forms ,figure-var)
                     do (progn ,@body)))))
 
-(defun find-space-on-plane (the-drawing the-plane required-size-rect)
-  "Find empty space on the plane of given size, or nil if fail"
-  ;; Efficiency decreases with number of figures. Cells would be constant.
-  ;; FIXME: Uses bounds rather than outline of actual figure
-  ;; TODO: Try figure bounds first. No intersection? proceed
-  ;;       Next try form bounds.
-  ;;       Next try form skeletons.
-  ;;       Finally try form outlines.
-  ;;  (assert (contains (bounds d) required-size))
-  (let ((candidate (make-rectangle :x 0
-                                   :y 0
-                                   :width (width required-size-rect)
-                                   :height (height required-size-rect)))
-        (plane-rects (plane-forms-bounds the-plane))
-        ;; The resulting rect must fit in within the drawing bounds
-        (width-to-search (- (width (bounds the-drawing))
-                            (width required-size-rect)))
-        (height-to-search (- (height (bounds the-drawing))
-                             (height required-size-rect)))
-        (result nil))
-    (dotimes (i 1000000)
-      (setf (x candidate) (+ (x (bounds the-drawing))
-                             (random-range 0 width-to-search)))
-      (setf (y candidate) (+ (y (bounds the-drawing))
-                             (random-range 0 height-to-search)))
-      (when (intersects-none candidate plane-rects)
-        (setf result candidate)
-        (return)))
-    result))
+(defparameter +find-point-tries+ 10000)
+(defparameter +find-space-tries+ 1000)
 
-(defun find-space-on-plane-range (the-drawing the-plane
-                                  min-size-rect max-size-rect steps)
+(defun find-empty-point-on-plane (drawing plane)
+  (let ((found nil))
+    (loop for i from 0 below +find-point-tries+
+          do (let ((point (random-point-in-rectangle (bounds drawing))))
+             (when (not (intersects-any point (plane-forms-bounds plane)))
+               (setf found point)
+               (return))))
+    found))
+
+(defun find-space-on-plane-range (drawing plane
+                                  min-size-rect max-size-rect)
   "Find empty space on the plane larger than min-size up to max-size, or nil"
-  (let ((width-step-size (/ (- (width max-size-rect) (width min-size-rect))
-                            steps))
-        (height-step-size (/ (- (height max-size-rect) (height min-size-rect))
-                             steps))
-        (result nil))
-    (dotimes (step steps)
-      (let* ((required-size (make-rectangle :x 0
-                                            :y 0
-                                            :width (- (width max-size-rect)
-                                                      (* width-step-size
-                                                         step))
-                                            :height (- (height max-size-rect)
-                                                       (* height-step-size
-                                                          step))))
-             (candidate (find-space-on-plane the-drawing
-                                             the-plane
-                                             required-size)))
-        (when candidate
-          (setf result candidate)
-          (return))))
-    result))
+  (let ((found nil))
+    (loop for i from 0 below +find-space-tries+
+          do (let ((start-point (find-empty-point-on-plane drawing plane))
+                   (candidate nil))
+               (when (not start-point)
+                 (return))
+               (setf candidate (grow-rectangle min-size-rect
+                                               max-size-rect
+                                               (x start-point)
+                                               (y start-point)
+                                               (bounds drawing)
+                                               (plane-forms-bounds plane)))
+               (when (not (not candidate))
+                 (setf found (copy-rectangle candidate))
+                 (return))))
+    found))
+
+(defun find-space-on-plane (drawing plane size-rect)
+  "Find empty space on the plane of given size, or nil if fail"
+  (find-space-on-plane-range drawing plane size-rect size-rect))
+
+;; (defun find-space-on-plane (the-drawing the-plane required-size-rect)
+;;   "Find empty space on the plane of given size, or nil if fail"
+;;   ;; Efficiency decreases with number of figures. Cells would be constant.
+;;   ;; FIXME: Uses bounds rather than outline of actual figure
+;;   ;; TODO: Try figure bounds first. No intersection? proceed
+;;   ;;       Next try form bounds.
+;;   ;;       Next try form skeletons.
+;;   ;;       Finally try form outlines.
+;;   ;;  (assert (contains (bounds d) required-size))
+;;   (let ((candidate (make-rectangle :x 0
+;;                                    :y 0
+;;                                    :width (width required-size-rect)
+;;                                    :height (height required-size-rect)))
+;;         (plane-rects (plane-forms-bounds the-plane))
+;;         ;; The resulting rect must fit in within the drawing bounds
+;;         (width-to-search (- (width (bounds the-drawing))
+;;                             (width required-size-rect)))
+;;         (height-to-search (- (height (bounds the-drawing))
+;;                              (height required-size-rect)))
+;;         (result nil))
+;;     (dotimes (i 1000000)
+;;       (setf (x candidate) (+ (x (bounds the-drawing))
+;;                              (random-range 0 width-to-search)))
+;;       (setf (y candidate) (+ (y (bounds the-drawing))
+;;                              (random-range 0 height-to-search)))
+;;       (when (intersects-none candidate plane-rects)
+;;         (setf result candidate)
+;;         (return)))
+;;     result))
+
+;; (defun find-space-on-plane-range (the-drawing the-plane
+;;                                   min-size-rect max-size-rect steps)
+;;   "Find empty space on the plane larger than min-size up to max-size, or nil"
+;;   (let ((width-step-size (/ (- (width max-size-rect) (width min-size-rect))
+;;                             steps))
+;;         (height-step-size (/ (- (height max-size-rect) (height min-size-rect))
+;;                              steps))
+;;         (result nil))
+;;     (dotimes (step steps)
+;;       (let* ((required-size (make-rectangle :x 0
+;;                                             :y 0
+;;                                             :width (- (width max-size-rect)
+;;                                                       (* width-step-size
+;;                                                          step))
+;;                                             :height (- (height max-size-rect)
+;;                                                        (* height-step-size
+;;                                                           step))))
+;;              (candidate (find-space-on-plane the-drawing
+;;                                              the-plane
+;;                                              required-size)))
+;;         (when candidate
+;;           (setf result candidate)
+;;           (return))))
+;;     result))

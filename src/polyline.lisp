@@ -51,6 +51,14 @@
             do (append-point poly point)))
     poly))
 
+(defmethod print-object ((object <polyline>) stream)
+  "Make a human readable string describing the polyline."
+  (print-unreadable-object (object stream :type t :identity t)
+    (format stream "(BOUNDS: ~a POINTS: ~:{ (~,2f, ~,2f)~})"
+          (bounds object)
+          (map 'list #'(lambda (p) (list (x p) (y p)))
+               (points object)))))
+
 (defun point-count (poly)
   "Get the number of points in the polyline"
   (length (points poly)))
