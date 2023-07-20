@@ -38,17 +38,17 @@
                                 +pen-outline-distance-tolerance+))
 
 ;; 11in x 14in
-(defparameter +page-size+ '(1056 . 1344))
-(defparameter +drawing-width+ 900)
-(defparameter +drawing-height+ 900)
+(defparameter +page-size+ '(7680 . 4320))
+(defparameter +drawing-width+ 7680)
+(defparameter +drawing-height+ 4320)
 (defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
 (defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
 
 (defparameter +planes-count+ 4)
 
-(defparameter +planes-figures-max+ #(8 16 32 32))
-(defparameter +planes-sizes-min+ #(3 4 5 32))
-(defparameter +planes-sizes-max+ #(1 3 1 32))
+(defparameter +planes-figures-max+ (vector 8 32 64 (random-range 1024 4096)))
+(defparameter +planes-sizes-min+ #(2 3 5 16))
+(defparameter +planes-sizes-max+ #(1 2 1 16))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -85,20 +85,23 @@
     (dotimes (i (length *figure-generation-method-list*))
       (log-info "~%Plane: ~d~%" i)
       (let ((plane (make-plane :pen-params *pen-params*)))
-        (vector-push-extend plane (planes drawing))
         (dotimes (j (aref +planes-figures-max+ i))
           (log-info "Trying to produce figure ~d of plane ~d" j i)
-          (funcall (nth i *figure-generation-method-list*)
-                   drawing
-                   plane
-                   (floor (min +drawing-width+ +drawing-height+)
-                          (aref +planes-sizes-min+ i))
-                   (floor (min +drawing-width+ +drawing-height+)
-                          (aref +planes-sizes-max+ i))))
+          ;; Give up on first failure.
+          (unless (funcall (nth i *figure-generation-method-list*)
+                           drawing
+                           plane
+                           (floor (min +drawing-width+ +drawing-height+)
+                                  (aref +planes-sizes-min+ i))
+                           (floor (min +drawing-width+ +drawing-height+)
+                                  (aref +planes-sizes-max+ i)))
+            (return)))
         (log-info "Colouring forms.")
         (do-plane-forms (plane form)
           (setf (fill-colour form)
-                (choose-colour-for colours (+ i 1))))))
+                (choose-colour-for colours (+ i 1))))
+        ;; Add here so its points don't count for searches when making it.
+        (vector-push-extend plane (planes drawing))))
     (log-info "Finished drawing: ~a" drawing)
     (let ((filepath (write-drawing drawing
                                    (or savedir

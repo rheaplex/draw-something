@@ -351,3 +351,25 @@
         ;; to the new polyline points.
         (setq newpoints (append newpoints ps (list (to l1))))))
     newpoints))
+
+(defun choose-random-polyline-line (poly)
+  "Randomly choose a line in the polyline."
+  (let ((start (random-number (- (point-count poly) 1))))
+    (make-line :from (copy-point (aref (points poly) start))
+               :to (copy-point (aref (points poly) (+ start 1))))))
+
+(defun choose-random-polyline-point (poly)
+  "Randomly choose a point in the polyline."
+  (choose-one-of (points poly)))
+
+(defun choose-random-polyline-points-subsequence (poly count)
+  "Randomly choose a series of points of length count in the polyline."
+  (let ((start (random-number (- (point-count poly) count))))
+    (subseq (points poly) start (+ start count))))
+
+(defun random-point-in-polyline (poly)
+  "Try to find a point within the polyline outline, or nil if fails."
+  (dotimes (i 10000)
+    (let ((p (random-point-in-rectangle (bounds poly))))
+      (when (contains poly p)
+        (return p)))))

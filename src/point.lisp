@@ -46,12 +46,16 @@
   (and (= (x left) (x right))
        (= (y left) (y right))))
 
+(defun copy-point (p)
+  "Copy a point."
+  (make-point :x (x p) :y (y p)))
+
 (defmethod print-object ((object <point>) stream)
   "Make a human readable string describing the point."
   (print-unreadable-object (object stream :type t :identity t)
     (format stream "(X: ~,2f, Y: ~,2f)"
-          (x object)
-          (y object))))
+            (x object)
+            (y object))))
 
 (defun distance-co-ordinates (x1 y1 x2 y2)
   "The distance between two points."

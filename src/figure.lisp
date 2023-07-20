@@ -68,6 +68,10 @@
   (log-info "Making figure.")
   (make-figure :form (make-form-from-points points)))
 
+(defun choose-figure-form (figure)
+  "Randomly choose a form of the figure."
+  (choose-one-of (forms figure)))
+
 (defun draw-figure (fig pen-params)
   "Draw the forms of a figure."
   (loop for form across (forms fig)

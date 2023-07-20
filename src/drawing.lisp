@@ -78,3 +78,13 @@
                     do (loop for ,form-variable-name
                                across (forms ,figure-var)
                              do (progn ,@body))))))
+
+(defun choose-drawing-plane (drawing)
+  "Randomly choose a figure of the plane of the drawing."
+  (choose-one-of (planes drawing)))
+
+(defun choose-drawing-form (drawing)
+  "Randomly choose a form of a figure on a plane"
+  (choose-figure-form
+   (choose-plane-figure
+    (choose-drawing-plane drawing))))
