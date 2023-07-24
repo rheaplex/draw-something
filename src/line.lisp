@@ -97,37 +97,49 @@
   "The distance between a point and a line."
   (distance p (nearest-point-on-line-points p from to)))
 
+(defmethod highest-leftmost-point ((o <line>))
+  (if (= (y (from o)) (y (to o)))
+      (if (<= (x (from o)) (x (to o)))
+          (from o)
+          (to o))
+      (if (>= (y (from o)) (y (to o)))
+          (from o)
+          (to o))))
+
+(defmethod points ((o <line>))
+  (vector (from o) (to o)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line-line intersection
 ;; http://astronomy.swin.edu.au/~pbourke/geometry/lineline2d/
 ;; Returns the time where the second line intersects the first line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun lines-intersects-co-ordinates (p1x p1y p2x p2y ;; First line
-                                      p3x p3y p4x p4y);; Second line
+(defun lines-intersects-co-ordinates (p1x p1y p2x p2y  ;; First line
+                                      p3x p3y p4x p4y) ;; Second line
   "Find whether the two lines, expressed as 8 co-ordinates, intersect."
   (let ((denominator (- (* (- p4y p3y)
-               (- p2x p1x))
-            (* (- p4x p3x)
-               (- p2y p1y)))))
+                           (- p2x p1x))
+                        (* (- p4x p3x)
+                           (- p2y p1y)))))
     (if (= denominator 0.0)
-    nil ;; Parallel lines
-    (let ((ua (/ (- (* (- p4x p3x)
-               (- p1y p3y))
-            (* (- p4y p3y)
-               (- p1x p3x)))
-             denominator))
-          (ub (/ (- (* (- p2x p1x)
-               (- p1y p3y))
-            (* (- p2y p1y)
-               (- p1x p3x)))
-             denominator)))
-      (if (and (>= ua 0.0)
-           (<= ua 1.0)
-           (>= ub 0.0)
-           (<= ub 1.0)) ;; Intersection (or not)
-          ua
-          nil)))))
+        nil ;; Parallel lines
+        (let ((ua (/ (- (* (- p4x p3x)
+                           (- p1y p3y))
+                        (* (- p4y p3y)
+                           (- p1x p3x)))
+                     denominator))
+              (ub (/ (- (* (- p2x p1x)
+                           (- p1y p3y))
+                        (* (- p2y p1y)
+                           (- p1x p3x)))
+                     denominator)))
+          (if (and (>= ua 0.0)
+                   (<= ua 1.0)
+                   (>= ub 0.0)
+                   (<= ub 1.0)) ;; Intersection (or not)
+              ua
+              nil)))))
 
 (defun lines-intersects-points (l1p1 l1p2 l2p1 l2p2)
   "Find whether the two lines, expressed as 4 points intersect."
@@ -171,10 +183,10 @@
     (< 0.0
        (- (+ (* (x p) (y p2))
              (* (x p2) (y p3))
-             (* (x p3) (y p1)))
+             (* (x p3) (y p)))
           (* (x p2) (y p))
           (* (x p3) (y p2))
-          (* (x p1) (y p3))))))
+          (* (x p) (y p3))))))
 
 (defun line-normal-left (l)
   "Get the left normal vector/9 o'clock vector."

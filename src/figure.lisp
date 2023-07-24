@@ -30,12 +30,12 @@
           :initarg :forms
           :documentation "The forms of the figure.")
    (composition-bounds :accessor composition-bounds
-                       :type <rectangle>
+                       :type (or <rectangle> null)
                        :initform nil
                        :initarg composition-bounds
                        :documentation "The assigned region for the form.")
    (bounds :accessor bounds
-           :type rectangle
+           :type (or <rectangle> null)
            :initarg :bounds
            :initform nil
            :documentation "The bounds of the figure."))
@@ -57,6 +57,10 @@
           ;;(forms object)
           )))
 
+(defun form-count (figure)
+  "Determine how many forms are in the figure."
+  (length (forms figure)))
+
 (defun add-form-to-figure (form figure)
   (vector-push-extend form (forms figure))
   (setf (bounds figure)
@@ -74,6 +78,11 @@
 
 (defun draw-figure (fig pen-params)
   "Draw the forms of a figure."
-  (loop for form across (forms fig)
-        do (log-info "Drawing figure.")
-        do (draw-form form pen-params)))
+  (dotimes (i (form-count fig))
+    (let ((form (aref (forms fig) i)))
+      (log-info "Drawing figure.")
+      (draw-form form pen-params)
+      ;; If drawing failed, remove form.
+      (unless (outline form)
+        (log-err "Couldn't draw outline, removing form.")
+        (remove-aref (forms fig) i)))))

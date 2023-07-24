@@ -56,18 +56,30 @@
     sort-colours-increasing-lightness-and-saturation
     sort-colours-decreasing-lightness-and-saturation))
 
-(defun make-buckets (bucket-count)
-  (let ((buckets (make-array bucket-count)))
-    (loop for i from 0 below bucket-count
-          do (setf (aref buckets i)
-                   (make-vector 1)))
-    buckets))
+(defun random-high ()
+  (random-range .07 1.0))
 
-(defun make-saturations-and-lightnesses (count)
-  (loop for i from 0 to count
-        collect (make-instance '<colour>
-                               :saturation (random-range 0 1.0)
-                               :lightness (random-range 0 1.0))))
+(defun random-medium ()
+  (random-range 0.4 0.6))
+
+(defun low-range ()
+  (random-range 0.1 0.3))
+
+(defun increasing-gradient (a b steps)
+  (let ((gradient (make-array steps))
+        (step (/ (- b a) (- steps 1))))
+    (loop for i from 0 below steps
+          do (setf (aref gradient i)
+                   (+ a (* step i))))
+    gradient))
+
+(defun decreasing-gradient (a b steps)
+  (let ((gradient (make-array steps))
+        (step (/ (- a b) (- steps 1))))
+    (loop for i from 0 below steps
+          do (setf (aref gradient i)
+                   (- a (* step i))))
+    gradient))
 
 (defun make-hues (count)
   (let ((hues (make-array count)))
@@ -75,27 +87,68 @@
           do (setf (aref hues i) (random-number 360.0)))
     hues))
 
-(defun sort-colours-to-buckets (colours strategy bucket-count)
-  (let ((buckets (make-buckets bucket-count))
-        (sorted (funcall strategy colours)))
-    (loop for colour in sorted
-          for i from 0 to (length sorted)
-          do (vector-push-extend colour (aref buckets
-                                              (round i bucket-count))))
-    buckets))
-
-(defun create-colours (bucket-count colour-count)
-  (let* ((hues (make-hues bucket-count))
-         (colours (make-saturations-and-lightnesses colour-count))
-         (strategy (choose-one-of +colour-plane-strategies+))
-         (buckets (sort-colours-to-buckets colours
-                                           strategy
-                                           bucket-count)))
-    (format t "Colour strategy: ~a~%" strategy)
-    (dotimes (i bucket-count)
-      (loop for colour across (aref buckets i)
-            do (setf (hue colour) (aref hues i))))
-    buckets))
+(defun create-colours (count each-plane-count)
+  (declare (ignore each-plane-count))
+  (let ((saturations (if (> (random-number 1.0) 0.5)
+                         (increasing-gradient (random-range 0.1 0.4)
+                                              (random-range 0.6 0.9)
+                                              count)
+                         (decreasing-gradient (random-range 0.6 0.9)
+                                              (random-range 0.1 0.4)
+                                              count)))
+        (lightnesses (if (> (random-number 1.0) 0.5)
+                         (increasing-gradient (random-range 0.4 0.5)
+                                              (random-range 0.6 0.9)
+                                              count)
+                         (decreasing-gradient (random-range 0.6 0.9)
+                                              (random-range 0.4 0.5)
+                                              count)))
+        (hues (make-hues count))
+        (colours (make-vector count)))
+    (dotimes (i count)
+      (setf (aref colours i)
+            (make-colour :hue (aref hues i)
+                         :saturation (aref saturations i)
+                         :lightness (aref lightnesses i))))
+    colours))
 
 (defun choose-colour-for (colours bucket-index)
-  (choose-one-of (aref colours bucket-index)))
+  (aref colours bucket-index))
+
+;; (defun make-buckets (bucket-count)
+;;   (let ((buckets (make-array bucket-count)))
+;;     (loop for i from 0 below bucket-count
+;;           do (setf (aref buckets i)
+;;                    (make-vector 1)))
+;;     buckets))
+
+;; (defun make-saturations-and-lightnesses (count)
+;;   (loop for i from 0 to count
+;;         collect (make-instance '<colour>
+;;                                :saturation (random-range 0 1.0)
+;;                                :lightness (random-range 0 1.0))))
+
+;; (defun sort-colours-to-buckets (colours strategy bucket-count)
+;;   (let ((buckets (make-buckets bucket-count))
+;;         (sorted (funcall strategy colours)))
+;;     (loop for colour in sorted
+;;           for i from 0 to (length sorted)
+;;           do (vector-push-extend colour (aref buckets
+;;                                               (round i bucket-count))))
+;;     buckets))
+
+;; (defun create-colours (bucket-count colour-count)
+;;   (let* ((hues (make-hues bucket-count))
+;;          (colours (make-saturations-and-lightnesses colour-count))
+;;          (strategy (choose-one-of +colour-plane-strategies+))
+;;          (buckets (sort-colours-to-buckets colours
+;;                                            strategy
+;;                                            bucket-count)))
+;;     (format t "Colour strategy: ~a~%" strategy)
+;;     (dotimes (i bucket-count)
+;;       (loop for colour across (aref buckets i)
+;;             do (setf (hue colour) (aref hues i))))
+;;     buckets))
+
+;; (defun choose-colour-for (colours bucket-index)
+;;   (choose-one-of (aref colours bucket-index)))

@@ -23,15 +23,15 @@
 ;; Let's go!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +pen-outline-distance+ 5.2)
-(defparameter +pen-outline-distance-tolerance+ 0.7)
+(defparameter +pen-outline-distance+ 50)
+(defparameter +pen-outline-distance-tolerance+ 4)
 (defparameter *pen-params*
-  (make-pen-parameters  :move-step          1.3 ;;1.0
+  (make-pen-parameters  :move-step          10 ;;1.0
                         :distance           +pen-outline-distance+
                         :distance-tolerance +pen-outline-distance-tolerance+
                         :turn-step          0.01 ;;0.1
-                        :drift-probability  0.0
-                        :drift-range        0.0))  ;;0.1
+                        :drift-probability  0.001
+                        :drift-range        0.01))  ;;0.1
 
 ;;TODO work this in to the drawing but not the ground
 (defparameter *border-width* (+ +pen-outline-distance+
@@ -46,9 +46,9 @@
 
 (defparameter +planes-count+ 4)
 
-(defparameter +planes-figures-max+ (vector 8 32 64 (random-range 1024 4096)))
-(defparameter +planes-sizes-min+ #(2 3 5 16))
-(defparameter +planes-sizes-max+ #(1 2 1 16))
+(defparameter +planes-figures-max+ (vector 10 4 4 8 8 16 16 16 16))
+(defparameter +planes-sizes-min+ #(4 3 5 8 16 16 16 16 16))
+(defparameter +planes-sizes-max+ #(1 2 1 4 4 4 4 4 4))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -57,6 +57,55 @@
     (format nil
             "~a-~2,,,'0@A~2,,,'0@A~2,,,'0@A-~2,,,'0@A~2,,,'0@A~2,,,'0@A"
             "drawing" year month date hours minutes seconds)))
+
+(defun draw-everything (drawing)
+  ;; Proceed plane by plane, figure by figure.
+  (dotimes (i (length *figure-generation-method-list*))
+    (log-info "~%Plane: ~d ~a~%" i (nth i
+                                        *figure-generation-method-list*))
+    (let ((plane (make-plane :pen-params *pen-params*))
+          (points-for-plane (shuffle (drawing-points drawing))))
+      (dotimes (j (aref +planes-figures-max+ i))
+        (log-info "Trying to produce figure ~d of plane ~d" j i)
+        (let ((fig (funcall (nth i *figure-generation-method-list*)
+                            drawing
+                            plane
+                            points-for-plane
+                            (floor (min +drawing-width+ +drawing-height+)
+                                   (aref +planes-sizes-min+ i))
+                            (floor (min +drawing-width+ +drawing-height+)
+                                   (aref +planes-sizes-max+ i)))))
+          ;; Give up on first failure, later ones probably won't succeed.
+          (unless fig
+            (return))
+          (draw-figure fig (pen-params plane))
+          ;; Trying to draw may fail and leave the figure empty
+          (when (> (form-count fig) 0)
+            (vector-push-extend fig (figures plane)))))
+      (vector-push-extend plane (planes drawing)))))
+
+(defun colour-everything (drawing)
+  (log-info "~%Colouring drawing.~%")
+  ;; +1 for ground, which I suppose we could turn into a plane?
+  (let ((colours (create-colours (+ (length *figure-generation-method-list*)
+                                    1)
+                                 20)))
+    (log-info "Colours: ~a" colours)
+    (log-info "Colouring ground.")
+    (setf (ground drawing) (choose-colour-for colours 0))
+    (log-info "Colouring forms.")
+    (dotimes (i (planes-count drawing))
+      (log-info "Colouring plane ~d" i)
+      (let ((plane (aref (planes drawing) i)))
+        (do-plane-forms (plane form)
+          (setf (fill-colour form)
+                (choose-colour-for colours (+ i 1)))
+          (log-info "Colouring form - h: ~a s: ~a l: ~a"
+                    (hue (fill-colour form))
+                    (saturation (fill-colour form))
+                    (lightness (fill-colour form))))))
+    (log-info "Finished colouring forms."))
+  (log-info "Finished colouring.~%"))
 
 (defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
   "Make the drawing data structures and create the image."
@@ -73,35 +122,10 @@
                                                :width (car +page-size+)
                                                :height (cdr +page-size+))
                                :min-sep
-                               (* +pen-outline-distance+ 3)))
-        (colours (create-colours (+ (length *figure-generation-method-list*)
-                                    1)
-                                 20)))
-
+                               (* +pen-outline-distance+ 1.5))))
     (log-info "Drawing created: ~a." drawing)
-    (format t "Colour buckets: ~a~%" colours)
-    (setf (ground drawing) (choose-colour-for colours 0))
-    ;; Proceed plane by plane, figure by figure.
-    (dotimes (i (length *figure-generation-method-list*))
-      (log-info "~%Plane: ~d~%" i)
-      (let ((plane (make-plane :pen-params *pen-params*)))
-        (dotimes (j (aref +planes-figures-max+ i))
-          (log-info "Trying to produce figure ~d of plane ~d" j i)
-          ;; Give up on first failure.
-          (unless (funcall (nth i *figure-generation-method-list*)
-                           drawing
-                           plane
-                           (floor (min +drawing-width+ +drawing-height+)
-                                  (aref +planes-sizes-min+ i))
-                           (floor (min +drawing-width+ +drawing-height+)
-                                  (aref +planes-sizes-max+ i)))
-            (return)))
-        (log-info "Colouring forms.")
-        (do-plane-forms (plane form)
-          (setf (fill-colour form)
-                (choose-colour-for colours (+ i 1))))
-        ;; Add here so its points don't count for searches when making it.
-        (vector-push-extend plane (planes drawing))))
+    (draw-everything drawing)
+    (colour-everything drawing)
     (log-info "Finished drawing: ~a" drawing)
     (let ((filepath (write-drawing drawing
                                    (or savedir
@@ -112,4 +136,4 @@
       ;; Make sure this goes to stdout
       (format t "Wrote file to: ~a~%" filepath))
     (log-info "Finished draw-something.")
-    drawing))
+    nil))

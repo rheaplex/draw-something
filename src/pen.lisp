@@ -63,7 +63,7 @@
     (format stream "(TURN-STEP: ~,2f MOVE-STEP: ~,2f DISTANCE: ~,2f DIST-TOLERANCE: ~,2f DRIFT-PROB: ~,2f DRIFT-RANGE: ~,2f)"
           (turn-step object)
           (move-step object)
-          (distance object)
+          (pen-distance object)
           (distance-tolerance object)
           (drift-probability object)
           (drift-range object))))
