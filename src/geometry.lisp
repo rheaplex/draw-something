@@ -66,6 +66,11 @@
                 (* (- (signum angle)) (- +radian+ (abs angle)))
                 angle)))))
 
+(defun polar-to-cartesian (centre distance angle)
+  "Convert polar co-ordinates to cartesian around a centre point."
+  (make-point :x (+ (x centre) (* distance (cos angle)))
+              :y (+ (y centre) (* distance (sin angle)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The geometry base class
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -99,3 +104,13 @@
 (defun intersects-none (item others)
   "Returns true if item intersects none of the others"
   (not (intersects-any item others)))
+
+(defmethod distance ((item <geometry>) (others vector))
+  "Get the closest distance between item and any of others."
+  (let ((closest-distance nil))
+    (loop for other across others
+          do (let ((d (distance item other)))
+               (when (or (not closest-distance)
+                         (< (distance item other) closest-distance))
+                 (setf closest-distance d))))
+    closest-distance))

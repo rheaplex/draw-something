@@ -20,86 +20,103 @@
 (in-package :draw-something)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Points
+;; Choosing Points and Lines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun existing-point-in-rectangle (drawing bounds exclude)
+(defun existing-point-in-rectangle (bounds existing)
   "Find an existing point in bounds that is not in exclude,
    or nil if none can be found."
-    (block all
-      (do-drawing-forms (drawing form)
-        (loop for skel across (skeleton form)
-              do (loop for point across (points skel)
-                       do (when (and (intersects point bounds)
-                                     (not (find-if #'(lambda (p)
-                                                       (point= p point))
-                                                   exclude)))
-                            (return-from all (copy-point point))))))
-      nil))
+  (let ((result nil))
+    (dotimes (i (length existing))
+      (let ((candidate (aref existing i)))
+        (when (intersects candidate bounds)
+          (setf result candidate)
+          (remove-aref existing i))))
+    result))
 
-(defun existing-points-in-rectangle (drawing bounds exclude count)
-  "Pick up to count existing points in the already added planes
-   that fall within bounds and are not listed in exclude.
-   The returned vector may be shorter than count, or empty, if not enough
-   points can be found that are not in exclude."
-  (let ((points (make-vector 1)))
-    (block all
-      (do-drawing-forms (drawing form)
-        (dolist (skel (skeletons form))
-          (loop for point across (points skel)
-                do (when (and (intersects point bounds)
-                              (not (find-if #'(lambda (p)
-                                                (point= p point))
-                                            exclude)))
-                     (vector-push-extend points (copy-point point)))
-                   (when (= (length points) count)
-                     (return-from all))))))
-    points))
-
-(defun pick-point-in-rectangle (drawing bounds exclude old-prob-percent)
-  "Try to find an existing point within bounds old-prob-percent of the time.
+(defun pick-point-in-rectangle (bounds existing existing-percent)
+  "Try to find an existing point within bounds existing-percent of the time.
    If that fails, and the rest of the time, generate a new random point
    within bounds."
-  (or (and (< (random-number 100) old-prob-percent)
-           (existing-point-in-rectangle drawing bounds exclude))
+  (or (and (< (random-number 100) existing-percent)
+           (existing-point-in-rectangle bounds existing))
       (random-point-in-rectangle bounds)))
 
-(defun random-polyline-in-rectangle-sep-existing (drawing
-                                                  rect
+(defun random-polyline-in-rectangle-sep-existing (rect
                                                   count
                                                   sep
-                                                  exclude
-                                                  old-prob-percent)
+                                                  existing
+                                                  existing-percent)
   "Create a polyline with the given number of points in the given bounds,
    with each point separated from the others and their lines by at least
    sep. This is to avoid the pen getting trapped by small gaps between
    points or between points and lines."
   (assert (>= count 1))
-  (let ((poly (make-polyline)))
-    (append-point poly (pick-point-in-rectangle drawing
-                                                rect
-                                                exclude
-                                                old-prob-percent))
+  (let ((poly (make-polyline))
+        (tries 0))
+    (append-point poly (pick-point-in-rectangle rect
+                                                existing
+                                                existing-percent))
     (loop while (< (point-count poly) count)
-          do (let ((p (pick-point-in-rectangle drawing
-                                               rect
-                                               (concatenate 'vector
-                                                            exclude
-                                                            (points poly))
-                                               old-prob-percent)))
-               (when (>= (distance p poly) sep)
-                 (when (or (< (point-count poly) 2)
-                           (new-segment-far-enough-p p poly sep))
-                   (append-point poly p)))))
+          do (let ((p (pick-point-in-rectangle rect
+                                               existing
+                                               existing-percent)))
+               (unless p
+                 (setf poly nil)
+                 (return))
+               (if (and (>= (distance p poly) sep)
+                        (or (< (point-count poly) 2)
+                            (new-segment-far-enough-p p poly sep)))
+                   (append-point poly p))
+               (incf tries)
+               ;; Avoid getting stuck in a corner.
+               (when (> tries 100)
+                 (return))))
     poly))
 
-(defun random-point-on-existing-outline (drawing plane)
+(defun random-polyline-in-rectangle-sep-nosect-existing (rect
+                                                         count
+                                                         sep
+                                                         existing
+                                                         existing-percent)
+  "Create a polyline with the given number of points in the given bounds,
+   with each point separated from the others and their lines by at least
+   sep. This is to avoid the pen getting trapped by small gaps between
+   points or between points and lines."
+  (assert (>= count 1))
+  (let ((poly (make-polyline))
+        (tries 0))
+    (append-point poly (pick-point-in-rectangle rect
+                                                existing
+                                                existing-percent))
+    (loop while (< (point-count poly) count)
+          do (let ((p (pick-point-in-rectangle rect
+                                               existing
+                                               existing-percent)))
+               (unless p
+                 (setf poly nil)
+                 (return))
+               (if (and (>= (distance p poly) sep)
+                        (or (< (point-count poly) 2)
+                            (and (new-segment-far-enough-p p poly sep)
+                                 ;; First intersection is last point of poly
+                                 (= (length (intersections (make-line :from (last-point poly)
+                                                                      :to p)
+                                                           poly)) 1))))
+                   (append-point poly p))
+               (incf tries)
+               ;; Avoid getting stuck in a corner
+               (when (> tries 100)
+                 (return))))
+    poly))
+
+(defun random-point-on-existing-outline (drawing)
   "Choose a random existing line."
   ;;TODO: Exclude points that match existing lines on plane.
-   (choose-random-polyline-point
-    (outline (choose-drawing-form drawing))))
+  (choose-random-polyline-point
+   (outline (choose-drawing-form drawing))))
 
-(defun random-line-on-existing-outline (drawing plane)
+(defun random-line-on-existing-outline (drawing)
   "Choose a random existing line."
   ;;TODO: Exclude points that match existing lines on plane.
   (let ((poly (outline (choose-drawing-form drawing))))
@@ -108,7 +125,7 @@
      (random-range (floor (point-count poly) 20)
                    (floor (point-count poly) 4)))))
 
-(defun random-line-on-existing-skeleton (drawing plane)
+(defun random-line-on-existing-skeleton (drawing)
   "Choose a random existing line."
   ;;TODO: Exclude points that match existing lines on plane.
   (let ((l (choose-random-polyline-line
@@ -117,111 +134,195 @@
     (vector (from l) (to l))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;; Convex Hull
+;; Convex Hull
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    (defun make-hull-figure (drawing plane size-min size-max)
-      "Make a hull figure."
-      ;;FIXME: get random from plane?
-      (let ((count (random-range 5 32))
-            (space (find-space-on-plane-range drawing
-                                              plane
-                                              (make-rectangle :x 0
-                                                              :y 0
-                                                              :width size-min
-                                                              :height size-min)
-                                              (make-rectangle :x 0
-                                                              :y 0
-                                                              :width size-max
-                                                              :height size-max))))
-        (when space
-          ;; We ignore min-sep because the convex hull doesn't need it.
-          ;; Just use random-points-in-rectangle here because we're first.
-          (let ((fig (make-figure-from-points (points (convex-hull (random-points-in-rectangle space
-                                                                                               count))))))
-            (vector-push-extend fig (figures plane))
-            (draw-figure fig (pen-params plane))
-            fig))))
+(defun make-hull-figure (drawing plane existing-points size-min size-max)
+  "Make a hull figure."
+  (declare (ignore existing-points))
+  ;;FIXME: get random from plane?
+  (let ((count (random-range 3 32))
+        (room (find-space-on-plane-range drawing plane
+                                         size-min size-min
+                                         size-max size-max)))
+    (when room
+      ;; We ignore min-sep because the convex hull doesn't need it.
+      ;; Just use random-points-in-rectangle here because we're first.
+      (make-figure-from-points (points (convex-hull (random-points-in-rectangle
+                                                     room
+                                                     count)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Polyline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-polyline-figure (drawing plane existing-points size-min size-max)
+  (let* ((count (random-range 3 16))
+         (room (find-space-on-plane-range drawing plane
+                                          size-min size-min
+                                          size-max size-max)))
+    (when room
+      (let ((poly (random-polyline-in-rectangle-sep-nosect-existing room
+                                                                    count
+                                                                    (min-sep drawing)
+                                                                    existing-points
+                                                                    80)))
+        (when poly
+          (make-figure-from-points (points poly)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygon
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-polygon-figure (drawing plane size-min size-max)
+(defun make-polygon-figure (drawing plane existing-points size-min size-max)
   (let* ((count (random-range 4 16))
-         (space (find-space-on-plane-range drawing
-                                           plane
-                                           (make-rectangle :x 0
-                                                           :y 0
-                                                           :width size-min
-                                                           :height size-min)
-                                           (make-rectangle :x 0
-                                                           :y 0
-                                                           :width size-max
-                                                           :height size-max))))
-    (when space
-      (let* ((poly (random-polyline-in-rectangle-sep-existing drawing
-                                                              space
+         (room (find-space-on-plane-range drawing plane
+                                          size-min size-min
+                                          size-max size-max)))
+    (when room
+      (let* ((poly (random-polyline-in-rectangle-sep-existing room
                                                               count
                                                               (min-sep drawing)
-                                                              #()
-                                                              100))
+                                                              existing-points
+                                                              80)))
+        (when poly
+          (make-figure-from-points (points poly)))))))
 
-             (fig (make-figure-from-points (points poly))))
-        (vector-push-extend fig (figures plane))
-        (draw-figure fig (pen-params plane))
-        fig))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Lineset
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-lineset-figure (drawing plane existing-points size-min size-max)
+  (let* ((count (random-range 2 8))
+         (room (find-space-on-plane-range drawing plane
+                                          size-min size-min
+                                          size-max size-max)))
+    (when room
+      (let ((form (make-instance '<form>)))
+        (dotimes (i count)
+          (add-skeleton-geometry
+           form
+           (make-line :from (pick-point-in-rectangle room
+                                                     existing-points
+                                                     80)
+                      :to (pick-point-in-rectangle room
+                                                   existing-points
+                                                   80))))
+        (make-figure :form form)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Star
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-star-figure (drawing plane existing-points size-min size-max)
+  (declare (ignore existing-points))
+  (let* ((room (find-space-on-plane-range drawing plane
+                                          size-min size-min
+                                          size-max size-max)))
+    (when room
+      (let* ((count (random-range 3 12))
+             (step (/ 360 count))
+             (pts (make-vector 1))
+             (centre (make-point :x (+ (x room) (/ (width room) 2.0))
+                                 :y (+ (y room) (/ (height room) 2.0))))
+             (distance (* (min (width room) (height room)) 0.475)))
+        (dotimes (i count)
+          (vector-push-extend centre pts)
+          (vector-push-extend (polar-to-cartesian centre
+                                                  distance
+                                                  (* i step))
+                              pts))
+        (make-figure-from-points pts)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Outline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-outline-figure (drawing plane existing-points size-min size-max)
+  "Choose a section of an existing outline and draw around it."
+  (declare (ignore plane existing-points size-min size-max))
+  (let* ((pts (random-line-on-existing-outline drawing)))
+  (make-figure-from-points pts)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Skeleton-line
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-skeleton-line-figure (drawing plane existing-points size-min size-max)
+  "Choose a section of an existing outline and draw around it."
+    (declare (ignore plane existing-points size-min size-max))
+  (let* ((pts (random-line-on-existing-skeleton drawing)))
+    (make-figure-from-points pts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-line-figure (drawing plane size-min size-max)
+(defun make-line-figure (drawing plane existing-points size-min size-max)
   "Make a line figure using two of the points."
-  ;; (let ((space (find-space-on-plane-range drawing
-  ;;                                         plane
-  ;;                                         (make-rectangle :x 0
-  ;;                                                         :y 0
-  ;;                                                         :width size-min
-  ;;                                                         :height size-min)
-  ;;                                         (make-rectangle :x 0
-  ;;                                                         :y 0
-  ;;                                                         :width size-max
-  ;;                                                         :height size-max))))
-;;  (when space
-    (let* (;;(p1 (pick-point-in-rectangle drawing space #() 50))
-           ;;(p2 (pick-point-in-rectangle drawing space #() 50)
-           (pts (random-line-on-existing-outline drawing plane))
-           ;;FIXME: Should be a line not a poly.
-           (fig (make-figure-from-points pts)))
-      (vector-push-extend fig (figures plane))
-      (draw-figure fig (pen-params plane))
-      fig))
+  (let ((room (find-space-on-plane-range drawing plane
+                                          size-min size-min
+                                          size-max size-max)))
+    (when room
+      (let* ((p1 (pick-point-in-rectangle room existing-points 50))
+             (p2 (pick-point-in-rectangle room existing-points 50)))
+        ;;FIXME: Should be a line not a poly.
+        (make-figure-from-points (vector p1 p2))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-point-figure (drawing plane size-min size-max)
+(defun make-point-figure (drawing plane existing-points size-min size-max)
   "Make a point figure."
-  (let* (;;(p (pick-point-in-rectangle drawing space #() 90))
-         (poly (outline (choose-drawing-form drawing)))
-         (p (random-point-in-polyline poly))
-         ;;FIXME: should be a point not a poly.
-         (fig (make-figure-from-points (vector p))))
-    (vector-push-extend fig (figures plane))
-    (draw-figure fig (pen-params plane))
-    fig))
+  (declare (ignore plane size-min size-max))
+  (let* ((p (pick-point-in-rectangle (bounds drawing)
+                                     existing-points
+                                     90)))
+    ;;FIXME: should be a point not a poly.
+    (make-figure-from-points (vector p))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Existing Point On Outline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-outline-point-figure (drawing plane existing-points size-min size-max)
+  "Make a point figure."
+  (declare (ignore plane existing-points size-min size-max))
+  (let* ((poly (outline (choose-drawing-form drawing)))
+         (p (random-point-in-polyline poly)))
+    ;;FIXME: should be a point not a poly.
+    (make-figure-from-points (vector p))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Existing Point On Skeleton
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-skeleton-point-figure (drawing plane existing-points size-min size-max)
+  "Make a point figure."
+  (declare (ignore plane existing-points size-min size-max))
+  (let* ((poly (outline (choose-drawing-form drawing)))
+         (p (random-point-in-polyline poly)))
+    ;;FIXME: should be a point not a poly.
+    (make-figure-from-points (vector p))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Sorted in rough order of visual density/area coverage.
+
 (defparameter *figure-generation-method-list*
   '(make-hull-figure
     make-polygon-figure
+    make-polyline-figure
+    make-lineset-figure
+    ;;make-star-figure
     make-line-figure
-    make-point-figure))
+    make-outline-figure
+    ;;make-point-figure
+    make-skeleton-point-figure
+    make-outline-point-figure))
 
 (defun figure-generation-methods (count)
   (choose-n-of-ordered count *figure-generation-method-list*))

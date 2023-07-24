@@ -31,24 +31,23 @@
            :initarg :points
            :documentation "The points of the polyline")
    (bounds :accessor bounds
-           :type rectangle
+           :type (or <rectangle> null)
+           :initform nil
            :initarg :bounds
            :documentation "The bounds of the polyline."))
   (:documentation "A polyline or polygon. A series of joined line segments."))
 
 (defun append-point (poly pt)
   "Append a point to the polyline."
-  (vector-push-extend pt (points poly))
-  (if (slot-boundp poly 'bounds)
-      (include-point (bounds poly) pt)
-      (setf (bounds poly) (rectangle-from-point pt))))
+  (vector-push-extend pt (slot-value poly 'points))
+  (setf (bounds poly) (include-point (bounds poly) pt)))
 
 (defun make-polyline (&key (points nil))
   "Constructor function."
   (let ((poly (make-instance '<polyline>)))
     (when points
-      (loop for point across points
-            do (append-point poly point)))
+       (loop for point across points
+             do (append-point poly point)))
     poly))
 
 (defmethod print-object ((object <polyline>) stream)
@@ -309,8 +308,8 @@
             (p2 (aref ps (mod (+ i 1) num-ps))))
       (incf area
           (* (- (x p2) (x p1))
-             (+ (y p2) (y p1)))))    
-    (/ area 2.0))))
+             (+ (y p2) (y p1))))))
+    (/ area 2.0)))
 
 (defun polyline-clockwise-p (polyline)
   (< 0.0 (polyline-signed-area polyline)))
@@ -329,28 +328,28 @@
 
 ;; A naive brute-force algorithm
 
-(defun divide-polyline-segments (polyline)
-  "Divide a polyline into shorter line segments where it self-intersects."
-  (let ((newpoints (list (from (first (points polyline))))))
-    ;; For each polyline
-    (do-poly-lines (polyline l1)
-      (let ((intersections nil))
-        ;; If it is intersected by any other lines
-        (do-poly-lines (polyline l2)
-          (unless (point= l1 l2)
-            (let ((intersects-at (intersects l1 l2)))
-              (when intersects-at
-                ;; Add it to the points describing new line segments.
-                (push intersections intersects-at)))))
-        ;; Destructively order any new points by distance from the start of
-        ;; the line segment.
-        (sort ps
-              (lambda (p1 p2) (< (distance p1 (from l1))
-                                 (distance p2 (from l1)))))
-        ;; Add any intersection points and the point at the end of this segment
-        ;; to the new polyline points.
-        (setq newpoints (append newpoints ps (list (to l1))))))
-    newpoints))
+;; (defun divide-polyline-segments (polyline)
+;;   "Divide a polyline into shorter line segments where it self-intersects."
+;;   (let ((newpoints (list (from (first (points polyline))))))
+;;     ;; For each polyline
+;;     (do-poly-lines (polyline l1)
+;;       (let ((intersections nil))
+;;         ;; If it is intersected by any other lines
+;;         (do-poly-lines (polyline l2)
+;;           (unless (point= l1 l2)
+;;             (let ((intersects-at (intersects l1 l2)))
+;;               (when intersects-at
+;;                 ;; Add it to the points describing new line segments.
+;;                 (push intersections intersects-at)))))
+;;         ;; Destructively order any new points by distance from the start of
+;;         ;; the line segment.
+;;         (sort intersections
+;;               (lambda (p1 p2) (< (distance p1 (from l1))
+;;                                  (distance p2 (from l1)))))
+;;         ;; Add any intersection points and the point at the end of this segment
+;;         ;; to the new polyline points.
+;;         (setq newpoints (append newpoints intersections (list (to l1))))))
+;;     newpoints))
 
 (defun choose-random-polyline-line (poly)
   "Randomly choose a line in the polyline."

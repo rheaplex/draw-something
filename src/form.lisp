@@ -32,12 +32,13 @@
              :initform (make-array 1 :adjustable t :fill-pointer 0)
              :documentation "The guide shapes for the outline.")
    (outline :accessor outline
-            :type <polyline>
+            :type (or <polyline> nil)
             :initform (make-polyline)
             :documentation "The outlines for the skeleton.")
    (bounds :accessor bounds
-           :type <rectangle>
+           :type (or <rectangle> null)
            :initarg :bounds
+           :initform nil
            :documentation "The bounds of the form.")
    (fill-colour :accessor fill-colour
                 :initarg :fill-colour
@@ -66,33 +67,37 @@
          (the-form (make-form :skeleton skel)))
     the-form))
 
+(defun add-skeleton-geometry (form skeleton)
+  (vector-push-extend skeleton (skeleton form))
+  (setf (bounds form) (include-rectangle (bounds form) (bounds skeleton))))
+
 (defmethod print-object ((object <form>) stream)
   "Make a human readable string describing the form."
   (print-unreadable-object (object stream :type t :identity t)
     (format stream "(BOUNDS: ~a FILL: ~a STROKE: ~a STROKE-WIDTH ~a SKELETON: ~a OUTLINE: ~a)"
-          (bounds object)
-          (fill-colour object)
-          (stroke-colour object)
-          (stroke-width object)
-          (skeleton object)
-          (outline object))))
+            (bounds object)
+            (fill-colour object)
+            (stroke-colour object)
+            (stroke-width object)
+            (skeleton object)
+            (outline object))))
 
 ;; Skeleton will ultimately be generated from a list of objects, kept separately
 ;; Forms will be able to have no fill or no outline independently
 
-(defun form-first-point (the-form)
+(defun outline-first-point (the-form)
   "Get the first point in the outline of the form."
   (first-point (outline the-form)))
 
-(defun form-point-count (the-form)
+(defun outline-point-count (the-form)
   "The number of points in the outline of the form."
   (point-count (outline the-form)))
 
-(defun most-recent-point (the-form)
+(defun most-recent-outline-point (the-form)
   "The most recent point added to the outline of the form."
   (last-point (outline the-form)))
 
-(defun make-form-start-point (form-skeleton pen-params)
+(defun make-outline-start-point (form-skeleton pen-params)
   "Get the point to start drawing at."
   (let ((start-point nil))
     (loop for skel across form-skeleton
@@ -109,28 +114,19 @@
 
 (defun make-form-turtle (the-form pen-params)
   "Make the turtle to draw around the form."
-  (make-turtle :location (make-form-start-point (skeleton the-form)
-                                                pen-params)
+  (make-turtle :location (make-outline-start-point (skeleton the-form)
+                                                   pen-params)
                :direction (- (/ pi 2.0))))
 
-(defun path-ready-to-close (the-form pen-params)
-  (and (> (form-point-count the-form) 2) ;; Ignore very first point
-       (< (distance (most-recent-point the-form)
-                    (form-first-point the-form))
+(defun outline-ready-to-close (the-form pen-params)
+  (and (> (outline-point-count the-form) 2) ;; Ignore very first point
+       (< (distance (most-recent-outline-point the-form)
+                    (outline-first-point the-form))
           (move-step pen-params))))
 
-(defun path-timeout (the-form)
-  "Make sure that a failure of the form algorithm hasn't resulted in a loop."
-  (let ((has-timed-out (> (form-point-count the-form)
-                          +form-step-limit+)))
-    (when has-timed-out
-      (log-err "ERROR: FORM PATH TIMED OUT ============================"))
-    has-timed-out))
-
-(defun should-finish-form (the-form pen-params)
-  "Decide whether the form should finish."
-  (or (path-ready-to-close the-form pen-params)
-      (path-timeout the-form)))
+(defun outline-timed-out (the-form)
+  "Make sure that outlining hasn't failed and resulted in an endless loop."
+  (> (outline-point-count the-form) +form-step-limit+))
 
 (defun draw-form (the-form pen-params)
   "Find the next point forward along the drawn outline of the shape."
@@ -139,11 +135,14 @@
          (the-turtle (make-form-turtle the-form pen-params)))
     (log-info "Drawing form.")
     (append-point the-outline (location the-turtle))
-    (loop until (should-finish-form the-form pen-params)
-          do (progn
-               (adjust-next-pen (skeleton the-form) pen-params the-turtle)
-               (forward the-turtle (move-step pen-params))
-               (let ((new-location (location the-turtle)))
-                 (append-point the-outline new-location)
-                 (include-point form-bounds new-location))))
-    (append-point the-outline (form-first-point the-form))))
+    (loop until (outline-ready-to-close the-form pen-params)
+          do (adjust-next-pen (skeleton the-form) pen-params the-turtle)
+             (forward the-turtle (move-step pen-params))
+             (let ((new-location (location the-turtle)))
+               (append-point the-outline new-location)
+               (include-point form-bounds new-location))
+             (when (outline-timed-out the-form)
+               (setf (outline the-form) nil)
+               (return)))
+    (when (outline the-form)
+      (append-point the-outline (outline-first-point the-form)))))

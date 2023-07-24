@@ -38,19 +38,14 @@
            :initform (make-array 1 :adjustable t :fill-pointer 0)
            :documentation "The planes of the drawing.")
    (ground :accessor ground
-           :type <colour>
+           :type (or <colour> null)
            :initform nil
            :initarg :ground
            :documentation "The flat background colour of the drawing.")
    (minimum-separation :accessor min-sep
                        :initarg :min-sep
-                       :documentation "The minimum point/line seperation required for drawing")
-   (points :accessor points
-           :type vector
-           :initarg :composition-points
-           :initform (make-array 1 :adjustable t
-                                   :fill-pointer 0)
-           :documentation "The points for the drawing"))
+                       :documentation "The minimum point/line seperation
+                                       required for drawing"))
   (:documentation "A drawing in progress."))
 
 (defun make-drawing (&key substrate-bounds min-sep bounds)
@@ -68,6 +63,10 @@
           (min-sep object)
           (ground object)
           (planes object))))
+
+(defun planes-count (drawing)
+  "How many planes are in the drawing."
+  (length (planes drawing)))
 
 (defmacro do-drawing-forms ((drawing form-variable-name) &body body)
   "Run code for each form of each figure of a drawing."
@@ -88,3 +87,15 @@
   (choose-figure-form
    (choose-plane-figure
     (choose-drawing-plane drawing))))
+
+(defun drawing-points (drawing)
+  "Get all existing unique points (which may be none) in the already
+   added planes."
+  (let ((points (make-vector 1)))
+    (do-drawing-forms (drawing form)
+      (loop for skel across (skeleton form)
+        do (loop for point across (points skel)
+              ;; There will be duplicates that are copied across layers.
+              do (unless (find-if #'(lambda (p) (point= p point)) points)
+                   (vector-push-extend point points)))))
+    points))

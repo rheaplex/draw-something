@@ -55,7 +55,7 @@
 (defmacro do-plane-forms ((plane form-variable-name) &body body)
   "Run code for each form of each figure of a plane."
   (let ((figure-var (gensym)))
-    `(loop for ,figure-var across (figures plane)
+    `(loop for ,figure-var across (figures ,plane)
            do (loop for ,form-variable-name
                      across (forms ,figure-var)
                     do (progn ,@body)))))
@@ -72,10 +72,11 @@
                (return))))
     found))
 
-(defun find-space-on-plane-range (drawing plane
-                                  min-size-rect max-size-rect)
-  "Find empty space on the plane larger than min-size up to max-size, or nil"
-  (let ((found nil))
+(defun find-space-on-plane-range-rects (drawing plane
+                                        min-size-rect max-size-rect)
+  "Find empty space on plane larger than min-size up to max-size, or nil"
+  (let ((found nil)
+        (exclude (plane-forms-bounds plane)))
     (loop for i from 0 below +find-space-tries+
           do (let ((start-point (find-empty-point-on-plane drawing plane))
                    (candidate nil))
@@ -86,20 +87,34 @@
                                                (x start-point)
                                                (y start-point)
                                                (bounds drawing)
-                                               (plane-forms-bounds plane)))
+                                               exclude))
                (when (not (not candidate))
                  (setf found (copy-rectangle candidate))
                  (return))))
     found))
 
+(defun find-space-on-plane-range (drawing plane
+                                  min-width min-height
+                                  max-width max-height)
+  "Find space on the plane, or nil if none can be found."
+  (find-space-on-plane-range-rects drawing plane
+                                   (make-rectangle :x 0
+                                                   :y 0
+                                                   :width min-width
+                                                   :height min-height)
+                                   (make-rectangle :x 0
+                                                   :y 0
+                                                   :width max-width
+                                                   :height max-height)))
+
 (defun find-space-on-plane (drawing plane size-rect)
   "Find empty space on the plane of given size, or nil if fail"
-  (find-space-on-plane-range drawing plane size-rect size-rect))
+  (find-space-on-plane-range-rects drawing plane size-rect size-rect))
 
-(defun plane-skeleton-points (plane)
+(defun plane-skeletons-points (plane)
   "Get a vector of every skeleton point on a plane"
   (let ((points (make-vector 1)))
-    (do-plane-forms (f plane)
+    (do-plane-forms (plane f)
       (loop for s across (skeleton f)
             do (loop for p across (points s)
                      do (vector-push-extend points p))))))

@@ -52,6 +52,17 @@ Note that this is evaluated as two loops"
               :adjustable t
               :fill-pointer 0))
 
+(defmethod remove-aref (v i)
+  "Destructively remove an item from a vector by index, and return it."
+  ;; Get the desired value.
+  (let ((result (aref v i)))
+    ;; Copy the end of the vector over the desired value.
+    (setf (aref v i) (aref v (- (fill-pointer v) 1)))
+    ;; Truncate the vector to remove the copied end value.
+    (decf (fill-pointer v))
+    ;; Return the desired value.
+    result))
+
 (defmacro with-gensyms ((&rest names) &body body)
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
