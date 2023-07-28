@@ -265,8 +265,10 @@
   ((directions :initform '(left right up down)
                :accessor directions)
    (min :initarg :min
+        :type <rectangle>
         :accessor min-rect)
    (max :initarg :max
+        :type <rectangle>
         :accessor max-rect)
    (xstep :initarg :xstep
           :initform 1.0
@@ -275,6 +277,7 @@
           :initform 1.0
           :accessor ystep)
    (within :initarg :within
+           :type <rectangle>
            :accessor within-rect)
    (avoid :initarg :avoid
           :accessor avoid-rects))
@@ -290,15 +293,11 @@
   (setf (height o) 1))
 
 (defun can-grow-rectangle-p (rect)
-  (not (null (directions rect))))
+  (directions rect))
 
 (defun found-rectangle-p (rect)
   (and (>= (width rect) (width (min-rect rect)))
        (>= (height rect) (height (min-rect rect)))))
-
-(defun search-finished-p (rect)
-  (or (found-rectangle-p rect)
-      (not (can-grow-rectangle-p rect))))
 
 (defun grow-rect (rect new-rect which-way)
   (case which-way
@@ -317,13 +316,13 @@
 (defun stop-growing-direction-max (rect)
   ;; If the rect has reached its maximum width,
   ;; don't grow any further to the left or right
-  (when (= (width rect) (width (max-rect rect)))
+  (when (>= (width rect) (width (max-rect rect)))
     (setf (directions rect)
           (remove-if #'(lambda (x) (member x '(left right)))
                      (directions rect))))
   ;; If the rect has reached its maximum height,
   ;; don't grow any further at the top or bottom.
-  (when (= (height rect) (height (max-rect rect)))
+  (when (>= (height rect) (height (max-rect rect)))
     (setf (directions rect)
           (remove-if #'(lambda (x) (member x '(up down)))
                      (directions rect)))))
@@ -362,13 +361,13 @@
 (defun grow-rectangle (min max
                        initial-x initial-y
                        within avoid
-                       &optional (xstep 1) (ystep 1))
+                       &optional (xstep 1.0) (ystep 1.0))
   (let ((grow (make-instance '<grow-rectangle>
                              :min min :max max
                              :initial-x initial-x :initial-y initial-y
                              :xstep xstep :ystep ystep
                              :within within :avoid avoid)))
-    (loop while (not (search-finished-p grow))
+    (loop while (can-grow-rectangle-p grow)
           do (grow-rectangle-step grow))
     (if (found-rectangle-p grow)
         (copy-rectangle grow)

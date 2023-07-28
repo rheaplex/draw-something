@@ -46,7 +46,7 @@
 
 (defun plane-forms-bounds (the-plane)
   "Get the bounding rectangles for every form of every figure on the plane"
-  (let ((results (make-array 0 :adjustable t :fill-pointer 0)))
+  (let ((results (make-vector 0)))
     (loop for figure across (figures the-plane)
           do (loop for form across (forms figure)
                    do (vector-push-extend (bounds form) results)))
@@ -88,8 +88,8 @@
                                                (y start-point)
                                                (bounds drawing)
                                                exclude))
-               (when (not (not candidate))
-                 (setf found (copy-rectangle candidate))
+               (when candidate
+                 (setf found candidate)
                  (return))))
     found))
 

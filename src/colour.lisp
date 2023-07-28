@@ -65,7 +65,7 @@
     ((< a (/ 1.0 2.0))
      q)
     ((< a (/ 2.0 3.0))
-     (+ p (- q p) (* (- (/ 2.0 3.0) a) 6.0)))
+     (+ p (* (- q p) (- (/ 2.0 3.0) a) 6.0)))
     (t
      p)))
 
@@ -75,7 +75,7 @@
         (s (saturation col))
         (l (lightness col)))
     (cond
-      ;; Grey
+      ;; Achromatic
       ((zerop s)
        (values l l l))
       ;; Black
