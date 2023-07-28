@@ -148,7 +148,8 @@
     (when room
       ;; We ignore min-sep because the convex hull doesn't need it.
       ;; Just use random-points-in-rectangle here because we're first.
-      (make-figure-from-points (points (convex-hull (random-points-in-rectangle
+      (make-figure-from-points room
+                               (points (convex-hull (random-points-in-rectangle
                                                      room
                                                      count)))))))
 
@@ -168,7 +169,8 @@
                                                                     existing-points
                                                                     80)))
         (when poly
-          (make-figure-from-points (points poly)))))))
+          (make-figure-from-points room
+                                   (points poly)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Polygon
@@ -186,7 +188,8 @@
                                                               existing-points
                                                               80)))
         (when poly
-          (make-figure-from-points (points poly)))))))
+          (make-figure-from-points room
+                                   (points poly)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lineset
@@ -208,7 +211,8 @@
                       :to (pick-point-in-rectangle room
                                                    existing-points
                                                    80))))
-        (make-figure :form form)))))
+        (make-figure room
+                     :form form)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Star
@@ -232,7 +236,7 @@
                                                   distance
                                                   (* i step))
                               pts))
-        (make-figure-from-points pts)))))
+        (make-figure-from-points room pts)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Outline
@@ -242,7 +246,7 @@
   "Choose a section of an existing outline and draw around it."
   (declare (ignore plane existing-points size-min size-max))
   (let* ((pts (random-line-on-existing-outline drawing)))
-  (make-figure-from-points pts)))
+  (make-figure-from-points nil pts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Skeleton-line
@@ -252,7 +256,7 @@
   "Choose a section of an existing outline and draw around it."
     (declare (ignore plane existing-points size-min size-max))
   (let* ((pts (random-line-on-existing-skeleton drawing)))
-    (make-figure-from-points pts)))
+    (make-figure-from-points nil pts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Line
@@ -267,7 +271,7 @@
       (let* ((p1 (pick-point-in-rectangle room existing-points 50))
              (p2 (pick-point-in-rectangle room existing-points 50)))
         ;;FIXME: Should be a line not a poly.
-        (make-figure-from-points (vector p1 p2))))))
+        (make-figure-from-points room (vector p1 p2))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Point
@@ -280,7 +284,7 @@
                                      existing-points
                                      90)))
     ;;FIXME: should be a point not a poly.
-    (make-figure-from-points (vector p))))
+    (make-figure-from-points nil (vector p))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Existing Point On Outline
@@ -292,7 +296,7 @@
   (let* ((poly (outline (choose-drawing-form drawing)))
          (p (random-point-in-polyline poly)))
     ;;FIXME: should be a point not a poly.
-    (make-figure-from-points (vector p))))
+    (make-figure-from-points nil (vector p))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Existing Point On Skeleton
@@ -304,7 +308,7 @@
   (let* ((poly (outline (choose-drawing-form drawing)))
          (p (random-point-in-polyline poly)))
     ;;FIXME: should be a point not a poly.
-    (make-figure-from-points (vector p))))
+    (make-figure-from-points nil (vector p))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Figure generation method selection
@@ -315,8 +319,8 @@
 (defparameter *figure-generation-method-list*
   '(make-hull-figure
     make-polygon-figure
-    make-polyline-figure
     make-lineset-figure
+    make-polyline-figure
     ;;make-star-figure
     make-line-figure
     make-outline-figure

@@ -46,8 +46,8 @@
 
 (defparameter +planes-count+ 4)
 
-(defparameter +planes-figures-max+ (vector 10 4 4 8 8 16 16 16 16))
-(defparameter +planes-sizes-min+ #(4 3 5 8 16 16 16 16 16))
+(defparameter +planes-figures-max+ (vector 4 4 16 16 16 16 16 16 16))
+(defparameter +planes-sizes-min+ #(2 3 5 8 8 8 8 8 8))
 (defparameter +planes-sizes-max+ #(1 2 1 4 4 4 4 4 4))
 
 (defun generate-filename ()
@@ -61,20 +61,25 @@
 (defun draw-everything (drawing)
   ;; Proceed plane by plane, figure by figure.
   (dotimes (i (length *figure-generation-method-list*))
-    (log-info "~%Plane: ~d ~a~%" i (nth i
-                                        *figure-generation-method-list*))
     (let ((plane (make-plane :pen-params *pen-params*))
-          (points-for-plane (shuffle (drawing-points drawing))))
+          (points-for-plane (shuffle (drawing-points drawing)))
+          (min-size (floor (min +drawing-width+ +drawing-height+)
+                           (aref +planes-sizes-min+ i)))
+          (max-size (floor (min +drawing-width+ +drawing-height+)
+                           (aref +planes-sizes-max+ i))))
+      (log-info "~%Plane: ~d Min-size: ~a Max-size: ~a Generator: ~a~%"
+                i
+                min-size
+                max-size
+                (nth i *figure-generation-method-list*))
       (dotimes (j (aref +planes-figures-max+ i))
         (log-info "Trying to produce figure ~d of plane ~d" j i)
         (let ((fig (funcall (nth i *figure-generation-method-list*)
                             drawing
                             plane
                             points-for-plane
-                            (floor (min +drawing-width+ +drawing-height+)
-                                   (aref +planes-sizes-min+ i))
-                            (floor (min +drawing-width+ +drawing-height+)
-                                   (aref +planes-sizes-max+ i)))))
+                            min-size
+                            max-size)))
           ;; Give up on first failure, later ones probably won't succeed.
           (unless fig
             (return))
@@ -84,22 +89,24 @@
             (vector-push-extend fig (figures plane)))))
       (vector-push-extend plane (planes drawing)))))
 
+(defparameter +colours-per-plane+ 4)
+
 (defun colour-everything (drawing)
   (log-info "~%Colouring drawing.~%")
   ;; +1 for ground, which I suppose we could turn into a plane?
   (let ((colours (create-colours (+ (length *figure-generation-method-list*)
                                     1)
-                                 20)))
+                                 +colours-per-plane+)))
     (log-info "Colours: ~a" colours)
     (log-info "Colouring ground.")
-    (setf (ground drawing) (choose-colour-for colours 0))
+    (setf (ground drawing) (choose-colour-for colours 0 +colours-per-plane+))
     (log-info "Colouring forms.")
     (dotimes (i (planes-count drawing))
       (log-info "Colouring plane ~d" i)
       (let ((plane (aref (planes drawing) i)))
         (do-plane-forms (plane form)
           (setf (fill-colour form)
-                (choose-colour-for colours (+ i 1)))
+                (choose-colour-for colours (+ i 1) +colours-per-plane+))
           (log-info "Colouring form - h: ~a s: ~a l: ~a"
                     (hue (fill-colour form))
                     (saturation (fill-colour form))
@@ -126,14 +133,12 @@
     (log-info "Drawing created: ~a." drawing)
     (draw-everything drawing)
     (colour-everything drawing)
-    (log-info "Finished drawing: ~a" drawing)
-    (let ((filepath (write-drawing drawing
-                                   (or savedir
-                                       (make-pathname :directory
-                                                      '(:relative "drawings")))
-                                   (or filename
-                                       (generate-filename)))))
-      ;; Make sure this goes to stdout
-      (format t "Wrote file to: ~a~%" filepath))
-    (log-info "Finished draw-something.")
-    nil))
+    (log-info "Finished drawing.")
+    (let ((filepath (write-and-show-svg drawing
+                                        (or savedir
+                                            (make-pathname :directory
+                                                           '(:relative "drawings")))
+                                        (or filename
+                                            (generate-filename)))))
+      (log-info "Finished draw-something.")
+      filepath)))

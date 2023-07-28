@@ -32,7 +32,7 @@
    (composition-bounds :accessor composition-bounds
                        :type (or <rectangle> null)
                        :initform nil
-                       :initarg composition-bounds
+                       :initarg :composition-bounds
                        :documentation "The assigned region for the form.")
    (bounds :accessor bounds
            :type (or <rectangle> null)
@@ -41,9 +41,10 @@
            :documentation "The bounds of the figure."))
   (:documentation "A figure drawn in the drawing."))
 
-(defun make-figure (&key (form nil))
+(defun make-figure (composition-bounds &key (form nil))
   "Constructor function."
-  (let ((fig (make-instance '<figure>)))
+  (let ((fig (make-instance '<figure>
+                            :composition-bounds composition-bounds)))
     (when form
       (add-form-to-figure form fig))
     fig))
@@ -51,9 +52,9 @@
 (defmethod print-object ((object <figure>) stream)
   "Make a human readable string describing the figure."
   (print-unreadable-object (object stream :type t :identity t)
-    (format stream "(BOUNDS: ~a)" ;;  COMPOSITION-BOUNDS: ~a FORMS: ~a
+    (format stream "(BOUNDS: ~a COMPOSITION-BOUNDS: ~a)" ;;  FORMS: ~a
           (bounds object)
-          ;;(composition-bounds object)
+          (composition-bounds object)
           ;;(forms object)
           )))
 
@@ -67,10 +68,11 @@
         (include-rectangle (bounds figure)
                            (bounds form))))
 
-(defun make-figure-from-points (points)
+(defun make-figure-from-points (composition-bounds points)
   "Make a figure with a single polyline from the provided points."
   (log-info "Making figure.")
-  (make-figure :form (make-form-from-points points)))
+  (make-figure composition-bounds
+               :form (make-form-from-points points)))
 
 (defun choose-figure-form (figure)
   "Randomly choose a form of the figure."

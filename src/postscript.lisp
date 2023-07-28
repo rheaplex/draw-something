@@ -26,10 +26,16 @@
 (defvar *ps-stream* t)
 
 (defmethod write-eps-header (x y width height &key (to *ps-stream*))
-  "Write the standard raw PostScript header."
-  (format to "%!PS-Adobe-3.0 EPSF-3.0~%")
+  "Write the standard EPS header."
+  (format to "%!PS-Adobe-3.1 EPSF-3.0~%%ADO_DSC_Encoding: UTF8~%")
+  (format to "%%Creator: (draw-something)")
   (format to "%%BoundingBox: ~d ~d ~d ~d~%" x y width height)
-  (format to "/L {lineto} bind def~%/M {moveto} bind def~%"))
+ ;;(format to "%%HiResBoundingBox: ~f ~f ~f ~f~%" x y width height)
+ ;; (format to "%%CropBox: ~f ~f ~f ~f~%" x y width height)
+  (format to "%%LanguageLevel: 3~%%Pages: 1~%")
+  (format to "%%EndComments~%%%BeginProlog~%")
+  (format to "/L {lineto} bind def~%/M {moveto} bind def~%")
+  (format to "%%EndProlog~%"))
 
 (defmethod write-eps-footer (&key (to *ps-stream*))
   "Write the standard (but optional) PostScript footer"
@@ -141,6 +147,9 @@
   (format ps "% START: figure~%")
   (loop for fm across (forms fig)
         do (write-form fm ps))
+  (when (composition-bounds fig)
+    (write-colour (fill-colour (aref (forms fig) 0)) :to ps)
+    (write-rectstroke (composition-bounds fig) :to ps))
   (format ps "% END: figure~%"))
 
 (defmethod write-ground ((the-drawing <drawing>) ps)
