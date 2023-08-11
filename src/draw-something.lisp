@@ -23,24 +23,13 @@
 ;; Let's go!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +pen-step-max+ 12)
-(defparameter +pen-step-min+ 2)
-(defparameter +pen-distance-max+ 50)
-(defparameter +pen-distance-min+ 10)
-(defparameter +pen-tolerance-max+ 10)
-(defparameter +pen-tolerance-min+ 4)
-
-;;TODO work this in to the drawing but not the ground
-(defparameter *border-width* (+ +pen-distance-max+
-                                +pen-tolerance-max+))
-
 ;; 11in x 14in
-;;(defparameter +page-size+ '(7680 . 4320))
-;;(defparameter +drawing-width+ 7680)
-;;(defparameter +drawing-height+ 4320)
-(defparameter +page-size+ '(1280 . 768))
-(defparameter +drawing-width+ 1280)
-(defparameter +drawing-height+ 768)
+(defparameter +page-size+ '(7680 . 4320))
+(defparameter +drawing-width+ 7680)
+(defparameter +drawing-height+ 4320)
+;; (defparameter +page-size+ '(1280 . 768))
+;; (defparameter +drawing-width+ 1280)
+;; (defparameter +drawing-height+ 768)
 (defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
 (defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
 
@@ -49,6 +38,36 @@
 (defparameter +planes-figures-max+ (vector 4 4 16 16 16 16 16 16 16))
 (defparameter +planes-sizes-min+ #(2 3 5 8 8 8 8 8 8))
 (defparameter +planes-sizes-max+ #(1 2 1 4 4 4 4 4 4))
+
+;; (defparameter +pen-step-max+ 12)
+;; (defparameter +pen-step-min+ 2)
+;; (defparameter +pen-distance-max+ 50)
+;; (defparameter +pen-distance-min+ 10)
+;; (defparameter +pen-tolerance-max+ 10)
+;; (defparameter +pen-tolerance-min+ 4)
+(defparameter +pen-unit-scale+ nil)
+(defparameter +pen-step-max+ nil)
+(defparameter +pen-step-min+ nil)
+(defparameter +pen-distance-max+ nil)
+(defparameter +pen-distance-min+ nil)
+(defparameter +pen-tolerance-max+ nil)
+(defparameter +pen-tolerance-min+ nil)
+
+;;Todo work this in to the drawing but not the ground
+(defparameter *border-width* nil)
+
+(defun gen-params ()
+  (setf +pen-unit-scale+
+        (random-range 1 (floor (/ (min +drawing-width+
+                                       +drawing-height+)
+                                  512))))
+  (setf +pen-step-max+ (* 12 +pen-unit-scale+))
+  (setf +pen-step-min+ (* 2 +pen-unit-scale+))
+  (setf +pen-distance-max+ (* 50 +pen-unit-scale+))
+  (setf +pen-distance-min+ (* 10 +pen-unit-scale+))
+  (setf +pen-tolerance-max+ (* 10 +pen-unit-scale+))
+  (setf +pen-tolerance-min+ (* 4 +pen-unit-scale+))
+  (setf *border-width* (+ +pen-distance-max+ +pen-tolerance-max+)))
 
 (defun generate-filename ()
   "Make a unique filename for the drawing, based on the current date & time."
@@ -126,6 +145,7 @@
   "Make the drawing data structures and create the image."
   (log-info "Starting draw-something.")
   (random-init (or randseed (get-universal-time)))
+  (gen-params)
   (let ((drawing (make-drawing :bounds
                                (make-rectangle :x +drawing-x+
                                                :y +drawing-y+
