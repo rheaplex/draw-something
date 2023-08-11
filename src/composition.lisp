@@ -195,6 +195,23 @@
 ;; Lineset
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun make-intersecting-line (room existing-points form)
+  (let ((result nil))
+    (loop for tries from 0 below 100
+          do (let ((new-line
+                     (make-line :from (pick-point-in-rectangle room
+                                                               existing-points
+                                                               80)
+                                :to (pick-point-in-rectangle room
+                                                             existing-points
+                                                             80))))
+               ;;FIXME: avoid points being too close for pen.
+               (when (or (= (length (skeleton form)) 0)
+                         (intersects-any new-line (skeleton form)))
+                 (setf result new-line)
+                 (return))))
+    result))
+
 (defun make-lineset-figure (drawing plane existing-points size-min size-max)
   (let* ((count (random-range 2 8))
          (room (find-space-on-plane-range drawing plane
@@ -203,14 +220,11 @@
     (when room
       (let ((form (make-instance '<form>)))
         (dotimes (i count)
-          (add-skeleton-geometry
-           form
-           (make-line :from (pick-point-in-rectangle room
-                                                     existing-points
-                                                     80)
-                      :to (pick-point-in-rectangle room
-                                                   existing-points
-                                                   80))))
+          (let ((line (make-intersecting-line room existing-points form)))
+            (when line
+              (add-skeleton-geometry
+               form
+               line))))
         (make-figure room
                      :form form)))))
 

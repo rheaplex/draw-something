@@ -54,15 +54,15 @@
                  :bounds bounds
                  :min-sep min-sep))
 
-(defmethod print-object ((object <drawing>) stream)
-  "Make a human readable string describing the drawing."
-  (print-unreadable-object (object stream :type t :identity t)
-    (format stream "(SUBSTRATE-BOUNDS: ~a BOUNDS: ~a MIN-SEP: ~a GROUND: ~a PLANES:~%~a)"
-          (substrate-bounds object)
-          (bounds object)
-          (min-sep object)
-          (ground object)
-          (planes object))))
+;; (defmethod print-object ((object <drawing>) stream)
+;;   "Make a human readable string describing the drawing."
+;;   (print-unreadable-object (object stream :type t :identity t)
+;;     (format stream "(SUBSTRATE-BOUNDS: ~a BOUNDS: ~a MIN-SEP: ~a GROUND: ~a PLANES:~%~a)"
+;;           (substrate-bounds object)
+;;           (bounds object)
+;;           (min-sep object)
+;;           (ground object)
+;;           (planes object))))
 
 (defun planes-count (drawing)
   "How many planes are in the drawing."

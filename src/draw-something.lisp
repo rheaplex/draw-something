@@ -23,24 +23,24 @@
 ;; Let's go!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter +pen-outline-distance+ 50)
-(defparameter +pen-outline-distance-tolerance+ 4)
-(defparameter *pen-params*
-  (make-pen-parameters  :move-step          10 ;;1.0
-                        :distance           +pen-outline-distance+
-                        :distance-tolerance +pen-outline-distance-tolerance+
-                        :turn-step          0.01 ;;0.1
-                        :drift-probability  0.001
-                        :drift-range        0.01))  ;;0.1
+(defparameter +pen-step-max+ 12)
+(defparameter +pen-step-min+ 2)
+(defparameter +pen-distance-max+ 50)
+(defparameter +pen-distance-min+ 10)
+(defparameter +pen-tolerance-max+ 10)
+(defparameter +pen-tolerance-min+ 4)
 
 ;;TODO work this in to the drawing but not the ground
-(defparameter *border-width* (+ +pen-outline-distance+
-                                +pen-outline-distance-tolerance+))
+(defparameter *border-width* (+ +pen-distance-max+
+                                +pen-tolerance-max+))
 
 ;; 11in x 14in
-(defparameter +page-size+ '(7680 . 4320))
-(defparameter +drawing-width+ 7680)
-(defparameter +drawing-height+ 4320)
+;;(defparameter +page-size+ '(7680 . 4320))
+;;(defparameter +drawing-width+ 7680)
+;;(defparameter +drawing-height+ 4320)
+(defparameter +page-size+ '(1280 . 768))
+(defparameter +drawing-width+ 1280)
+(defparameter +drawing-height+ 768)
 (defparameter +drawing-x+ (/ (- (car +page-size+) +drawing-width+) 2.0))
 (defparameter +drawing-y+ (/ (- (cdr +page-size+) +drawing-height+) 2.0))
 
@@ -61,7 +61,15 @@
 (defun draw-everything (drawing)
   ;; Proceed plane by plane, figure by figure.
   (dotimes (i (length *figure-generation-method-list*))
-    (let ((plane (make-plane :pen-params *pen-params*))
+    (let ((plane (make-plane :pen-params
+                             (generate-pen-parameters +pen-step-max+
+                                                      +pen-step-min+
+                                                      +pen-distance-max+
+                                                      +pen-distance-min+
+                                                      +pen-tolerance-max+
+                                                      +pen-tolerance-min+
+                                                      (length *figure-generation-method-list*)
+                                                      i)))
           (points-for-plane (shuffle (drawing-points drawing)))
           (min-size (floor (min +drawing-width+ +drawing-height+)
                            (aref +planes-sizes-min+ i)))
@@ -129,16 +137,21 @@
                                                :width (car +page-size+)
                                                :height (cdr +page-size+))
                                :min-sep
-                               (* +pen-outline-distance+ 1.5))))
+                               (* +pen-distance-max+ 1.5))))
     (log-info "Drawing created: ~a." drawing)
     (draw-everything drawing)
     (colour-everything drawing)
     (log-info "Finished drawing.")
-    (let ((filepath (write-and-show-svg drawing
-                                        (or savedir
-                                            (make-pathname :directory
-                                                           '(:relative "drawings")))
-                                        (or filename
-                                            (generate-filename)))))
-      (log-info "Finished draw-something.")
-      filepath)))
+    (let ((filepath (svg-write-drawing drawing
+                                       (or savedir
+                                           (make-pathname :directory
+                                                          '(:relative "drawings")))
+                                       (or filename
+                                           (generate-filename)))))
+      (log-info "Finished draw-something ~a." filepath)
+      ;; Make sure Emacs is built with ImageMagick support,
+      ;; otherwise this image won't scale!
+      #+swank (when swank::*emacs-connection*
+                (swank::eval-in-emacs
+                 `(find-file-other-window ,(namestring (truename filepath)))))
+      drawing)))

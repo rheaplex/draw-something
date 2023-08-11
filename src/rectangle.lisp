@@ -188,20 +188,26 @@
            (setf (height rect)
                  (+ (height rect) (- (y p) top)))))
         rect)
-      (make-rectangle :x (x p) :y (y p) :width 0.0 :height 0.0)))
+      (rectangle-from-point p)))
 
 (defun include-rectangle (rect include)
   "Make a copy of the first rectangle (which may be nil)
    and expand it to include the second."
-  (let ((new-rect (copy-rectangle (or rect include))))
-    (when rect
-      (include-point new-rect (make-point :x (x include) :y (y include)))
-      (include-point new-rect (make-point :x (x include)
-                                          :y (+ (y include) (height include))))
-      (include-point new-rect (make-point  :x (+ (x include) (width include))
-                                           :y (+ (y include) (height include))))
-      (include-point new-rect (make-point :x (+ (x include) (width include))
-                                          :y (y include))))
+  (let ((new-rect nil))
+    ;;FIXME: make less horrendously inefficient.
+    (setf new-rect
+          (include-point rect (make-point :x (x include) :y (y include))))
+    (setf new-rect
+          (include-point new-rect (make-point :x (x include)
+                                              :y (+ (y include)
+                                                    (height include)))))
+    (setf new-rect (include-point new-rect (make-point  :x (+ (x include)
+                                                              (width include))
+                                                        :y (+ (y include)
+                                                              (height include)))))
+    (setf new-rect (include-point new-rect (make-point :x (+ (x include)
+                                                             (width include))
+                                                       :y (y include))))
     new-rect))
 
 (defun rectangle-from-point (p)

@@ -28,10 +28,12 @@
 
 (defun flip-points (points svg-height)
   "Flip the y of a copy of each of the points."
-  (map 'vector (lambda (p)
-                 (make-instance '<point>
-                                :x (point-x p)
-                                :y (to-svg-y (point-y p) svg-height)))))
+  (map 'vector
+       (lambda (p)
+         (make-instance '<point>
+                        :x (x p)
+                        :y (to-svg-y (y p) svg-height)))
+       points))
 
 (defun svg-header (width height &key (to *svg-stream*))
   "Write the start of the SVG file."
@@ -187,28 +189,28 @@
   ;;(svg-form-stroke form y-height svg)
   )
 
-(defun svg-write-form (form drawing-bounds filespec)
-  "Write the form"
-  (log-info (format nil "Writing form to file ~a ." filespec))
-  (ensure-directories-exist *save-directory*)
-  (with-open-file (svg filespec :direction :output
-                      :if-exists :supersede)
-                  (svg-header (width drawing-bounds)
-                              (height drawing-bounds)
-                              :to svg)
-                  ;;(svg-ground drawing svg)
-                  ;;(svg-frame drawing svg)
-                  (svg-form form (height drawing-bounds) svg)
-                  (svg-footer :to svg)
-                  (pathname svg)))
+;; (defun svg-write-form (form drawing-bounds filespec)
+;;   "Write the form"
+;;   (log-info (format nil "Writing form to file ~a ." filespec))
+;;   (ensure-directories-exist *save-directory*)
+;;   (with-open-file (svg filespec :direction :output
+;;                       :if-exists :supersede)
+;;                   (svg-header (width drawing-bounds)
+;;                               (height drawing-bounds)
+;;                               :to svg)
+;;                   ;;(svg-ground drawing svg)
+;;                   ;;(svg-frame drawing svg)
+;;                   (svg-form form (height drawing-bounds) svg)
+;;                   (svg-footer :to svg)
+;;                   (pathname svg)))
 
 
-(defun write-svg-form (form drawing-bounds &optional (filespec nil))
-  "Write the form as an svg file."
-  (log-info "Saving form as svg.")
-  (svg-write-form form
-                  drawing-bounds
-                  (if filespec filespec (generate-filename ".svg"))))
+;; (defun write-svg-form (form drawing-bounds &optional (filespec nil))
+;;   "Write the form as an svg file."
+;;   (log-info "Saving form as svg.")
+;;   (svg-write-form form
+;;                   drawing-bounds
+;;                   (if filespec filespec (generate-filename ".svg"))))
 
 (defun svg-figure (figure y-height svg)
   "Write the figure for early multi-figure versions of draw-something."
@@ -251,7 +253,7 @@
             do (loop for fig across (figures plane)
                      do (svg-figure fig (height (bounds drawing)) svg)))
       (svg-footer :to svg)
-      (pathname svg))))
+      filepath)))
 
 (defun svg-display-drawing (filepath)
   "Show the drawing to the user in the GUI."
