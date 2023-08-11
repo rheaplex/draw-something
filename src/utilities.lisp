@@ -67,3 +67,18 @@ Note that this is evaluated as two loops"
   "From Peter Siebel's Practical Common Lisp"
   `(let ,(loop for n in names collect `(,n (gensym)))
      ,@body))
+
+(defun lerp (from to a)
+  "Interpolate from from to to at time a."
+  (+ from
+     (* (- to from)
+        a)))
+
+(defun lstep (from to steps index)
+  "Interpolate from from to to in steps steps at step index,
+   where for n steps index goes from 0 to n-1 ."
+  (assert (and (< index steps)
+               (>= index 0)))
+  (float (+ from
+            (* (/ (- to from) steps)
+               index))))

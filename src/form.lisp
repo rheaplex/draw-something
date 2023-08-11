@@ -116,7 +116,7 @@
   "Make the turtle to draw around the form."
   (make-turtle :location (make-outline-start-point (skeleton the-form)
                                                    pen-params)
-               :direction (- (/ pi 2.0))))
+               :direction 0.0))
 
 (defun outline-ready-to-close (the-form pen-params)
   (and (> (outline-point-count the-form) 2) ;; Ignore very first point
@@ -130,8 +130,7 @@
 
 (defun draw-form (the-form pen-params)
   "Find the next point forward along the drawn outline of the shape."
-  (let* ((form-bounds (bounds the-form))
-         (the-outline (outline the-form))
+  (let* ((the-outline (outline the-form))
          (the-turtle (make-form-turtle the-form pen-params)))
     (log-info "Drawing form.")
     (append-point the-outline (location the-turtle))
@@ -140,7 +139,8 @@
              (forward the-turtle (move-step pen-params))
              (let ((new-location (location the-turtle)))
                (append-point the-outline new-location)
-               (include-point form-bounds new-location))
+               (setf (bounds the-form)
+                     (include-point (bounds the-form) new-location)))
              (when (outline-timed-out the-form)
                (setf (outline the-form) nil)
                (return)))
