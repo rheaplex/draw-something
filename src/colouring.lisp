@@ -300,7 +300,6 @@
       (dotimes (j per-bucket)
         (setf (aref buckets  i j)
               (nth (+ j (* i per-bucket)) colours))))
-    (format t "~a~%~a~%" colours buckets)
     buckets))
 
 (defmethod create-colours (bucket-count per-bucket)

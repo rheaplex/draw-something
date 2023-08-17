@@ -143,7 +143,7 @@
 
 (defun draw-something (&key (randseed nil) (savedir nil) (filename nil))
   "Make the drawing data structures and create the image."
-  (log-info "Starting draw-something.")
+  (format t "Starting draw-something...~%")
   (random-init (or randseed (get-universal-time)))
   (gen-params)
   (let ((drawing (make-drawing :bounds
@@ -168,7 +168,7 @@
                                                           '(:relative "drawings")))
                                        (or filename
                                            (generate-filename)))))
-      (log-info "Finished draw-something ~a." filepath)
+      (format t "Finished draw-something: ~a~%" filepath)
       ;; Make sure Emacs is built with ImageMagick support,
       ;; otherwise this image won't scale!
       #+swank (when swank::*emacs-connection*

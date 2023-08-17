@@ -234,26 +234,29 @@
 
 (defun svg-write-drawing (drawing directory filename)
   "Write the drawing"
-  (let ((filepath (merge-pathnames (make-pathname
-                                    :name filename
-                                    :type "svg")
-                                   directory)))
-    (log-info (format nil "Writing drawing to file ~a ." filepath))
-    (ensure-directories-exist directory)
-    (with-open-file (svg filepath :direction :output
-                                  :if-exists :supersede)
-      (svg-header (+ (x (bounds drawing))
-                     (width (bounds drawing)))
-                  (+ (y (bounds drawing))
-                     (height (bounds drawing)))
-                  :to svg)
-      (svg-ground drawing svg)
-      ;;(svg-frame drawing svg)
-      (loop for plane across (planes drawing)
-            do (loop for fig across (figures plane)
-                     do (svg-figure fig (height (bounds drawing)) svg)))
-      (svg-footer :to svg)
-      filepath)))
+  (let ((svg (make-string-output-stream)))
+    (svg-header (+ (x (bounds drawing))
+                   (width (bounds drawing)))
+                (+ (y (bounds drawing))
+                   (height (bounds drawing)))
+                :to svg)
+    (svg-ground drawing svg)
+    ;;(svg-frame drawing svg)
+    (loop for plane across (planes drawing)
+          do (loop for fig across (figures plane)
+                   do (svg-figure fig (height (bounds drawing)) svg)))
+    (svg-footer :to svg)
+    (let ((filepath (merge-pathnames (make-pathname
+                                      :name filename
+                                      :type "svg")
+                                     directory)))
+      ;; sbcl doesn't like a pathsec here
+      (ensure-directories-exist (namestring directory))
+      (log-info (format nil "Writing drawing to file ~a ." filepath))
+      (with-open-file (svg-file (namestring filepath) :direction :output
+                                                      :if-exists :supersede)
+        (write-string (get-output-stream-string svg) svg-file))
+        filepath)))
 
 (defun svg-display-drawing (filepath)
   "Show the drawing to the user in the GUI."

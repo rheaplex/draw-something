@@ -24,12 +24,17 @@
 
 (defvar *log-stream* *error-output*)
 
-(defmacro log-info (format-string &rest format-args)
-  `(progn
-     (format *log-stream* ,format-string ,@format-args)
-     (terpri *log-stream*)))
+(defparameter +loglevel-info+ 6)
+(defparameter +loglevel-err+ 4)
 
-(defmacro log-err (format-string &rest format-args)
-  `(progn
-     (format *log-stream* ,format-string ,@format-args)
-     (terpri *log-stream*)))
+(defparameter *log-level* +loglevel-err+)
+
+(defun log-info (format-string &rest format-args)
+  (when (>= *log-level* +loglevel-info+)
+    (format *log-stream* "~?" format-string format-args)
+    (terpri *log-stream*)))
+
+(defun log-err (format-string &rest format-args)
+  (when (>= *log-level* +loglevel-err+)
+    (format *log-stream* "~?" format-string format-args)
+    (terpri *log-stream*)))
